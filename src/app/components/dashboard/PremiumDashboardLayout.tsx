@@ -22,7 +22,8 @@ import {
   Settings,
   User as UserIcon,
   Mail,
-  UserCircle2
+  UserCircle2,
+  Calendar
 } from 'lucide-react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import api from '@/app/utils/api';
@@ -30,7 +31,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface PremiumDashboardLayoutProps {
   children: React.ReactNode;
-  userType: 'client' | 'freelancer';
+  userType: 'client' | 'freelancer' | 'investor' | 'startup_creator' | 'admin';
 }
 
 interface NavItem {
@@ -170,7 +171,53 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
   ];
 
-  const navItems = userType === 'client' ? clientNavItems : freelancerNavItems;
+  // Navigation items for Investor
+  const investorNavItems: NavItem[] = [
+    { label: 'Overview', icon: LayoutDashboard, path: '/dashboard-investor' },
+    {
+      label: 'Deal Flow',
+      icon: Briefcase,
+      path: '/dashboard-investor/pipeline',
+      submenu: [
+        { label: 'Active Pipeline', path: '/dashboard-investor/pipeline' },
+        { label: 'Portfolio', path: '/dashboard-investor/portfolio' }
+      ]
+    },
+    { label: 'Meetings', icon: Calendar, path: '/dashboard-investor/meetings' },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard-investor/messages', badge: 2 },
+    { label: 'Subscription', icon: UserCircle2, path: '/dashboard-investor/subscription' },
+    { label: 'Settings', icon: Settings, path: '/dashboard-investor/settings' }
+  ];
+
+  // Navigation items for Startup Creator
+  const startupCreatorNavItems: NavItem[] = [
+    { label: 'Overview', icon: LayoutDashboard, path: '/dashboard-startup' },
+    {
+      label: 'My Ideas',
+      icon: Briefcase,
+      path: '/dashboard-startup/ideas',
+      submenu: [
+        { label: 'Manage Ideas', path: '/dashboard-startup/ideas' },
+        { label: 'New Submission', path: '/dashboard-startup/ideas/new' }
+      ]
+    },
+    { label: 'Analytics', icon: Search, path: '/dashboard-startup/analytics' },
+    { label: 'NDA Requests', icon: FileText, path: '/dashboard-startup/nda' },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard-startup/messages' },
+    { label: 'Subscription', icon: UserCircle2, path: '/dashboard-startup/subscription' },
+    { label: 'Settings', icon: Settings, path: '/dashboard-startup/settings' }
+  ];
+
+  const adminNavItems: NavItem[] = [
+    { label: 'Admin Panel', icon: LayoutDashboard, path: '/admin' }
+  ];
+
+  const navItems = 
+    userType === 'client' ? clientNavItems : 
+    userType === 'freelancer' ? freelancerNavItems : 
+    userType === 'investor' ? investorNavItems : 
+    userType === 'admin' ? adminNavItems :
+    startupCreatorNavItems;
 
   const toggleSubmenu = (label: string) => {
     setExpandedMenus(prev =>

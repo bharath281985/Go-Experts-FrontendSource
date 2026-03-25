@@ -26,6 +26,8 @@ import PaymentStatus from './pages/PaymentStatus';
 import ExploreIdeasPage from './pages/ExploreIdeasPage';
 import StartupIdeaPublicDetailPage from './pages/StartupIdeaPublicDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import InvestorDashboard from './pages/dashboard/investor/InvestorDashboard';
+import StartupCreatorDashboard from './pages/dashboard/startup/StartupCreatorDashboard';
 import { Toaster } from 'sonner';
 import SiteSettingsProvider from './components/SiteSettingsLoader';
 
@@ -66,6 +68,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <NewDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard-investor/*"
+              element={
+                <ProtectedRoute>
+                  <InvestorDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard-startup/*"
+              element={
+                <ProtectedRoute>
+                  <StartupCreatorDashboard />
                 </ProtectedRoute>
               }
             />

@@ -9,6 +9,7 @@ import TalentSection from '@/app/components/home/TalentSection';
 import TestimonialsSection from '@/app/components/home/TestimonialsSection';
 import FAQSection from '@/app/components/home/FAQSection';
 import FinalCTASection from '@/app/components/home/FinalCTASection';
+import PricingSection from '@/app/components/home/PricingSection';
 
 export default function HomePage() {
   return (
@@ -21,6 +22,7 @@ export default function HomePage() {
         <FeaturedProjectsSection />
         <HowItWorksSection />
         <TalentSection />
+        <PricingSection />
         <TestimonialsSection />
         <FAQSection />
         <FinalCTASection />

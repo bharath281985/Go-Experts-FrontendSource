@@ -17,12 +17,48 @@ const IconMap: Record<string, any> = {
   Shield, Building, IndianRupee, Award, Calendar, Mail, Lock
 };
 
+const AnimatedCheck = () => (
+  <motion.div 
+    initial={{ x: -10, opacity: 0 }}
+    animate={{ x: 0, opacity: 1 }}
+    className="relative w-9 h-9 flex items-center justify-center"
+  >
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="absolute inset-0 bg-[#F24C20]/10 rounded-full"
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    />
+    <svg 
+      className="w-6 h-8 z-10" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="#F24C20" 
+      strokeWidth="4" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <motion.path
+        d="M4 12L9 17L20 6"
+        initial={{ pathLength: 0, opacity: 0 }}
+        animate={{ pathLength: 1, opacity: 1 }}
+        transition={{ 
+          duration: 0.4, 
+          ease: "easeOut",
+          delay: 0.1 
+        }}
+      />
+    </svg>
+  </motion.div>
+);
+
 interface RegistrationWizardProps {
   onClose: () => void;
 }
 
 interface RegistrationData {
   accountType: string;
+  subscriptionPlan: string;
   categories: string[];
   workPreference: string;
   budgetRange: string;
@@ -69,6 +105,7 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<RegistrationData>({
     accountType: '',
+    subscriptionPlan: '',
     categories: [],
     workPreference: '',
     budgetRange: '',
@@ -79,47 +116,55 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     email: '',
     password: '',
   });
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [gigCats, setGigCats] = useState<any[]>([]);
+  const [startupCats, setStartupCats] = useState<any[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const fetchFlowData = async () => {
       try {
-        // Fetch both steps and real categories in parallel
-        const [stepsRes, categoriesRes] = await Promise.all([
+        setLoadingSteps(true);
+        // Fetch Steps, CMS Cats, and Startup Cats
+        const [stepsRes, cmsRes, startupRes] = await Promise.all([
           api.get('/registration-steps'),
-          api.get('/cms/categories')
+          api.get('/cms/categories'),
+          api.get('/startup-categories')
         ]);
 
         if (stepsRes.data.success) {
-          let steps = stepsRes.data.data;
+          setDynamicSteps(stepsRes.data.data);
+        }
 
-          // Inject real categories into the categories step
-          if (categoriesRes.data.success) {
-            const realCategories = categoriesRes.data.data
-              .filter((c: any) => c.is_active && !c.parent) // Only active top-level categories
-              .map((c: any) => ({
-                label: c.name,
-                value: c._id,
-                icon: c.icon, // This might be an emoji or lucide icon name
-                emoji: c.icon && c.icon.length <= 2 ? c.icon : null,
-                subtitle: c.description || `Explore ${c.name} opportunities`
-              }));
+        if (cmsRes.data.success) {
+          const processedGigCats = cmsRes.data.data
+            .filter((c: any) => c.is_active && !c.parent)
+            .map((c: any) => ({
+              label: c.name,
+              value: c._id,
+              icon: c.icon,
+              emoji: (c.icon && c.icon.length <= 2) ? c.icon : null,
+              subtitle: c.description || `Explore ${c.name} Gigs`
+            }));
+          setGigCats(processedGigCats);
+        }
 
-            steps = steps.map((step: any) => {
-              if (step.field === 'categories') {
-                return { ...step, options: realCategories };
-              }
-              return step;
-            });
-          }
-
-          setDynamicSteps(steps);
+        if (startupRes.data.success) {
+           const processedStartupCats = startupRes.data.data
+            .map((c: any) => ({
+              label: c.name,
+              value: c._id,
+              icon:c.icon,
+              subtitle: c.description || `Build a venture in ${c.name}`
+            }));
+           setStartupCats(processedStartupCats);
         }
       } catch (error) {
         console.error('Failed to fetch registration data:', error);
@@ -131,7 +176,53 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     fetchFlowData();
   }, []);
 
-  const totalSteps = dynamicSteps.length;
+  // Update categories step options dynamically when role changes
+  useEffect(() => {
+    if (dynamicSteps.length > 0) {
+      const isStartupRelated = ['investor', 'startup_creator'].includes(data.accountType);
+      const relevantCats = isStartupRelated ? startupCats : gigCats;
+
+      setDynamicSteps(prev => prev.map(step => {
+        if (step.field === 'categories') {
+          return { ...step, options: relevantCats };
+        }
+        return step;
+      }));
+    }
+  }, [data.accountType, gigCats, startupCats]);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      if (data.accountType) {
+        setLoadingPlans(true);
+        try {
+          const response = await api.get(`/subscription-plans?role=${data.accountType}`);
+          if (response.data.success) {
+            setPlans(response.data.data);
+          }
+        } catch (error) {
+          console.error('Failed to fetch plans:', error);
+        } finally {
+          setLoadingPlans(false);
+        }
+      }
+    };
+    fetchPlans();
+  }, [data.accountType]);
+
+  const visibleSteps = dynamicSteps.filter(step => {
+    // Stage 1: Always show Account Type
+    if (step.field === 'accountType') return true;
+    
+    // Only show if accountType selected (or step is for all)
+    if (!data.accountType && step.field !== 'accountType') return false;
+
+    // Filter by role
+    if (!step.applicableRoles || step.applicableRoles.length === 0) return true;
+    return step.applicableRoles.includes(data.accountType);
+  });
+
+  const totalSteps = visibleSteps.length;
 
   const updateData = (field: keyof RegistrationData, value: any) => {
     setData(prev => ({ ...prev, [field]: value }));
@@ -150,8 +241,8 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
   };
 
   const canProceed = () => {
-    if (dynamicSteps.length === 0) return false;
-    const step = dynamicSteps[currentStep - 1];
+    if (visibleSteps.length === 0) return false;
+    const step = visibleSteps[currentStep - 1];
     if (!step) return false;
 
     // Handle optional steps
@@ -161,6 +252,10 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
       return !!(data.fullName && data.email && data.password);
     }
 
+    if (step.type === 'subscription-plan') {
+      return loadingPlans ? false : (plans.length > 0 ? !!data.subscriptionPlan : true);
+    }
+    
     const value = data[step.field as keyof RegistrationData];
     if (step.type === 'multi-selection') {
       return Array.isArray(value) && value.length > 0;
@@ -244,12 +339,13 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
         email: normalizedEmail,
         password: data.password,
         roles: roles,
-        categories: data.categories,
+        categories: Array.isArray(data.categories) ? data.categories : [data.categories],
         location: data.location,
         work_preference: data.workPreference,
         experience_level: data.experienceLevel,
         availability: data.availability,
-        budget_range: data.budgetRange
+        budget_range: data.budgetRange,
+        subscription_plan: data.subscriptionPlan
       };
 
       const response = await api.post('/auth/register', payload);
@@ -260,22 +356,33 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
           localStorage.setItem('token', response.data.token);
           localStorage.setItem('isLoggedIn', 'true');
         }
-        if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          localStorage.setItem('userName', response.data.user.full_name);
-          if (response.data.user.roles?.includes('freelancer')) {
-            localStorage.setItem('userType', 'freelancer');
-          } else {
-            localStorage.setItem('userType', 'client');
+          if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            localStorage.setItem('userName', response.data.user.full_name);
+            localStorage.setItem('userType', response.data.user.role);
           }
+          toast.success(response.data.message || 'Account created! Please check your email to verify.');
+          setIsSuccess(true);
         }
-        toast.success(response.data.message || 'Account created! Please check your email to verify.');
-        setIsSuccess(true);
+      } catch (error) {
+        console.error('Registration error:', error);
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-    }
-  };
+    };
+
+    const getDashboardRedirect = () => {
+      switch (data.accountType) {
+        case 'freelancer':
+          return '/dashboard';
+        case 'client':
+          return '/dashboard';
+        case 'investor':
+          return '/dashboard-investor';
+        case 'startup_creator':
+          return '/dashboard-startup';
+        default:
+          return '/dashboard';
+      }
+    };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl">
@@ -297,14 +404,14 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-xl text-neutral-400 mb-8 max-w-md">
             We've sent a verification link to <strong className="text-white">{data.email}</strong>. Please check your inbox and click the link to verify your account before logging in.
           </motion.p>
-          <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} onClick={() => navigate('/dashboard')} className="px-8 py-4 bg-[#F24C20] hover:bg-[#d43a12] text-white rounded-xl text-lg font-bold w-full max-w-sm transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+          <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} onClick={() => navigate(getDashboardRedirect())} className="px-8 py-4 bg-[#F24C20] hover:bg-[#d43a12] text-white rounded-xl text-lg font-bold w-full max-w-sm transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
             Go to Dashboard
           </motion.button>
         </div>
       ) : (
         <div className="w-full max-w-7xl h-[95vh] mx-auto px-6 flex gap-12">
         {/* Left Side - Progress & Benefits */}
-        <div className="w-96 flex-shrink-0 py-12">
+        <div className="w-96 flex-shrink-0 py-10">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -317,7 +424,7 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
 
             {/* Progress Steps */}
             <div className="space-y-3">
-              {dynamicSteps.map((step, index) => (
+              {visibleSteps.map((step, index) => (
                 <motion.div
                   key={step._id || index}
                   initial={{ opacity: 0, x: -20 }}
@@ -336,7 +443,7 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                     >
                       {currentStep > index + 1 ? <CheckCircle className="w-5 h-5" /> : index + 1}
                     </div>
-                    {index < dynamicSteps.length - 1 && (
+                    {index < visibleSteps.length - 1 && (
                       <div className={`absolute top-10 left-1/2 -translate-x-1/2 w-0.5 h-6 transition-all duration-300 ${currentStep > index + 1 ? 'bg-green-500' : 'bg-neutral-800'}`} />
                     )}
                   </div>
@@ -387,14 +494,14 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
 
         {/* Right Side - Question Content */}
         <div className="flex-1 flex flex-col py-12">
-          <div className="overflow-y-auto pr-4 pb-24">
+          <div className="overflow-y-auto pr-4 pb-24 scrollbar-orange">
             <AnimatePresence mode="wait">
               {loadingSteps ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px]">
                   <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin mb-4" />
                   <p className="text-neutral-400">Personalizing your journey...</p>
                 </div>
-              ) : dynamicSteps.map((step, index) => {
+              ) : visibleSteps.map((step, index) => {
                 if (currentStep !== index + 1) return null;
 
                 const isSelected = (val: string) => {
@@ -423,13 +530,69 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                     exit={{ opacity: 0, x: -50 }}
                     className="space-y-8"
                   >
-                    <div>
-                      <h3 className="text-3xl lg:text-5xl font-bold text-white mb-4">{step.title}</h3>
+                    <div className="text-center">
+                      <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4">{step.title}</h3>
                       <p className="text-xl text-neutral-400">{step.description}</p>
                     </div>
 
+                    {step.type === 'subscription-plan' && (
+                      <div className="space-y-6">
+                        {loadingPlans ? (
+                          <div className="flex flex-col items-center justify-center py-12">
+                            <Loader2 className="w-10 h-10 text-[#F24C20] animate-spin mb-4" />
+                            <p className="text-neutral-400">Fetching best plans for you...</p>
+                          </div>
+                        ) : plans.length > 0 ? (
+                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {plans.map((plan: any) => {
+                              const selected = data.subscriptionPlan === plan._id;
+                              return (
+                                <motion.button
+                                  key={plan._id}
+                                  onClick={() => updateData('subscriptionPlan', plan._id)}
+                                  whileHover={{ y: -5 }}
+                                  className={`relative flex flex-col p-6 rounded-2xl border-2 transition-all text-left group bg-gradient-to-r from-[#F24C20]/3 via-transparent to-[#F24C20]/3 ${selected
+                                    ? 'border-[#F24C20] bg-[#F24C20]/10'
+                                    : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
+                                    }`}
+                                >
+                                  {selected && (
+                                    <div className="absolute top-4 right-4">
+                                      <CheckCircle className="w-6 h-6 text-[#F24C20]" />
+                                    </div>
+                                  )}
+                                  <div className="mb-4">
+                                    <h4 className="text-2xl font-bold text-white mb-1">{plan.name}</h4>
+                                    <div className="flex items-baseline gap-1">
+                                      <span className="text-3xl font-black text-white">₹{plan.price}</span>
+                                      <span className="text-neutral-500 text-sm">/{plan.billing_cycle}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 space-y-3 mb-6">
+                                    {plan.features?.slice(0, 4).map((feature: string, i: number) => (
+                                      <div key={i} className="flex items-start gap-2 text-sm text-neutral-400">
+                                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                        <span>{feature}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className={`mt-auto py-3 rounded-xl text-center font-bold text-sm transition-colors ${selected ? 'bg-[#F24C20] text-white' : 'bg-neutral-800 text-neutral-400 group-hover:bg-neutral-700'}`}>
+                                    {selected ? 'Selected' : 'Choose Plan'}
+                                  </div>
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="p-8 rounded-2xl bg-neutral-900/50 border border-neutral-800 text-center">
+                            <p className="text-neutral-400">No specific plans found for this role. Defaulting to standard free trial.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {(step.type === 'single-selection' || step.type === 'multi-selection') && (
-                      <div className={`grid gap-4 ${step.options.length > 4 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {step.options.map((opt: any) => {
                           const Icon = IconMap[opt.icon];
                           const selected = isSelected(opt.value);
@@ -439,19 +602,28 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                               onClick={() => handleSelect(opt.value)}
                               whileHover={{ scale: 1.02, x: 10 }}
                               whileTap={{ scale: 0.98 }}
-                              className={`relative p-6 rounded-2xl border-2 transition-all text-left flex items-start gap-6 group ${selected
+                              className={`relative p-6 rounded-2xl border-2 transition-all text-left flex items-center gap-6 group bg-gradient-to-r from-[#F24C20]/3 via-transparent to-[#F24C20]/3 ${selected
                                 ? 'border-[#F24C20] bg-[#F24C20]/10'
                                 : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
                                 }`}
                             >
-                              <div className="flex-shrink-0">
-                                {opt.emoji ? <span className="text-5xl">{opt.emoji}</span> : Icon ? <Icon className={`w-10 h-10 ${selected ? 'text-[#F24C20]' : 'text-neutral-400'}`} /> : <div className="w-12 h-12 rounded-xl bg-neutral-800 flex items-center justify-center font-bold text-neutral-500">{opt.label[0]}</div>}
+                              <div className="flex-shrink-0 w-16 flex justify-center">
+                                {opt.emoji ? <span className="text-6xl leading-none">{opt.emoji}</span> : Icon ? <Icon className={`w-12 h-12 ${selected ? 'text-[#F24C20]' : 'text-neutral-400'}`} /> : <div className="w-14 h-14 rounded-xl bg-neutral-800 flex items-center justify-center font-bold text-neutral-500">{opt.label[0]}</div>}
                               </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3">
-                                    <h4 className="text-xl font-bold text-white">{opt.label}</h4>
-                                    {selected && <CheckCircle className="w-6 h-6 text-[#F24C20]" />}
-                                  </div>
+                                <div className="flex-1 flex items-center justify-between">
+                                  <h4 className="text-xl font-bold text-white">{opt.label}</h4>
+                                  <AnimatePresence mode="wait">
+                                    {selected && (
+                                      <motion.div
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        exit={{ scale: 0.8, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                      >
+                                        <AnimatedCheck />
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 </div>
                             </motion.button>
                           );
@@ -459,8 +631,9 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                       </div>
                     )}
 
+
                     {step.type === 'input' && step.field === 'location' && (
-                      <div className="space-y-6">
+                      <div className="space-y-2">
                         <div className="relative">
                           <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
                           <input

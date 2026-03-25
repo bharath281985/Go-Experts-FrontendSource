@@ -35,16 +35,20 @@ export default function SignInPage() {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userName', user.full_name);
 
-        // Set initial userType based on roles
-        if (user.roles && user.roles.includes('freelancer')) {
-          localStorage.setItem('userType', 'freelancer');
+        // Redirect based on primary role
+        if (user.roles?.includes('investor')) {
+          navigate('/dashboard-investor');
+        } else if (user.roles?.includes('startup_creator')) {
+          navigate('/dashboard-startup');
         } else {
-          localStorage.setItem('userType', 'client');
+          // Set initial userType for marketplace roles
+          if (user.roles?.includes('freelancer')) {
+            localStorage.setItem('userType', 'freelancer');
+          } else {
+            localStorage.setItem('userType', 'client');
+          }
+          navigate('/dashboard');
         }
-
-        toast.success('Signed in successfully!');
-        // ProtectedRoute will handle redirection if email not verified
-        navigate('/dashboard');
       }
     } catch (error: any) {
       const status = error?.response?.status;
@@ -60,7 +64,13 @@ export default function SignInPage() {
           localStorage.setItem('isLoggedIn', 'true');
         }
         toast.error('Please verify your email first. Check your inbox or request a new link.');
-        navigate('/dashboard'); // ProtectedRoute will show the verify screen
+        if (errorUser?.roles?.includes('investor')) {
+          navigate('/dashboard-investor');
+        } else if (errorUser?.roles?.includes('startup_creator')) {
+          navigate('/dashboard-startup');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast.error(message || 'Invalid email or password');
       }

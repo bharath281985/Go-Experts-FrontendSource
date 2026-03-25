@@ -29,13 +29,22 @@ export default function SubscriptionCredits() {
 
   // Determine user type from URL or localStorage
   const isFreelancer = location.pathname.includes('freelancer');
+  const isInvestor = location.pathname.includes('investor');
+  const isStartupCreator = location.pathname.includes('startup');
+
+  const getTargetRole = () => {
+    if (isFreelancer) return 'freelancer';
+    if (isInvestor) return 'investor';
+    if (isStartupCreator) return 'startup_creator';
+    return 'client';
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [statsRes, plansRes] = await Promise.all([
           api.get('/users/dashboard-stats'),
-          api.get(`/subscription-plans?role=${isFreelancer ? 'freelancer' : 'client'}`)
+          api.get(`/subscription-plans?role=${getTargetRole()}`)
         ]);
         if (statsRes.data.success) {
           setStats(statsRes.data.data);
@@ -51,6 +60,16 @@ export default function SubscriptionCredits() {
               `${p.points_granted.toLocaleString()} wallet credits`,
                p.price > 0 ? 'Premium profile badge' : 'Basic profile visibility',
                p.price > 0 ? 'Priority in search results' : 'Standard support'
+            ] : isInvestor ? [
+              p.interest_click_limit > 1000 ? 'Infinite Deal Access' : `Express Interest in ${p.interest_click_limit} Startups`,
+              `${p.points_granted.toLocaleString()} data-access credits`,
+               p.price > 0 ? 'Verified Investor Badge' : 'Standard Access',
+               p.price > 0 ? 'Direct Founder Contact' : 'Limited Analytics'
+            ] : isStartupCreator ? [
+              p.project_post_limit > 1000 ? 'Unlimited Venture Launches' : `Post up to ${p.project_post_limit} Startup Ideas`,
+              `${p.points_granted.toLocaleString()} visibility points`,
+               p.price > 0 ? 'Featured Pitch Placement' : 'Basic Listing',
+               p.price > 0 ? 'Advanced Investor Tracking' : 'Standard Metrics'
             ] : [
               p.project_post_limit > 1000 ? 'Unlimited hiring' : `Hire up to ${p.project_post_limit} freelancers`,
               `${p.points_granted.toLocaleString()} wallet credits`,
@@ -71,7 +90,7 @@ export default function SubscriptionCredits() {
       }
     };
     fetchData();
-  }, [isFreelancer]);
+  }, [isFreelancer, isInvestor, isStartupCreator]);
 
   if (loading) {
     return (
@@ -86,11 +105,11 @@ export default function SubscriptionCredits() {
   const planTotalDays = sub ? Math.ceil((new Date(sub.end_date).getTime() - new Date(sub.start_date || sub.createdAt).getTime()) / (1000 * 60 * 60 * 24)) || 30 : 30;
 
   // Primary usage metric based on role
-  const creditsLimit = isFreelancer 
+  const creditsLimit = (isFreelancer || isInvestor)
     ? (sub?.total_interest_clicks || 0) 
     : (sub?.total_project_posts || 0);
 
-  const creditsRemaining = isFreelancer 
+  const creditsRemaining = (isFreelancer || isInvestor)
     ? (sub?.remaining_interest_clicks || 0) 
     : (sub?.remaining_project_posts || 0);
 
@@ -184,7 +203,7 @@ export default function SubscriptionCredits() {
             <div className={`p-6 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                  {isFreelancer ? 'Project Applications' : 'Hires Used'}
+                  {isFreelancer ? 'Project Applications' : isInvestor ? 'Interests Expressed' : isStartupCreator ? 'Pitches Launched' : 'Hires Used'}
                 </span>
                 <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
                   {currentPlanData.creditsUsed}/{currentPlanData.creditsLimit}
@@ -199,8 +218,9 @@ export default function SubscriptionCredits() {
                 />
               </div>
               <p className={`text-xs mt-2 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                {isFreelancer
-                  ? `${currentPlanData.creditsLimit - currentPlanData.creditsUsed} applications remaining`
+                {isFreelancer ? `${currentPlanData.creditsLimit - currentPlanData.creditsUsed} applications remaining`
+                  : isInvestor ? `${currentPlanData.creditsLimit - currentPlanData.creditsUsed} startup interests remaining`
+                  : isStartupCreator ? `${currentPlanData.creditsLimit - currentPlanData.creditsUsed} ideas remaining to launch`
                   : `${currentPlanData.creditsLimit - currentPlanData.creditsUsed} hires remaining`
                 }
               </p>
@@ -233,8 +253,9 @@ export default function SubscriptionCredits() {
             <AlertCircle className={`w-5 h-5 flex-shrink-0 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />
             <div>
               <p className={`text-sm font-medium ${isDarkMode ? 'text-orange-300' : 'text-orange-900'}`}>
-                {isFreelancer
-                  ? `You have ${creditsRemaining} project applications remaining`
+                {isFreelancer ? `You have ${creditsRemaining} project applications remaining`
+                  : isInvestor ? `You have ${creditsRemaining} startup interests remaining`
+                  : isStartupCreator ? `You have ${creditsRemaining} pitches remaining`
                   : `You have ${creditsRemaining} hires remaining`
                 }
               </p>

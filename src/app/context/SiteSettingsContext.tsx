@@ -27,6 +27,11 @@ export interface SiteSettings {
     home_stats: { label: string; value: number; suffix: string; icon: string }[];
     trust_badges: string[];
     startup_nda_template: string;
+    subscription_title: string;
+    subscription_subtitle: string;
+    subscription_description: string;
+    subscription_button_text: string;
+    subscription_highlights: { label: string; enabled: boolean }[];
 }
 
 export const defaultSiteSettings: SiteSettings = {
@@ -56,6 +61,11 @@ export const defaultSiteSettings: SiteSettings = {
     home_stats: [],
     trust_badges: [],
     startup_nda_template: '',
+    subscription_title: '',
+    subscription_subtitle: '',
+    subscription_description: '',
+    subscription_button_text: '',
+    subscription_highlights: [],
 };
 
 export const SiteSettingsContext = createContext<SiteSettings>(defaultSiteSettings);

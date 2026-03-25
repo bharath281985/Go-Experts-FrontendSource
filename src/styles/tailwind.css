@@ -2,3 +2,35 @@
 @source '../**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
+
+@layer utilities {
+  .scrollbar-orange::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-orange::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+  }
+  .scrollbar-orange::-webkit-scrollbar-thumb {
+    background: #F24C20;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .scrollbar-orange::-webkit-scrollbar-thumb:hover {
+    background: #FF5D32;
+  }
+
+  /* Global scrollbar for dark mode */
+  .dark *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .dark *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .dark *::-webkit-scrollbar-thumb {
+    background: #F24C20;
+    border-radius: 10px;
+  }
+}
