@@ -26,6 +26,7 @@ export interface SiteSettings {
     points_signup_bonus: number;
     home_stats: { label: string; value: number; suffix: string; icon: string }[];
     trust_badges: string[];
+    startup_nda_template: string;
 }
 
 export const defaultSiteSettings: SiteSettings = {
@@ -54,6 +55,7 @@ export const defaultSiteSettings: SiteSettings = {
     points_signup_bonus: 100,
     home_stats: [],
     trust_badges: [],
+    startup_nda_template: '',
 };
 
 export const SiteSettingsContext = createContext<SiteSettings>(defaultSiteSettings);

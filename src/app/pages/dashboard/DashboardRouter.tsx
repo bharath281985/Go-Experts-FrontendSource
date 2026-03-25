@@ -20,6 +20,7 @@ import WalletWithdraw from '@/app/pages/dashboard/freelancer/WalletWithdraw';
 import MyProjects from '@/app/pages/dashboard/shared/MyProjects';
 import GigOrders from '@/app/pages/dashboard/shared/GigOrders';
 import FindGigs from '@/app/pages/dashboard/shared/FindGigs';
+import StartupIdeas from '@/app/pages/dashboard/shared/StartupIdeas';
 import Disputes from '@/app/pages/dashboard/shared/Disputes';
 import Invoices from '@/app/pages/dashboard/shared/Invoices';
 import SavedItems from '@/app/pages/dashboard/shared/SavedItems';
@@ -99,7 +100,11 @@ export default function DashboardRouter() {
             element={userType === 'freelancer' ? <WalletWithdraw /> : <Navigate to="/dashboard/balance" />} 
           />
 
+          {/* Startup Ideas */}
+          <Route path="startup-ideas" element={<StartupIdeas />} />
+
           {/* Shared Pages */}
+
           <Route path="disputes" element={<Disputes />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="saved" element={<SavedItems />} />

@@ -109,14 +109,19 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
       ]
     },
-    {
-      label: 'Manage Gigs',
+    /* {
+      label: 'Explore Ideas',
       icon: Briefcase,
       path: '/dashboard/gigs',
       submenu: [
         { label: 'Gig Orders', path: '/dashboard/gigs/orders' },
         { label: 'Find Gigs', path: '/dashboard/gigs/find' }
       ]
+    }, -- Commented as requested */
+    {
+      label: 'Startup Ideas',
+      icon: Briefcase,
+      path: '/dashboard/startup-ideas'
     },
     { label: 'Find Talent', icon: Users, path: '/dashboard/talent' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: 2 },
@@ -140,8 +145,8 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
       ]
     },
-    {
-      label: 'Manage Gigs',
+    /* {
+      label: 'Startup Ideas!',
       icon: Briefcase,
       path: '/dashboard/gigs',
       submenu: [
@@ -149,6 +154,11 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
         { label: 'Gig Orders', path: '/dashboard/gigs/orders' },
         { label: 'Find Gigs', path: '/dashboard/gigs/find' }
       ]
+    }, -- Commented as requested */
+    {
+       label: 'Startup Ideas',
+       icon: Briefcase,
+       path: '/dashboard/startup-ideas'
     },
     { label: 'Find Clients', icon: Users, path: '/dashboard/clients' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes' },

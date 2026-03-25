@@ -23,6 +23,8 @@ import StaticPageView from './pages/StaticPageView';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import PaymentStatus from './pages/PaymentStatus';
+import ExploreIdeasPage from './pages/ExploreIdeasPage';
+import StartupIdeaPublicDetailPage from './pages/StartupIdeaPublicDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 import SiteSettingsProvider from './components/SiteSettingsLoader';
@@ -43,6 +45,8 @@ export default function App() {
             <Route path="/faqs" element={<FAQsPage />} />
             <Route path="/gigs" element={<GigsPage />} />
             <Route path="/gigs/:id" element={<GigDetailsPage />} />
+            <Route path="/explore-ideas" element={<ExploreIdeasPage />} />
+            <Route path="/explore-ideas/:id" element={<StartupIdeaPublicDetailPage />} />
             <Route path="/gigs/:id/checkout" element={<GigCheckout />} />
             <Route path="/gigs/:id/success" element={<GigOrderSuccess />} />
             <Route path="/projects" element={<ProjectsPage />} />

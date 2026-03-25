@@ -84,7 +84,7 @@ export default function Header() {
         { path: '/about-us', label: 'About Us' },
         { path: '/projects', label: 'Go Projects' },
         { path: '/talent', label: 'Go Talent' },
-        { path: '/gigs', label: 'Gigs' },
+        { path: '/explore-ideas', label: 'Explore Ideas' },
       ]);
     };
     fetchMenus();
