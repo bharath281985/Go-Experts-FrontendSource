@@ -28,6 +28,7 @@ import StartupIdeaPublicDetailPage from './pages/StartupIdeaPublicDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import InvestorDashboard from './pages/dashboard/investor/InvestorDashboard';
 import StartupCreatorDashboard from './pages/dashboard/startup/StartupCreatorDashboard';
+import SubscriptionPlansPricingPage from './pages/SubscriptionPlansPricingPage';
 import { Toaster } from 'sonner';
 import SiteSettingsProvider from './components/SiteSettingsLoader';
 
@@ -45,12 +46,13 @@ export default function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/contact-us" element={<ContactPage />} />
             <Route path="/faqs" element={<FAQsPage />} />
-            <Route path="/gigs" element={<GigsPage />} />
-            <Route path="/gigs/:id" element={<GigDetailsPage />} />
+            <Route path="/plans" element={<SubscriptionPlansPricingPage />} />
+            {/* <Route path="/gigs" element={<GigsPage />} />
+            <Route path="/gigs/:id" element={<GigDetailsPage />} /> */}
             <Route path="/explore-ideas" element={<ExploreIdeasPage />} />
             <Route path="/explore-ideas/:id" element={<StartupIdeaPublicDetailPage />} />
-            <Route path="/gigs/:id/checkout" element={<GigCheckout />} />
-            <Route path="/gigs/:id/success" element={<GigOrderSuccess />} />
+            {/* <Route path="/gigs/:id/checkout" element={<GigCheckout />} />
+            <Route path="/gigs/:id/success" element={<GigOrderSuccess />} /> */}
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/talent" element={<TalentPage />} />
@@ -90,7 +92,7 @@ export default function App() {
             <Route path="/terms" element={<StaticPageView />} />
             <Route path="/privacy" element={<StaticPageView />} />
             <Route path="/pages/:slug" element={<StaticPageView />} />
-            <Route path="/subscription" element={<SubscriptionPlans />} />
+            <Route path="/subscription" element={<SubscriptionPlansPricingPage />} />
             <Route path="/payment/success" element={<PaymentStatus />} />
             <Route path="/payment/failure" element={<PaymentStatus />} />
           </Routes>

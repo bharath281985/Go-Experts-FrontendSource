@@ -269,7 +269,7 @@ export default function HeroSection() {
                   placeholder={
                     searchType === 'sellers'
                       ? 'Search for experts, skills, or services...'
-                      : 'Search for projects, gigs, or opportunities...'
+                      : 'Search for projects, ventures, or opportunities...'
                   }
                   className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-lg"
                 />

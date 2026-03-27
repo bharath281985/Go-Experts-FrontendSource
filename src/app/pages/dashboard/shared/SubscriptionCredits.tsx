@@ -55,28 +55,14 @@ export default function SubscriptionCredits() {
             name: p.name,
             price: p.price,
             duration: `${p.duration_days} Days`,
-            features: isFreelancer ? [
-              p.interest_click_limit > 1000 ? 'Unlimited project applications' : `Apply to ${p.interest_click_limit} projects`,
-              `${p.points_granted.toLocaleString()} wallet credits`,
-               p.price > 0 ? 'Premium profile badge' : 'Basic profile visibility',
-               p.price > 0 ? 'Priority in search results' : 'Standard support'
-            ] : isInvestor ? [
-              p.interest_click_limit > 1000 ? 'Infinite Deal Access' : `Express Interest in ${p.interest_click_limit} Startups`,
-              `${p.points_granted.toLocaleString()} data-access credits`,
-               p.price > 0 ? 'Verified Investor Badge' : 'Standard Access',
-               p.price > 0 ? 'Direct Founder Contact' : 'Limited Analytics'
-            ] : isStartupCreator ? [
-              p.project_post_limit > 1000 ? 'Unlimited Venture Launches' : `Post up to ${p.project_post_limit} Startup Ideas`,
-              `${p.points_granted.toLocaleString()} visibility points`,
-               p.price > 0 ? 'Featured Pitch Placement' : 'Basic Listing',
-               p.price > 0 ? 'Advanced Investor Tracking' : 'Standard Metrics'
-            ] : [
-              p.project_post_limit > 1000 ? 'Unlimited hiring' : `Hire up to ${p.project_post_limit} freelancers`,
-              `${p.points_granted.toLocaleString()} wallet credits`,
-              p.price > 0 ? 'Priority project listing' : 'Basic project posting',
-              p.price > 0 ? 'Access to all talent profiles' : 'Standard support'
-            ],
-            limitations: p.price === 0 ? ['No roll-over credits', 'No analytics dashboard'] : [],
+            features: [
+              p.project_post_limit > 1000 ? 'Unlimited Projects' : `Post up to ${p.project_post_limit} Projects`,
+              p.task_post_limit > 0 ? `Post up to ${p.task_post_limit} Tasks` : null,
+              p.chat_limit > 0 ? `Chat with ${p.chat_limit} people` : null,
+              p.database_access_limit > 0 ? `${p.database_access_limit} Expert DB Hits` : null,
+              ...p.features
+            ].filter(Boolean),
+            limitations: p.price === 0 && p.name !== '90-Day Free Trial' ? ['No roll-over credits', 'No analytics dashboard'] : [],
             current: statsRes.data.data?.subscription?.plan_name === p.name,
             recommended: p.price > 0,
             id: p._id
@@ -267,7 +253,7 @@ export default function SubscriptionCredits() {
           </div>
         </motion.div>
 
-        {/* Credit System Info */}
+        {/* Credit System Info - Simplified */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -280,7 +266,7 @@ export default function SubscriptionCredits() {
           <div className="flex items-center gap-2 mb-4">
             <Zap className="w-6 h-6 text-[#F24C20]" />
             <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-              Credit System
+               Subscription Features
             </h3>
           </div>
 
@@ -288,38 +274,31 @@ export default function SubscriptionCredits() {
             <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'}`}>
               <div className="flex items-center justify-between mb-2">
                 <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                  Daily Credit Expiry
+                  Your Primary Limits
                 </span>
-                <TrendingDown className="w-5 h-5 text-red-500" />
+                <TrendingDown className="w-5 h-5 text-emerald-500" />
               </div>
-              <p className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                {currentPlanData.dailyExpiry} credit/day
+              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                {creditsRemaining} slots available
               </p>
             </div>
 
             <div className="space-y-2 text-sm">
               <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                How Credits Work:
+                Plan Information:
               </h4>
               <ul className={`space-y-1 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  {isFreelancer
-                    ? 'View client profiles: 365 credits'
-                    : 'View talent profiles: 365 credits'
-                  }
+                  No commissions on earnings
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  Credits expire daily (1/day)
+                  Direct communication access
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  Premium: No daily expiry
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  Use credits for unlocking features
+                  Unlimited profile visibility
                 </li>
               </ul>
             </div>

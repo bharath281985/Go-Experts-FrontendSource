@@ -34,7 +34,7 @@ export default function Footer() {
     {
       title: 'For Freelancers',
       links: [
-        { label: 'Find Work', path: '/gigs' },
+        // { label: 'Find Work', path: '/gigs' },
         { label: 'Earnings', path: '/dashboard' },
       ]
     },

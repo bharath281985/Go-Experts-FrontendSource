@@ -301,7 +301,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                   }`} />
                 <input
                   type="text"
-                  placeholder="Search projects, gigs, talents..."
+                  placeholder="Search projects, ventures, talents..."
                   className={`w-full pl-10 pr-4 py-2 bg-transparent text-sm outline-none ${isDarkMode
                     ? 'text-white placeholder:text-neutral-500'
                     : 'text-neutral-900 placeholder:text-neutral-400'

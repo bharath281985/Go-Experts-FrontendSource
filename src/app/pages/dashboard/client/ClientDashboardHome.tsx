@@ -49,7 +49,7 @@ export default function ClientDashboardHome() {
 
   // Project Stats (Mapping real data or using defaults)
   const totalSpent = stats?.client?.total_spent || 0;
-  const ongoingOrders = stats?.client?.ongoing_gig_orders || 0;
+  // const ongoingOrders = stats?.client?.ongoing_gig_orders || 0;
   const walletBalance = stats?.wallet_balance || 0;
 
   // Hiring Funnel Data (Using real project counts)
@@ -102,14 +102,14 @@ export default function ClientDashboardHome() {
       icon: Users,
       color: 'text-blue-500'
     },
-    {
+    /* {
       type: 'gig',
       title: 'Purchased Logo Design Gig',
       amount: 2500,
       time: '1 day ago',
       icon: Package,
       color: 'text-purple-500'
-    },
+    }, */
     {
       type: 'dispute',
       title: 'Dispute resolved in your favor',
@@ -183,38 +183,39 @@ export default function ClientDashboardHome() {
           <SparklineChart data={sparklineData} dataKey="value" color="#F24C20" height={30} />
         </motion.div>
 
-        {/* Total Spent on Ongoing Orders */}
+        {/* { stats?.client?.ongoing_gig_orders > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`p-6 rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-            }`}
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div className="p-3 rounded-xl bg-blue-500/10">
-              <Clock className="w-6 h-6 text-blue-500" />
-            </div>
-            <div className="flex items-center gap-1 text-green-500 text-sm">
-              <TrendingUp className="w-4 h-4" />
-              <span>8%</span>
-            </div>
-          </div>
-          <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
-            Ongoing Orders
-          </div>
-          <div className={`text-2xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            <CountUp end={ongoingOrders} />
-          </div>
-          <SparklineChart
-            data={sparklineData.map((d) => ({ value: d.value - 10 }))}
-            dataKey="value"
-            color="#3b82f6"
-            height={30}
-          />
-        </motion.div>
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.2 }}
+           className={`p-6 rounded-2xl border backdrop-blur-sm ${isDarkMode
+             ? 'bg-neutral-900/50 border-neutral-800'
+             : 'bg-white/50 border-neutral-200'
+             }`}
+         >
+           <div className="flex items-start justify-between mb-4">
+             <div className="p-3 rounded-xl bg-blue-500/10">
+               <Clock className="w-6 h-6 text-blue-500" />
+             </div>
+             <div className="flex items-center gap-1 text-green-500 text-sm">
+               <TrendingUp className="w-4 h-4" />
+               <span>8%</span>
+             </div>
+           </div>
+           <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
+             Ongoing Orders
+           </div>
+           <div className={`text-2xl font-bold mb-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+             <CountUp end={ongoingOrders} />
+           </div>
+           <SparklineChart
+             data={sparklineData.map((d) => ({ value: d.value - 10 }))}
+             dataKey="value"
+             color="#3b82f6"
+             height={30}
+           />
+         </motion.div>
+        )} */}
 
         {/* Purchased Gigs / Extra Stats */}
         <motion.div
@@ -502,7 +503,7 @@ export default function ClientDashboardHome() {
               <ArrowRight className={`w-5 h-5 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`} />
             </Link>
 
-            <Link
+            {/* <Link
               to="/dashboard/gigs/find"
               className={`flex items-center gap-3 p-4 rounded-xl border transition-all hover:scale-105 ${isDarkMode
                 ? 'bg-neutral-800/50 border-neutral-700 hover:border-neutral-600'
@@ -516,7 +517,7 @@ export default function ClientDashboardHome() {
                 Browse Gigs
               </span>
               <ArrowRight className={`w-5 h-5 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`} />
-            </Link>
+            </Link> */}
 
             <Link
               to="/dashboard/invoices"

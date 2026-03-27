@@ -214,6 +214,9 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     // Stage 1: Always show Account Type
     if (step.field === 'accountType') return true;
     
+    // Skip subscription plan selection during signup as per new requirement
+    if (step.type === 'subscription-plan') return false;
+
     // Only show if accountType selected (or step is for all)
     if (!data.accountType && step.field !== 'accountType') return false;
 

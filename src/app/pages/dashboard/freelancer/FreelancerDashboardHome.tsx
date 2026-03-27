@@ -54,7 +54,7 @@ export default function FreelancerDashboardHome() {
 
   // Work Pipeline Data
   const workPipeline = [
-    { stage: 'Live Gigs', count: stats?.freelancer?.live_gigs || 0, color: '#F24C20' },
+    // { stage: 'Live Gigs', count: stats?.freelancer?.live_gigs || 0, color: '#F24C20' },
     { stage: 'Total Orders', count: stats?.freelancer?.completed_projects || 0, color: '#3b82f6' },
     { stage: 'In Progress', count: stats?.freelancer?.pipeline?.in_progress || 0, color: '#10b981' },
     { stage: 'Delivered', count: stats?.freelancer?.pipeline?.delivered || 0, color: '#f59e0b' }
@@ -346,59 +346,59 @@ export default function FreelancerDashboardHome() {
       {/* Gig Performance & Recent Orders */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gig Performance */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className={`p-6 rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-            }`}
-        >
-          <h2 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            Gig Performance
-          </h2>
-          <div className="space-y-4">
-            {gigPerformance.map((gig: any, index: number) => (
-              <motion.div
-                key={gig.name}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1 + index * 0.1 }}
-                className={`p-4 rounded-xl border ${isDarkMode
-                  ? 'bg-neutral-800/50 border-neutral-700'
-                  : 'bg-neutral-50 border-neutral-200'
-                  }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                    {gig.name}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                    <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                      {gig.rating}
-                    </span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>Orders</div>
-                    <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                      {gig.orders}
-                    </div>
-                  </div>
-                  <div>
-                    <div className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>Revenue</div>
-                    <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                      ₹{(gig.revenue / 1000).toFixed(1)}K
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+        {/* <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.9 }}
+           className={`p-6 rounded-2xl border backdrop-blur-sm ${isDarkMode
+             ? 'bg-neutral-900/50 border-neutral-800'
+             : 'bg-white/50 border-neutral-200'
+             }`}
+         >
+           <h2 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+             Gig Performance
+           </h2>
+           <div className="space-y-4">
+             {gigPerformance.map((gig: any, index: number) => (
+               <motion.div
+                 key={gig.name}
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 transition={{ delay: 1 + index * 0.1 }}
+                 className={`p-4 rounded-xl border ${isDarkMode
+                   ? 'bg-neutral-800/50 border-neutral-700'
+                   : 'bg-neutral-50 border-neutral-200'
+                   }`}
+               >
+                 <div className="flex items-center justify-between mb-2">
+                   <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                     {gig.name}
+                   </span>
+                   <div className="flex items-center gap-1">
+                     <Star className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                     <span className={`text-sm ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                       {gig.rating}
+                     </span>
+                   </div>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4 text-sm">
+                   <div>
+                     <div className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>Orders</div>
+                     <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                       {gig.orders}
+                     </div>
+                   </div>
+                   <div>
+                     <div className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>Revenue</div>
+                     <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                       ₹{(gig.revenue / 1000).toFixed(1)}K
+                     </div>
+                   </div>
+                 </div>
+               </motion.div>
+             ))}
+           </div>
+         </motion.div> */}
 
         {/* Recent Orders */}
         <motion.div
@@ -414,13 +414,13 @@ export default function FreelancerDashboardHome() {
             <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
               Recent Orders
             </h2>
-            <Link
+            {/* <Link
               to="/dashboard/gigs/orders"
               className="text-[#F24C20] text-sm font-medium hover:underline flex items-center gap-1"
             >
               View All
               <ArrowRight className="w-3 h-3" />
-            </Link>
+            </Link> */}
           </div>
           <div className="space-y-4">
             {recentOrders.map((order: any, index: number) => (

@@ -28,12 +28,12 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
       path: '/dashboard/projects/explore',
       color: 'bg-[#F24C20]'
     },
-    {
+    /* {
       label: 'Buy Gig',
       icon: Package,
       path: '/dashboard/gigs/find',
       color: 'bg-purple-500'
-    },
+    }, */
     {
       label: 'Messages',
       icon: MessageSquare,
@@ -63,12 +63,12 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
   ];
 
   const freelancerActions = [
-    {
+    /* {
       label: 'Create Gig',
       icon: Package,
       path: '/dashboard/gigs/create',
       color: 'bg-[#F24C20]'
-    },
+    }, */
     {
       label: 'Find Projects',
       icon: Briefcase,

@@ -13,13 +13,13 @@ import FindTalent from '@/app/pages/dashboard/client/FindTalent';
 // Freelancer Pages
 import FreelancerDashboardHome from '@/app/pages/dashboard/freelancer/FreelancerDashboardHome';
 import FindClients from '@/app/pages/dashboard/freelancer/FindClients';
-import MyGigs from '@/app/pages/dashboard/freelancer/MyGigs';
+// import MyGigs from '@/app/pages/dashboard/freelancer/MyGigs';
 import WalletWithdraw from '@/app/pages/dashboard/freelancer/WalletWithdraw';
 
 // Shared Pages
 import MyProjects from '@/app/pages/dashboard/shared/MyProjects';
-import GigOrders from '@/app/pages/dashboard/shared/GigOrders';
-import FindGigs from '@/app/pages/dashboard/shared/FindGigs';
+// import GigOrders from '@/app/pages/dashboard/shared/GigOrders';
+// import FindGigs from '@/app/pages/dashboard/shared/FindGigs';
 import StartupIdeas from '@/app/pages/dashboard/shared/StartupIdeas';
 import Disputes from '@/app/pages/dashboard/shared/Disputes';
 import Invoices from '@/app/pages/dashboard/shared/Invoices';
@@ -29,10 +29,10 @@ import AccountBalance from '@/app/pages/dashboard/shared/AccountBalance';
 import SubscriptionCredits from '@/app/pages/dashboard/shared/SubscriptionCredits';
 import Settings from '@/app/pages/dashboard/shared/Settings';
 import ProjectDetails from '@/app/pages/ProjectDetails';
-import GigDetails from '@/app/pages/GigDetails';
+// import GigDetails from '@/app/pages/GigDetails';
 import TalentProfile from '@/app/pages/TalentProfile';
-import CreateGig from '@/app/pages/dashboard/freelancer/CreateGig';
-import EditGig from '@/app/pages/dashboard/freelancer/EditGig';
+// import CreateGig from '@/app/pages/dashboard/freelancer/CreateGig';
+// import EditGig from '@/app/pages/dashboard/freelancer/EditGig';
 
 export default function DashboardRouter() {
   const [userType, setUserType] = useState<'client' | 'freelancer'>('client');
@@ -75,14 +75,14 @@ export default function DashboardRouter() {
           />
 
           {/* Gigs */}
-          <Route path="gigs/orders" element={<GigOrders />} />
-          <Route path="gigs/find" element={<FindGigs />} />
+          {/* <Route path="gigs/orders" element={<GigOrders />} />
+          <Route path="gigs/find" element={<FindGigs />} /> */}
           
           {/* My Gigs (Freelancer Only) */}
-          <Route 
+          {/* <Route 
             path="gigs/my-gigs" 
             element={userType === 'freelancer' ? <MyGigs /> : <Navigate to="/dashboard" />} 
-          />
+          /> */}
 
           {/* Talent/Clients */}
           <Route
@@ -115,9 +115,9 @@ export default function DashboardRouter() {
 
           {/* Details Pages */}
           <Route path="projects/:id" element={<ProjectDetails />} />
-          <Route path="gigs/create" element={<CreateGig />} />
+          {/* <Route path="gigs/create" element={<CreateGig />} />
           <Route path="gigs/edit/:id" element={<EditGig />} />
-          <Route path="gigs/:id" element={<GigDetails />} />
+          <Route path="gigs/:id" element={<GigDetails />} /> */}
           <Route path="talent/:id" element={<TalentProfile />} />
 
           {/* Fallback */}

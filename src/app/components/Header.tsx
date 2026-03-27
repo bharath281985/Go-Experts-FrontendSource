@@ -81,10 +81,10 @@ export default function Header() {
       // Fallback
       setNavLinks([
         { path: '/', label: 'Home' },
-        { path: '/about-us', label: 'About Us' },
         { path: '/projects', label: 'Go Projects' },
         { path: '/talent', label: 'Go Talent' },
         { path: '/explore-ideas', label: 'Explore Ideas' },
+        { path: '/plans', label: 'Plans' },
       ]);
     };
     fetchMenus();
