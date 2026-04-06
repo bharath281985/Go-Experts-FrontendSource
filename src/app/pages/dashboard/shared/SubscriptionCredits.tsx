@@ -10,7 +10,8 @@ import {
   AlertCircle,
   CreditCard,
   ArrowRight,
-  Loader2
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
@@ -27,56 +28,74 @@ export default function SubscriptionCredits() {
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
 
-  // Determine user type from URL or localStorage
-  const isFreelancer = location.pathname.includes('freelancer');
-  const isInvestor = location.pathname.includes('investor');
-  const isStartupCreator = location.pathname.includes('startup');
+  const queryParams = new URLSearchParams(location.search);
+  const roleParam = queryParams.get('role');
 
   const getTargetRole = () => {
-    if (isFreelancer) return 'freelancer';
-    if (isInvestor) return 'investor';
-    if (isStartupCreator) return 'startup_creator';
+    if (location.pathname.includes('freelancer') || roleParam === 'freelancer') return 'freelancer';
+    if (location.pathname.includes('investor') || roleParam === 'investor') return 'investor';
+    if (location.pathname.includes('startup') || roleParam === 'startup_creator') return 'startup_creator';
+    if (roleParam === 'client') return 'client';
+
+    const storedType = localStorage.getItem('userType');
+    if (storedType === 'freelancer') return 'freelancer';
+    if (storedType === 'investor') return 'investor';
+    if (storedType === 'startup_creator') return 'startup_creator';
     return 'client';
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, plansRes] = await Promise.all([
-          api.get('/users/dashboard-stats'),
-          api.get(`/subscription-plans?role=${getTargetRole()}`)
-        ]);
-        if (statsRes.data.success) {
-          setStats(statsRes.data.data);
-        }
-        if (plansRes.data.success) {
-          // Map DB plans to frontend structure
-          const dbPlans = plansRes.data.data.map((p: any) => ({
-            name: p.name,
-            price: p.price,
-            duration: `${p.duration_days} Days`,
-            features: [
-              p.project_post_limit > 1000 ? 'Unlimited Projects' : `Post up to ${p.project_post_limit} Projects`,
-              p.task_post_limit > 0 ? `Post up to ${p.task_post_limit} Tasks` : null,
-              p.chat_limit > 0 ? `Chat with ${p.chat_limit} people` : null,
-              p.database_access_limit > 0 ? `${p.database_access_limit} Expert DB Hits` : null,
-              ...p.features
-            ].filter(Boolean),
-            limitations: p.price === 0 && p.name !== '90-Day Free Trial' ? ['No roll-over credits', 'No analytics dashboard'] : [],
-            current: statsRes.data.data?.subscription?.plan_name === p.name,
-            recommended: p.price > 0,
-            id: p._id
-          }));
-          setPlans(dbPlans);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
+  const targetRole = getTargetRole();
+  const isFreelancer = targetRole === 'freelancer';
+  const isInvestor = targetRole === 'investor';
+  const isStartupCreator = targetRole === 'startup_creator';
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, plansRes] = await Promise.all([
+        api.get('/users/dashboard-stats'),
+        api.get(`/subscription-plans?role=${targetRole}`)
+      ]);
+
+      if (statsRes.data.success) {
+        setStats(statsRes.data.data);
       }
-    };
+
+      if (plansRes.data.success) {
+        const dbPlans = plansRes.data.data.map((p: any) => ({
+          name: p.name,
+          price: p.price,
+          duration: `${p.duration_days} Days`,
+          features: [
+            p.project_post_limit > 1000 ? 'Unlimited Projects' : `Post up to ${p.project_post_limit} Projects`,
+            p.task_post_limit > 0 ? `Post up to ${p.task_post_limit} Tasks` : null,
+            p.chat_limit > 0 ? `Chat with ${p.chat_limit} people` : null,
+            p.database_access_limit > 0 ? `${p.database_access_limit} Expert DB Hits` : null,
+            ...p.features
+          ].filter(Boolean),
+          limitations: p.price === 0 && p.name !== '90-Day Free Trial' ? ['No roll-over credits', 'No analytics dashboard'] : [],
+          current: statsRes.data.data?.subscription?.plan_name === p.name,
+          recommended: p.price > 0,
+          id: p._id
+        }));
+        setPlans(dbPlans);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [isFreelancer, isInvestor, isStartupCreator]);
+    
+    const handleFocus = () => {
+      fetchData();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [targetRole]);
 
   if (loading) {
     return (
@@ -135,12 +154,23 @@ export default function SubscriptionCredits() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-          Subscription & Credits
-        </h1>
-        <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-          Manage your subscription plan and credit balance
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              Subscription & Credits
+            </h1>
+            <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              Manage your subscription plan and credit balance
+            </p>
+          </div>
+          <button 
+            onClick={() => fetchData()}
+            className={`p-2 rounded-xl border transition-all ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 text-neutral-400 hover:text-white' : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'}`}
+            title="Refresh Credits"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </motion.div>
 
       {/* Current Plan Status */}
@@ -189,7 +219,7 @@ export default function SubscriptionCredits() {
             <div className={`p-6 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                  {isFreelancer ? 'Project Applications' : isInvestor ? 'Interests Expressed' : isStartupCreator ? 'Pitches Launched' : 'Hires Used'}
+                  {isFreelancer ? 'Applications Used' : isInvestor ? 'Interests Expressed' : isStartupCreator ? 'Pitches Launched' : 'Project Posts Used'}
                 </span>
                 <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
                   {currentPlanData.creditsUsed}/{currentPlanData.creditsLimit}

@@ -183,10 +183,17 @@ export default function ContactPage() {
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-neutral-400 ml-1">Phone Number</label>
                                             <input 
-                                                type="text" 
-                                                placeholder="+91"
+                                                type="tel" 
+                                                maxLength={10}
+                                                pattern="[0-9]{10}"
+                                                placeholder="10 digit number"
                                                 value={formData.phoneNumber}
-                                                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                                    if (val.length <= 10) {
+                                                        setFormData({...formData, phoneNumber: val});
+                                                    }
+                                                }}
                                                 className="w-full px-6 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl focus:outline-none focus:border-[#F24C20] transition-colors"
                                             />
                                         </div>

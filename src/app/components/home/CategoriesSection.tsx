@@ -1,5 +1,6 @@
 import { motion, useInView } from 'motion/react';
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Palette,
   Code,
@@ -76,6 +77,7 @@ const defaultCategories = [
 export default function CategoriesSection() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -134,7 +136,7 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section ref={ref} className="relative py-24 overflow-hidden bg-neutral-950">
+    <section ref={ref} className="relative py-20 overflow-hidden bg-neutral-950">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <motion.div
@@ -174,7 +176,7 @@ export default function CategoriesSection() {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category, index) => (
+          {categories.slice(0, 4).map((category, index) => (
             <motion.div
               key={category.title}
               initial={{ opacity: 0, scale: 0.8 }}
@@ -182,6 +184,7 @@ export default function CategoriesSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ scale: 1.05, y: -10 }}
               className="group relative cursor-pointer"
+              onClick={() => navigate(`/projects?search=${encodeURIComponent(category.title)}`)}
             >
               {/* Card */}
               <div className="relative h-full p-6 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 hover:border-[#F24C20]/50 transition-all duration-300 overflow-hidden">
@@ -229,8 +232,8 @@ export default function CategoriesSection() {
                     transition={{ duration: 0.5 }}
                   >
                     {!category.imageError && category.image ? (
-                      <img 
-                        src={`${import.meta.env.VITE_API_URL || 'https://backendapis.goexperts.in'}${category.image}`} 
+                      <img
+                        src={`${import.meta.env.VITE_API_URL || 'https://backendapis.goexperts.in'}${category.image}`}
                         alt={category.title}
                         className="w-full h-full object-cover"
                         onError={() => handleImageError(index)}
@@ -239,7 +242,7 @@ export default function CategoriesSection() {
                       <span className="text-3xl">{category.icon}</span>
                     )}
                   </motion.div>
-                  
+
                   <h3 className="text-xl font-bold text-white group-hover:text-[#F24C20] transition-colors leading-tight">
                     {category.title}
                   </h3>
@@ -317,7 +320,10 @@ export default function CategoriesSection() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-12"
         >
-          <button className="px-8 py-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl text-white font-semibold transition-all duration-300 group">
+          <button 
+            onClick={() => navigate('/categories')}
+            className="px-8 py-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl text-white font-semibold transition-all duration-300 group"
+          >
             <span className="flex items-center gap-2">
               Explore All Categories
               <motion.span

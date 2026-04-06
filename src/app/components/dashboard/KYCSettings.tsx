@@ -21,6 +21,8 @@ import {
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
+import { getImgUrl } from "@/app/utils/api";
+
 interface KYCSettingsProps {
     userRole: 'investor' | 'startup_creator';
 }
@@ -125,8 +127,9 @@ export default function KYCSettings({ userRole }: KYCSettingsProps) {
         const uploadData = new FormData();
         uploadData.append('kyc_doc', file);
 
+        const toastId = toast.loading("Uploading document...");
+
         try {
-            toast.loading("Uploading document...");
             // Use existing file upload endpoint or a new one
             const res = await api.post('/kyc/upload', uploadData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -144,12 +147,10 @@ export default function KYCSettings({ userRole }: KYCSettingsProps) {
                     }
                     return updated;
                 });
-                toast.success("Document uploaded successfully");
+                toast.success("Document uploaded successfully", { id: toastId });
             }
         } catch (err) {
-            toast.error("Upload failed. Please try again.");
-        } finally {
-            toast.dismiss();
+            toast.error("Upload failed. Please try again.", { id: toastId });
         }
     };
 
@@ -408,11 +409,11 @@ function UploadField({ label, value, onUpload, icon: Icon }: any) {
             <div className={`relative rounded-[2rem] border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all group ${
                 value ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-neutral-800 hover:border-[#F24C20]/30 hover:bg-neutral-900'
             }`}>
-               {value ? (
+                {value ? (
                    <>
                     <CheckCircle2 className="w-8 h-8 text-emerald-500 mb-2" />
                     <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Document Secured</span>
-                    <button onClick={() => window.open(value)} className="mt-2 text-[8px] font-black text-white hover:underline uppercase">View Upload</button>
+                    <button onClick={() => window.open(getImgUrl(value))} className="mt-2 text-[8px] font-black text-white hover:underline uppercase">View Upload</button>
                    </>
                ) : (
                    <>

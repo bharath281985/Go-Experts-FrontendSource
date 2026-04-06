@@ -13,9 +13,10 @@ import {
   Loader2,
   AlertCircle,
   Link as LinkIcon,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getImgUrl } from '@/app/utils/api';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { useTheme } from '@/app/components/ThemeProvider';
@@ -42,8 +43,9 @@ export default function TalentProfile() {
   }, [id]);
 
   const checkIfUnlocked = async () => {
+    if (!id || id === 'undefined' || id.length < 12) return;
     try {
-      const res = await api.get(`/subscription/is-unlocked/${id}`);
+      const res = await api.get(`/subscription/is-unlocked/${id}`, { skipAuthRedirect: true } as any);
       if (res.data.success && res.data.isUnlocked) {
         setIsUnlocked(true);
       }
@@ -127,6 +129,17 @@ export default function TalentProfile() {
       <div className="relative h-80 bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/50 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-neutral-950 to-transparent" />
+        
+        {/* Back Button */}
+        <div className="absolute top-8 left-6 z-20">
+          <button
+            onClick={() => navigate('/dashboard/talent')}
+            className="flex items-center gap-2 px-4 py-2 bg-black/30 backdrop-blur-md rounded-xl border border-white/10 text-white font-bold hover:bg-black/50 transition-all group"
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Back to Talent Pool
+          </button>
+        </div>
       </div>
 
       {/* Profile Header */}
@@ -173,7 +186,7 @@ export default function TalentProfile() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/talent/hire/${id}`)}
+                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}&intent=hire`)}
                   className={`flex-1 md:flex-none px-8 py-4 ${isUnlocked ? 'bg-[#F24C20] hover:bg-[#d9431b]' : 'bg-neutral-800 hover:bg-neutral-700'} text-white rounded-2xl font-bold transition-all shadow-lg shadow-[#F24C20]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2`}
                 >
                   {!isUnlocked && <Lock className="w-5 h-5" />}
@@ -278,9 +291,9 @@ export default function TalentProfile() {
           {activeTab === 'skills' && (
             <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {talent.skills?.length > 0 ? (
-                talent.skills.map((skill: string) => (
-                  <div key={skill} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
-                    <span className="text-white font-bold">{skill}</span>
+                talent.skills.map((skill: any) => (
+                  <div key={typeof skill === 'object' ? skill._id : skill} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
+                    <span className="text-white font-bold">{typeof skill === 'object' ? skill.name : skill}</span>
                     <Award className="w-5 h-5 text-[#F24C20]" />
                   </div>
                 ))
@@ -358,14 +371,7 @@ export default function TalentProfile() {
                       <p className="text-neutral-500 font-medium">No projects added to the portfolio yet.</p>
                     </div>
                   )}
-                  <CreditUnlockModal 
-        isOpen={showUnlockModal}
-        onClose={() => setShowUnlockModal(false)}
-        targetId={id!}
-        targetType="freelancer"
-        onUnlocked={() => setIsUnlocked(true)}
-      />
-    </div>
+                </div>
               )}
             </section>
           )}
@@ -399,6 +405,14 @@ export default function TalentProfile() {
           )}
         </div>
       </div>
+
+      <CreditUnlockModal 
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        targetId={id!}
+        targetType="freelancer"
+        onUnlocked={() => setIsUnlocked(true)}
+      />
     </div>
   );
 }

@@ -60,14 +60,10 @@ interface RegistrationData {
   accountType: string;
   subscriptionPlan: string;
   categories: string[];
-  workPreference: string;
-  budgetRange: string;
-  experienceLevel: string;
-  location: string;
-  availability: string;
-  fullName: string;
   email: string;
+  fullName: string;
   password: string;
+  [key: string]: any;
 }
 
 const commonLocations = [
@@ -127,20 +123,24 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
   const [startupCats, setStartupCats] = useState<any[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [allSkills, setAllSkills] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchFlowData = async () => {
       try {
         setLoadingSteps(true);
         // Fetch Steps, CMS Cats, and Startup Cats
-        const [stepsRes, cmsRes, startupRes] = await Promise.all([
-          api.get('/registration-steps'),
+        const [stepsRes, cmsRes, startupRes, skillsRes] = await Promise.all([
+          api.get('/registration-steps?module=onboarding'),
           api.get('/cms/categories'),
-          api.get('/startup-categories')
+          api.get('/startup-categories'),
+          api.get('/cms/skills')
         ]);
 
         if (stepsRes.data.success) {
-          setDynamicSteps(stepsRes.data.data);
+          // Sort steps by order to ensure consistency
+          const sortedSteps = stepsRes.data.data.sort((a: any, b: any) => a.order - b.order);
+          setDynamicSteps(sortedSteps);
         }
 
         if (cmsRes.data.success) {
@@ -166,6 +166,16 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
             }));
            setStartupCats(processedStartupCats);
         }
+
+        if (skillsRes.data.success) {
+           const processedSkills = (skillsRes.data.data || skillsRes.data.skills || [])
+            .map((s: any) => ({
+              label: s.name,
+              value: s._id || s.name,
+              categoryId: s.category // Capture categorical association
+            }));
+           setAllSkills(processedSkills);
+        }
       } catch (error) {
         console.error('Failed to fetch registration data:', error);
         toast.error('Failed to load registration flow. Please try again.');
@@ -176,20 +186,29 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     fetchFlowData();
   }, []);
 
-  // Update categories step options dynamically when role changes
+  // Update categories and skills options dynamically when role changes
   useEffect(() => {
     if (dynamicSteps.length > 0) {
       const isStartupRelated = ['investor', 'startup_creator'].includes(data.accountType);
       const relevantCats = isStartupRelated ? startupCats : gigCats;
 
       setDynamicSteps(prev => prev.map(step => {
-        if (step.field === 'categories') {
+        if (step.field === 'categories' || step.field === 'projectType') {
           return { ...step, options: relevantCats };
+        }
+        if (step.field === 'skills') {
+          // Only show skills belonging to the selected categories
+          const filteredSkills = allSkills.filter(skill => 
+             data.categories.includes(skill.categoryId)
+          );
+          // If no categories selected or no matches, show a subset or all (fallback)
+          const finalSkills = filteredSkills.length > 0 ? filteredSkills : allSkills.slice(0, 20);
+          return { ...step, options: finalSkills };
         }
         return step;
       }));
     }
-  }, [data.accountType, gigCats, startupCats]);
+  }, [data.accountType, gigCats, startupCats, allSkills, data.categories]); 
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -338,15 +357,14 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
       const roles = data.accountType === 'both' ? ['client', 'freelancer'] : [data.accountType];
 
       const payload = {
+        ...data,
         full_name: data.fullName,
         email: normalizedEmail,
-        password: data.password,
         roles: roles,
         categories: Array.isArray(data.categories) ? data.categories : [data.categories],
-        location: data.location,
+        // Ensure legacy fields are mapped if they differ from data state keys
         work_preference: data.workPreference,
         experience_level: data.experienceLevel,
-        availability: data.availability,
         budget_range: data.budgetRange,
         subscription_plan: data.subscriptionPlan
       };
@@ -373,16 +391,28 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     };
 
     const getDashboardRedirect = () => {
-      switch (data.accountType) {
-        case 'freelancer':
-          return '/dashboard';
-        case 'client':
-          return '/dashboard';
+      // Check for redirect param
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      if (redirect) return redirect;
+
+      // Set the initial userType based on accountType so the DashboardRouter shows the correct view
+      const primaryRole = data.accountType === 'both' ? 'client' : data.accountType;
+      
+      if (['client', 'freelancer'].includes(primaryRole)) {
+        localStorage.setItem('userType', primaryRole);
+        return '/dashboard';
+      }
+      
+      switch (primaryRole) {
         case 'investor':
+          localStorage.setItem('userType', 'investor');
           return '/dashboard-investor';
         case 'startup_creator':
+          localStorage.setItem('userType', 'startup_creator');
           return '/dashboard-startup';
         default:
+          localStorage.setItem('userType', 'client');
           return '/dashboard';
       }
     };
@@ -508,13 +538,13 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                 if (currentStep !== index + 1) return null;
 
                 const isSelected = (val: string) => {
-                  const currentVal = data[step.field as keyof RegistrationData];
+                  const currentVal = data[step.field as keyof RegistrationData] || [];
                   return Array.isArray(currentVal) ? currentVal.includes(val) : currentVal === val;
                 };
 
                 const handleSelect = (val: string) => {
                   if (step.type === 'multi-selection') {
-                    const currentVal = data[step.field as keyof RegistrationData] as string[];
+                    const currentVal = (data[step.field as keyof RegistrationData] as string[]) || [];
                     if (currentVal.includes(val)) {
                       updateData(step.field as keyof RegistrationData, currentVal.filter(c => c !== val));
                     } else {

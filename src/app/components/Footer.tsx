@@ -3,18 +3,23 @@ import { Github, Twitter, Linkedin, Mail, Smartphone, Facebook, Instagram, Youtu
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
+import api, { getImgUrl } from '@/app/utils/api';
 import logoFallback from '@/assets/0772c85ef8b5349a958c92c3b3261c8a881ce229.png';
-import api from '@/app/utils/api';
 
 export default function Footer() {
   const settings = useSiteSettings();
-  const { site_logo } = settings;
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const logoUrl = site_logo ? (site_logo.startsWith('http') ? site_logo : `${apiUrl}${site_logo}`) : logoFallback;
+  const { footer_logo, site_logo, site_name } = settings;
+  const logoUrl = getImgUrl(footer_logo || site_logo) || logoFallback;
+
+  const XIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.292 19.49h2.039L6.486 3.24H4.298l13.311 17.403z" />
+    </svg>
+  );
 
   const socialLinks = [
     { Icon: Github, url: settings.social_github },
-    { Icon: Twitter, url: settings.social_twitter },
+    { Icon: XIcon, url: settings.social_twitter },
     { Icon: Linkedin, url: settings.social_linkedin },
     { Icon: Facebook, url: settings.social_facebook },
     { Icon: Instagram, url: settings.social_instagram },
@@ -22,33 +27,51 @@ export default function Footer() {
     { Icon: Mail, url: settings.contact_email ? `mailto:${settings.contact_email}` : '' }
   ].filter(link => link.url);
 
-  const [footerColumns, setFooterColumns] = useState<any[]>([
-    {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (e) {}
+    }
+  }, []);
+
+  const [footerColumns, setFooterColumns] = useState<any[]>([]);
+
+  useEffect(() => {
+    const clientCol = {
       title: 'For Clients',
       links: [
-        { label: 'Post a Project', path: '/projects' },
-        { label: 'Browse Talent', path: '/talent' },
-        { label: 'Client Dashboard', path: '/dashboard' },
+        { label: 'Post a Project', path: user?.role === 'client' ? '/dashboard/create-project' : '/projects' },
+        { label: 'Go Talent', path: '/talent' },
+        { label: 'Client Dashboard', path: user ? '/dashboard' : '/signin' },
       ]
-    },
-    {
+    };
+    
+    const freelancerCol = {
       title: 'For Freelancers',
       links: [
-        // { label: 'Find Work', path: '/gigs' },
-        { label: 'Earnings', path: '/dashboard' },
+        { label: 'Go Projects', path: '/projects' },
+        { label: 'Freelancer Dashboard', path: user ? '/dashboard' : '/signin' },
+        { label: 'Service Gigs', path: '/gigs' },
       ]
-    },
-    {
+    };
+
+    const companyCol = {
       title: 'Company',
       links: [
         { label: 'About Us', path: '/about-us' },
         { label: 'Contact Us', path: '/contact-us' },
         { label: 'FAQs', path: '/faqs' },
       ]
-    }
-  ]);
+    };
 
-  useEffect(() => {
+    const defaultCols = user?.role === 'freelancer' 
+      ? [freelancerCol, clientCol, companyCol]
+      : [clientCol, freelancerCol, companyCol];
+    
     const fetchMenus = async () => {
       try {
         const res = await api.get('/cms/menus');
@@ -75,14 +98,19 @@ export default function Footer() {
               };
             });
             setFooterColumns(cols);
+          } else {
+            setFooterColumns(defaultCols);
           }
+        } else {
+          setFooterColumns(defaultCols);
         }
       } catch (err) {
         console.warn('Failed to fetch footer menus', err);
+        setFooterColumns(defaultCols);
       }
     };
     fetchMenus();
-  }, []);
+  }, [user]);
 
   return (
     <footer
@@ -100,8 +128,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <img src={logoUrl} alt="Go Experts" className="h-10 w-auto brightness-0 invert" />
+            <div className="flex items-center gap-3 mb-6">
+              <img
+                src={logoUrl}
+                alt={site_name || "Go Experts"}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== logoFallback) {
+                    target.src = logoFallback;
+                  }
+                }}
+                className="h-12 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300"
+              />
             </div>
             <p className="text-neutral-400 mb-6 leading-relaxed">
               {settings.site_tagline || 'Find verified experts. Get work done faster. The future of freelancing is here.'}
@@ -192,7 +230,7 @@ export default function Footer() {
               <Link to="/terms" className="hover:text-[#F24C20] transition-colors duration-300">
                 Terms of Service
               </Link>
-              <Link to="#" className="hover:text-[#F24C20] transition-colors duration-300">
+              <Link to="/cookies" className="hover:text-[#F24C20] transition-colors duration-300">
                 Cookie Policy
               </Link>
             </div>

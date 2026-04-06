@@ -131,183 +131,92 @@ export default function TrustStatsSection() {
           </p>
         </motion.div>
 
-        {/* Floating Stats - Staggered Layout */}
-        <div className="relative max-w-6xl mx-auto">
-          {/* Top Row */}
-          <div className="flex justify-center gap-8 mb-8">
-            {stats.slice(0, 2).map((stat, index) => (
+        {/* Floating Stats - Responsive Grid */}
+        <div className="relative max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-center gap-8 mb-20">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 60, scale: 0.8 }}
+              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+              transition={{ duration: 0.8, delay: index * 0.15 }}
+              className="relative group w-full flex justify-center lg:w-auto"
+            >
+              {/* Glow Behind */}
               <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 60, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-                transition={{ duration: 0.8, delay: index * 0.15 }}
-                className="relative group"
+                className="absolute -inset-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{
+                  background: `radial-gradient(circle, ${stat.color === 'from-yellow-500 to-orange-500' ? '#F59E0B' : stat.color === 'from-blue-500 to-cyan-500' ? '#3B82F6' : stat.color === 'from-purple-500 to-pink-500' ? '#A855F7' : '#10B981'}20 0%, transparent 70%)`,
+                  filter: 'blur(30px)',
+                }}
+              />
+
+              {/* Stat Block */}
+              <motion.div
+                whileHover={{ y: -15, scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+                className="relative w-full max-w-[280px] md:max-w-none md:w-72 p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
               >
-                {/* Glow Behind */}
+                {/* Animated Border Glow */}
                 <motion.div
-                  className="absolute -inset-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  className="absolute inset-0 rounded-3xl"
                   style={{
-                    background: `radial-gradient(circle, ${stat.color === 'from-yellow-500 to-orange-500' ? '#F59E0B' : '#3B82F6'}20 0%, transparent 70%)`,
-                    filter: 'blur(30px)',
+                    background: `linear-gradient(135deg, transparent 0%, ${stat.color === 'from-yellow-500 to-orange-500' ? '#F24C20' : stat.color === 'from-blue-500 to-cyan-500' ? '#3B82F6' : stat.color === 'from-purple-500 to-pink-500' ? '#A855F7' : '#10B981'}40 50%, transparent 100%)`,
+                    opacity: 0,
                   }}
+                  whileHover={{ opacity: 0.3 }}
+                  transition={{ duration: 0.5 }}
                 />
 
-                {/* Stat Block */}
+                {/* Icon */}
                 <motion.div
-                  whileHover={{ y: -15, scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative w-72 p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
+                  className="mb-6"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={isInView ? { scale: 1, rotate: 0 } : {}}
+                  transition={{ duration: 0.6, delay: index * 0.15 + 0.3, type: 'spring' }}
                 >
-                  {/* Animated Border Glow */}
-                  <motion.div
-                    className="absolute inset-0 rounded-3xl"
-                    style={{
-                      background: `linear-gradient(135deg, transparent 0%, ${stat.color === 'from-yellow-500 to-orange-500' ? '#F24C20' : '#3B82F6'}40 50%, transparent 100%)`,
-                      opacity: 0,
-                    }}
-                    whileHover={{ opacity: 0.3 }}
-                    transition={{ duration: 0.5 }}
-                  />
-
-                  {/* Icon */}
-                  <motion.div
-                    className="mb-6"
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={isInView ? { scale: 1, rotate: 0 } : {}}
-                    transition={{ duration: 0.6, delay: index * 0.15 + 0.3, type: 'spring' }}
-                  >
-                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                      <stat.icon className="w-8 h-8 text-white" />
-                    </div>
-                  </motion.div>
-
-                  {/* Value */}
-                  <div className="mb-3">
-                    <div className="text-6xl font-bold text-white">
-                      {stat.value < 100 && stat.value > 1 ? (
-                        <Counter end={stat.value} />
-                      ) : (
-                        <Counter end={stat.value} duration={2.5} />
-                      )}
-                      <span className="text-[#F24C20]">{stat.suffix}</span>
-                    </div>
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                    <stat.icon className="w-8 h-8 text-white" />
                   </div>
-
-                  {/* Label */}
-                  <div className="text-neutral-400 font-medium text-lg">{stat.label}</div>
-
-                  {/* Floating Particles */}
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-1 h-1 rounded-full bg-[#F24C20]"
-                      style={{
-                        top: `${20 + i * 30}%`,
-                        right: `${10 + i * 15}%`,
-                      }}
-                      animate={{
-                        y: [0, -20, 0],
-                        opacity: [0.3, 1, 0.3],
-                      }}
-                      transition={{
-                        duration: 2,
-                        delay: i * 0.3,
-                        repeat: Infinity,
-                      }}
-                    />
-                  ))}
                 </motion.div>
-              </motion.div>
-            ))}
-          </div>
 
-          {/* Bottom Row - Offset */}
-          <div className="flex justify-center gap-8">
-            {stats.slice(2).map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 60, scale: 0.8 }}
-                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-                transition={{ duration: 0.8, delay: (index + 2) * 0.15 }}
-                className="relative group"
-              >
-                {/* Glow Behind */}
-                <motion.div
-                  className="absolute -inset-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `radial-gradient(circle, ${stat.color === 'from-purple-500 to-pink-500' ? '#A855F7' : '#10B981'}20 0%, transparent 70%)`,
-                    filter: 'blur(30px)',
-                  }}
-                />
-
-                {/* Stat Block */}
-                <motion.div
-                  whileHover={{ y: -15, scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  className="relative w-72 p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
-                >
-                  {/* Animated Border Glow */}
-                  <motion.div
-                    className="absolute inset-0 rounded-3xl"
-                    style={{
-                      background: `linear-gradient(135deg, transparent 0%, ${stat.color === 'from-purple-500 to-pink-500' ? '#A855F7' : '#10B981'}40 50%, transparent 100%)`,
-                      opacity: 0,
-                    }}
-                    whileHover={{ opacity: 0.3 }}
-                    transition={{ duration: 0.5 }}
-                  />
-
-                  {/* Icon */}
-                  <motion.div
-                    className="mb-6"
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={isInView ? { scale: 1, rotate: 0 } : {}}
-                    transition={{ duration: 0.6, delay: (index + 2) * 0.15 + 0.3, type: 'spring' }}
-                  >
-                    <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                      <stat.icon className="w-8 h-8 text-white" />
-                    </div>
-                  </motion.div>
-
-                  {/* Value */}
-                  <div className="mb-3">
-                    <div className="text-6xl font-bold text-white">
-                      {stat.value < 100 && stat.value > 1 ? (
-                        <Counter end={stat.value} />
-                      ) : (
-                        <Counter end={stat.value} duration={2.5} />
-                      )}
-                      <span className="text-[#F24C20]">{stat.suffix}</span>
-                    </div>
+                {/* Value */}
+                <div className="mb-3">
+                  <div className="text-6xl font-bold text-white">
+                    {stat.value < 100 && stat.value > 1 ? (
+                      <Counter end={stat.value} />
+                    ) : (
+                      <Counter end={stat.value} duration={2.5} />
+                    )}
+                    <span className="text-[#F24C20]">{stat.suffix}</span>
                   </div>
+                </div>
 
-                  {/* Label */}
-                  <div className="text-neutral-400 font-medium text-lg">{stat.label}</div>
+                {/* Label */}
+                <div className="text-neutral-400 font-medium text-lg">{stat.label}</div>
 
-                  {/* Floating Particles */}
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-1 h-1 rounded-full bg-[#F24C20]"
-                      style={{
-                        top: `${20 + i * 30}%`,
-                        right: `${10 + i * 15}%`,
-                      }}
-                      animate={{
-                        y: [0, -20, 0],
-                        opacity: [0.3, 1, 0.3],
-                      }}
-                      transition={{
-                        duration: 2,
-                        delay: i * 0.3,
-                        repeat: Infinity,
-                      }}
-                    />
-                  ))}
-                </motion.div>
+                {/* Floating Particles */}
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 rounded-full bg-[#F24C20]"
+                    style={{
+                      top: `${20 + i * 30}%`,
+                      right: `${10 + i * 15}%`,
+                    }}
+                    animate={{
+                      y: [0, -20, 0],
+                      opacity: [0.3, 1, 0.3],
+                    }}
+                    transition={{
+                      duration: 2,
+                      delay: i * 0.3,
+                      repeat: Infinity,
+                    }}
+                  />
+                ))}
               </motion.div>
-            ))}
-          </div>
+            </motion.div>
+          ))}
         </div>
 
         {/* Trust Badges */}

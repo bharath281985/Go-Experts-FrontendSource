@@ -35,17 +35,27 @@ export default function SignInPage() {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userName', user.full_name);
 
-        // Redirect based on primary role
-        if (user.roles?.includes('investor')) {
+        // Redirect based on redirect param or primary role
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get('redirect');
+
+        if (redirectTo) {
+          navigate(redirectTo);
+        } else if (user.roles?.includes('investor')) {
+          localStorage.setItem('userType', 'investor');
           navigate('/dashboard-investor');
         } else if (user.roles?.includes('startup_creator')) {
+          localStorage.setItem('userType', 'startup_creator');
           navigate('/dashboard-startup');
         } else {
           // Set initial userType for marketplace roles
-          if (user.roles?.includes('freelancer')) {
-            localStorage.setItem('userType', 'freelancer');
-          } else {
-            localStorage.setItem('userType', 'client');
+          const currentType = localStorage.getItem('userType');
+          if (!currentType) {
+            if (user.roles?.includes('freelancer')) {
+              localStorage.setItem('userType', 'freelancer');
+            } else {
+              localStorage.setItem('userType', 'client');
+            }
           }
           navigate('/dashboard');
         }

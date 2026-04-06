@@ -57,7 +57,7 @@ export default function Settings() {
     work_preference: '',
     portfolio: [] as any[],
     kyc_details: {
-      pancard: '',
+      pan_card: '',
       aadhar_card: '',
       is_verified: false
     },
@@ -65,8 +65,9 @@ export default function Settings() {
       educational: [] as string[],
       experience_letter: ''
     },
-    work_images: [] as string[] ,
-    roles: [] as string[]
+    work_images: [] as string[],
+    roles: [] as string[],
+    kyc_status: 'unverified'
   });
 
   const [dbSkills, setDbSkills] = useState<any[]>([]);
@@ -147,10 +148,11 @@ export default function Settings() {
           availability: user.availability || '',
           work_preference: user.work_preference || '',
           portfolio: user.portfolio || [],
-          kyc_details: user.kyc_details || { pancard: '', aadhar_card: '', is_verified: false },
+          kyc_details: user.kyc_details || { pan_card: '', aadhar_card: '', is_verified: false },
           documents: user.documents || { educational: [], experience_letter: '' },
           work_images: user.work_images || [],
-          roles: user.roles || []
+          roles: user.roles || [],
+          kyc_status: user.kyc_status || 'unverified'
         });
       }
     } catch (error) {
@@ -244,52 +246,143 @@ export default function Settings() {
     setFormData({ ...formData, portfolio: newPortfolio });
   };
 
-  const handleFileUpload = async (field: 'pancard' | 'aadhar_card' | 'educational' | 'experience_letter' | 'work_images', file: File) => {
+  // Replace your handleFileUpload function with this:
+  const handleFileUpload = async (field: 'pan_card' | 'aadhar_card' | 'educational' | 'experience_letter' | 'work_images', file: File) => {
     const formDataUpload = new FormData();
-    formDataUpload.append(field, file);
-    
+
+    // Append the file with the correct field name
+    if (field === 'educational') {
+      // For educational documents, we need to append multiple files
+      formDataUpload.append('educational', file);
+    } else {
+      formDataUpload.append(field, file);
+    }
+
     setIsSaving(true);
     try {
       const response = await api.put('/auth/update-profile', formDataUpload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+
       if (response.data.success) {
-        toast.success('Document uploaded!');
-        fetchProfile();
+        toast.success('Document uploaded successfully!');
+
+        // Fetch the updated profile to get the new data
+        await fetchProfile();
+
+        // Force a re-render by updating a state that triggers UI refresh
+        setFormData(prev => ({ ...prev }));
       }
-    } catch (error) {
-      toast.error('Failed to upload document');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload document');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleRemoveFile = async (field: 'pancard' | 'aadhar_card' | 'educational' | 'experience_letter', index?: number) => {
+  // Fix the handleRemoveFile function
+  const handleRemoveFile = async (field: 'pan_card' | 'aadhar_card' | 'educational' | 'experience_letter', index?: number) => {
     setIsSaving(true);
     try {
       let updateData: any = {};
-      
-      if (field === 'pancard' || field === 'aadhar_card') {
-        updateData.kyc_details = { ...formData.kyc_details, [field]: '' };
+
+      if (field === 'pan_card') {
+        updateData.kyc_details = { ...formData.kyc_details, pan_card: '' };
+      } else if (field === 'aadhar_card') {
+        updateData.kyc_details = { ...formData.kyc_details, aadhar_card: '' };
       } else if (field === 'experience_letter') {
         updateData.documents = { ...formData.documents, experience_letter: '' };
       } else if (field === 'educational' && index !== undefined) {
-        const newEdu = [...formData.documents.educational];
+        const newEdu = [...(formData.documents?.educational || [])];
         newEdu.splice(index, 1);
         updateData.documents = { ...formData.documents, educational: newEdu };
       }
 
       const response = await api.put('/auth/update-profile', updateData);
       if (response.data.success) {
-        toast.success('Document removed');
-        fetchProfile();
+        toast.success('Document removed successfully');
+        await fetchProfile(); // Refresh the profile data
       }
-    } catch (error) {
-      toast.error('Failed to remove document');
+    } catch (error: any) {
+      console.error('Remove error:', error);
+      toast.error(error.response?.data?.message || 'Failed to remove document');
     } finally {
       setIsSaving(false);
     }
   };
+
+  // Fix the handlePhotoChange function
+  // const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file) return;
+
+  //   // Validate file type
+  //   if (!file.type.startsWith('image/')) {
+  //     toast.error('Please upload an image file');
+  //     return;
+  //   }
+
+  //   // Validate file size (max 5MB)
+  //   if (file.size > 5 * 1024 * 1024) {
+  //     toast.error('Image size should be less than 5MB');
+  //     return;
+  //   }
+
+  //   const formDataUpload = new FormData();
+  //   formDataUpload.append('profile', file);
+
+  //   setIsSaving(true);
+  //   try {
+  //     const response = await api.put('/auth/update-profile', formDataUpload, {
+  //       headers: { 'Content-Type': 'multipart/form-data' }
+  //     });
+
+  //     if (response.data.success) {
+  //       setFormData(prev => ({ ...prev, profile_image: response.data.user.profile_image }));
+  //       toast.success('Profile photo updated!');
+
+  //       // Update local storage
+  //       const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  //       localStorage.setItem('user', JSON.stringify({ ...storedUser, profile_image: response.data.user.profile_image }));
+
+  //       // Force re-render
+  //       await fetchProfile();
+  //     }
+  //   } catch (error: any) {
+  //     console.error('Photo upload error:', error);
+  //     toast.error(error.response?.data?.message || 'Error uploading photo');
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
+
+  // const handleRemoveFile = async (field: 'pan_card' | 'aadhar_card' | 'educational' | 'experience_letter', index?: number) => {
+  //   setIsSaving(true);
+  //   try {
+  //     let updateData: any = {};
+
+  //     if (field === 'pan_card' || field === 'aadhar_card') {
+  //       updateData.kyc_details = { ...formData.kyc_details, [field]: '' };
+  //     } else if (field === 'experience_letter') {
+  //       updateData.documents = { ...formData.documents, experience_letter: '' };
+  //     } else if (field === 'educational' && index !== undefined) {
+  //       const newEdu = [...formData.documents.educational];
+  //       newEdu.splice(index, 1);
+  //       updateData.documents = { ...formData.documents, educational: newEdu };
+  //     }
+
+  //     const response = await api.put('/auth/update-profile', updateData);
+  //     if (response.data.success) {
+  //       toast.success('Document removed');
+  //       fetchProfile();
+  //     }
+  //   } catch (error) {
+  //     toast.error('Failed to remove document');
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
 
   const handleDeleteAccount = async () => {
     setIsSaving(true);
@@ -313,7 +406,7 @@ export default function Settings() {
     { id: 'portfolio', label: 'My Portfolio', icon: Briefcase },
     { id: 'verification', label: 'Verification (KYC)', icon: ShieldCheck },
     { id: 'security', label: 'Security', icon: Lock },
-    { id: 'privacy', label: 'Privacy', icon: Trash2 },
+    { id: 'privacy', label: 'Delete Account', icon: Trash2 },
   ];
 
   if (isLoading) {
@@ -345,8 +438,8 @@ export default function Settings() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === tab.id
-                      ? 'bg-[#F24C20]/10 text-[#F24C20] border border-[#F24C20]/30'
-                      : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                    ? 'bg-[#F24C20]/10 text-[#F24C20] border border-[#F24C20]/30'
+                    : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -515,6 +608,26 @@ export default function Settings() {
                 </div>
               )}
 
+              {!formData.kyc_details.is_verified && formData.kyc_status === 'pending' && (
+                <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
+                  <Clock className="w-6 h-6 text-orange-500" />
+                  <div className="text-sm">
+                    <p className="font-bold text-orange-500">Verification in Progress</p>
+                    <p className="text-orange-600/70">Our team is currently reviewing your documents. This usually takes 24-48 hours.</p>
+                  </div>
+                </div>
+              )}
+
+              {!formData.kyc_details.is_verified && formData.kyc_status === 'rejected' && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+                  <AlertTriangle className="w-6 h-6 text-red-500" />
+                  <div className="text-sm">
+                    <p className="font-bold text-red-500">Verification Declined</p>
+                    <p className="text-red-600/70">Please check your email for the reason and re-upload the documents.</p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* ID Verification */}
                 <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
@@ -522,20 +635,20 @@ export default function Settings() {
                     <User className="w-5 h-5 text-[#F24C20]" />
                     Identity Proof
                   </h3>
-                  
+
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-medium mb-2 text-neutral-400">PAN Card (PDF or Image)</label>
                       <div className={`relative p-4 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-neutral-700 hover:border-neutral-600' : 'border-neutral-200 hover:border-neutral-300'} transition-colors`}>
-                        {formData.kyc_details.pancard ? (
+                        {formData.kyc_details.pan_card ? (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <FileText className="w-5 h-5 text-[#F24C20]" />
                               <span className="text-xs truncate max-w-[120px]">PAN card uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}${formData.kyc_details.pancard}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
-                              <button onClick={() => handleRemoveFile('pancard')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
+                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.pan_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => handleRemoveFile('pan_card')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -547,7 +660,7 @@ export default function Settings() {
                               type="file"
                               className="absolute inset-0 opacity-0 cursor-pointer"
                               accept=".pdf,image/*"
-                              onChange={(e) => e.target.files?.[0] && handleFileUpload('pancard', e.target.files[0])}
+                              onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])}
                             />
                             <p className="text-xs text-neutral-500">Click to upload PAN</p>
                           </div>
@@ -565,7 +678,7 @@ export default function Settings() {
                               <span className="text-xs truncate max-w-[120px]">Aadhar uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}${formData.kyc_details.aadhar_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.aadhar_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
                               <button onClick={() => handleRemoveFile('aadhar_card')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -600,18 +713,18 @@ export default function Settings() {
                       <label className="block text-sm font-medium mb-2 text-neutral-400">Educational Certificates</label>
                       <div className="space-y-3">
                         {formData.documents.educational.map((file, idx) => (
-                           <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
-                             <div className="flex items-center gap-2">
-                               <FileText className="w-4 h-4 text-[#F24C20]" />
-                               <span className="text-[10px] truncate max-w-[150px]">Certificate {idx + 1}</span>
-                             </div>
-                             <div className="flex gap-2">
-                               <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}${file}`, '_blank')} className="text-[10px] text-blue-500 hover:underline">View</button>
-                               <button onClick={() => handleRemoveFile('educational', idx)} className="text-red-500 p-0.5"><X className="w-3 h-3" /></button>
-                             </div>
-                           </div>
+                          <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-[#F24C20]" />
+                              <span className="text-[10px] truncate max-w-[150px]">Certificate {idx + 1}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file}`, '_blank')} className="text-[10px] text-blue-500 hover:underline">View</button>
+                              <button onClick={() => handleRemoveFile('educational', idx)} className="text-red-500 p-0.5"><X className="w-3 h-3" /></button>
+                            </div>
+                          </div>
                         ))}
-                        
+
                         <div className={`relative p-4 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-neutral-700 hover:border-neutral-600' : 'border-neutral-200 hover:border-neutral-300'} transition-colors`}>
                           <div className="flex flex-col items-center py-2 text-center">
                             <Plus className="w-6 h-6 text-neutral-500 mb-2" />
@@ -637,7 +750,7 @@ export default function Settings() {
                               <span className="text-xs truncate max-w-[120px]">Exp Letter uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL}${formData.documents.experience_letter}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.documents.experience_letter}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
                               <button onClick={() => handleRemoveFile('experience_letter')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -718,13 +831,13 @@ export default function Settings() {
                     <Users className="w-5 h-5 text-[#F24C20]" />
                     Account Roles
                   </h3>
-                  <p className="text-sm text-neutral-500 mb-6">Select which roles you want to use on Go Experts. You can be both a client and a freelancer.</p>
-                  
+                  <p className="text-sm text-neutral-500 mb-6">Your currently registered roles on Go Experts.</p>
+
                   <div className="flex flex-wrap gap-4">
-                    {['client', 'freelancer'].map((role) => {
+                    {formData.roles.map((role) => {
                       const isSelected = formData.roles.includes(role);
-                      const Icon = role === 'client' ? Users : Briefcase;
-                      
+                      const Icon = role === 'client' ? Users : (role === 'freelancer' ? Briefcase : (role === 'admin' ? ShieldCheck : User));
+
                       return (
                         <button
                           key={role}
@@ -734,16 +847,15 @@ export default function Settings() {
                               toast.error('You must have at least one role.');
                               return;
                             }
-                            const newRoles = isSelected 
+                            const newRoles = isSelected
                               ? formData.roles.filter(r => r !== role)
                               : [...formData.roles, role];
                             setFormData({ ...formData, roles: newRoles });
                           }}
-                          className={`flex-1 flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]'
-                              : 'border-neutral-800 bg-neutral-900/50 text-neutral-500 hover:border-neutral-700'
-                          }`}
+                          className={`flex-1 flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${isSelected
+                            ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]'
+                            : 'border-neutral-800 bg-neutral-900/50 text-neutral-500 hover:border-neutral-700'
+                            }`}
                         >
                           <div className={`p-2 rounded-lg ${isSelected ? 'bg-[#F24C20] text-white' : 'bg-neutral-800 text-neutral-500'}`}>
                             <Icon className="w-5 h-5" />
@@ -751,7 +863,7 @@ export default function Settings() {
                           <div className="text-left">
                             <div className="font-bold capitalize">{role}</div>
                             <div className="text-[10px] opacity-70">
-                              {role === 'client' ? 'I want to hire others' : 'I want to work as an expert'}
+                              {role === 'client' ? 'I want to hire others' : (role === 'freelancer' ? 'I want to work as an expert' : `Manage your ${role} role`)}
                             </div>
                           </div>
                           {isSelected && <CheckCircle className="w-5 h-5 ml-auto" />}
@@ -834,173 +946,176 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-4">Your Expert Categories</label>
-                  <p className="text-xs text-neutral-500 mb-4 -mt-2">Select up to 4 domains to filter relevant skills automatically</p>
-                  
-                  <div className="flex flex-wrap gap-3 mb-6">
-                    {/* Render top 5 defaults */}
-                    {dbCategories.slice(0, 5).map((cat) => {
-                      const isSelected = formData.categories.includes(cat._id);
-                      return (
-                        <button key={cat._id} type="button" onClick={() => toggleCategory(cat._id)} className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${isSelected ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]' : isDarkMode ? 'border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:border-neutral-600' : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-400'}`}>
-                          {cat.name}
-                        </button>
-                      );
-                    })}
-                    {/* Render other selected categories not in top 5 */}
-                    {dbCategories
-                      .filter(cat => formData.categories.includes(cat._id) && !dbCategories.slice(0, 5).find(c => c._id === cat._id))
-                      .map((cat) => (
-                        <button key={cat._id} type="button" onClick={() => toggleCategory(cat._id)} className={`px-4 py-2 rounded-lg border-2 transition-all font-medium border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]`}>
-                          {cat.name}
-                        </button>
-                    ))}
-                  </div>
-
-                  <div className="relative mb-6">
-                    <div className={`p-1 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-white border-neutral-300'} flex items-center gap-2`}>
-                      <Search className="w-5 h-5 ml-3 text-neutral-500" />
-                      <input 
-                        type="text" 
-                        placeholder="Search more categories..."
-                        value={catSearchQuery}
-                        onChange={(e) => {
-                          setCatSearchQuery(e.target.value);
-                          setShowCatDropdown(true);
-                        }}
-                        onFocus={() => setShowCatDropdown(true)}
-                        className="flex-1 bg-transparent py-2.5 px-2 outline-none text-sm"
-                      />
-                    </div>
-                    
-                    <AnimatePresence>
-                      {showCatDropdown && catSearchQuery && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setShowCatDropdown(false)} />
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className={`absolute top-full left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-20 max-h-60 overflow-y-auto ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
-                          >
-                            {dbCategories
-                              .filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase()))
-                              .map(cat => (
-                                <button
-                                  key={cat._id}
-                                  type="button"
-                                  onClick={() => {
-                                    toggleCategory(cat._id);
-                                    setCatSearchQuery('');
-                                    setShowCatDropdown(false);
-                                  }}
-                                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-colors ${
-                                    formData.categories.includes(cat._id) 
-                                      ? 'bg-[#F24C20]/10 text-[#F24C20]' 
+                {formData.roles.includes('freelancer') && (
+                  <div>
+                    <label className="block text-sm font-medium mb-4">Your Expert Categories</label>
+                    <p className="text-xs text-neutral-500 mb-4 -mt-2">Select up to 4 domains to filter relevant skills automatically</p>
+  
+                    <div className="relative mb-6">
+                      <div className={`p-1 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-white border-neutral-300'} flex items-center gap-2`}>
+                        <Search className="w-5 h-5 ml-3 text-neutral-500" />
+                        <input
+                          type="text"
+                          placeholder="Search more categories..."
+                          value={catSearchQuery}
+                          onChange={(e) => {
+                            setCatSearchQuery(e.target.value);
+                            setShowCatDropdown(true);
+                          }}
+                          onFocus={() => setShowCatDropdown(true)}
+                          className="flex-1 bg-transparent py-2.5 px-2 outline-none text-sm"
+                        />
+                      </div>
+  
+                      <AnimatePresence>
+                        {showCatDropdown && catSearchQuery && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setShowCatDropdown(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className={`absolute top-full left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-20 max-h-60 overflow-y-auto ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
+                            >
+                              {dbCategories
+                                .filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase()))
+                                .map(cat => (
+                                  <button
+                                    key={cat._id}
+                                    type="button"
+                                    onClick={() => {
+                                      toggleCategory(cat._id);
+                                      setCatSearchQuery('');
+                                      setShowCatDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-colors ${formData.categories.includes(cat._id)
+                                      ? 'bg-[#F24C20]/10 text-[#F24C20]'
                                       : isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-50 text-neutral-700'
-                                  }`}
-                                >
-                                  <span>{cat.name}</span>
-                                  {formData.categories.includes(cat._id) ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 opacity-0 group-hover:opacity-100" />}
-                                </button>
-                              ))}
-                            {dbCategories.filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase())).length === 0 && (
+                                      }`}
+                                  >
+                                    <span>{cat.name}</span>
+                                    {formData.categories.includes(cat._id) ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 opacity-0 group-hover:opacity-100" />}
+                                  </button>
+                                ))}
+                              {dbCategories.filter(c => c.name.toLowerCase().includes(catSearchQuery.toLowerCase())).length === 0 && (
                                 <div className="p-4 text-center text-sm text-neutral-500">No categories found</div>
-                            )}
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-4">Select Your Skills</label>
-                  <div className="relative mb-6">
-                    <div className={`p-1 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-white border-neutral-300'} flex items-center gap-2`}>
-                      <Search className="w-5 h-5 ml-3 text-neutral-500" />
-                      <input 
-                        type="text" 
-                        placeholder="Search skills (e.g. React, Node.js...)"
-                        value={skillSearchQuery}
-                        onChange={(e) => {
-                          setSkillSearchQuery(e.target.value);
-                          setShowSkillDropdown(true);
-                        }}
-                        onFocus={() => setShowSkillDropdown(true)}
-                        className="flex-1 bg-transparent py-2.5 px-2 outline-none text-sm"
-                      />
+                              )}
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    
-                    <AnimatePresence>
-                      {showSkillDropdown && skillSearchQuery && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setShowSkillDropdown(false)} />
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
-                            className={`absolute top-full left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-20 max-h-60 overflow-y-auto ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
-                          >
-                            {dbSkills
-                              .filter(s => {
+  
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      {/* Render top 5 defaults */}
+                      {dbCategories.slice(0, 5).map((cat) => {
+                        const isSelected = formData.categories.includes(cat._id);
+                        return (
+                          <button key={cat._id} type="button" onClick={() => toggleCategory(cat._id)} className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${isSelected ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]' : isDarkMode ? 'border-neutral-700 bg-neutral-800/50 text-neutral-300 hover:border-neutral-600' : 'border-neutral-300 bg-white text-neutral-700 hover:border-neutral-400'}`}>
+                            {cat.name}
+                          </button>
+                        );
+                      })}
+                      {/* Render other selected categories not in top 5 */}
+                      {dbCategories
+                        .filter(cat => formData.categories.includes(cat._id) && !dbCategories.slice(0, 5).find(c => c._id === cat._id))
+                        .map((cat) => (
+                          <button key={cat._id} type="button" onClick={() => toggleCategory(cat._id)} className={`px-4 py-2 rounded-lg border-2 transition-all font-medium border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]`}>
+                            {cat.name}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {formData.roles.includes('freelancer') && (
+                  <div>
+                    <label className="block text-sm font-medium mb-4">Select Your Skills</label>
+                    <div className="relative mb-6">
+                      <div className={`p-1 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-white border-neutral-300'} flex items-center gap-2`}>
+                        <Search className="w-5 h-5 ml-3 text-neutral-500" />
+                        <input
+                          type="text"
+                          placeholder="Search skills (e.g. React, Node.js...)"
+                          value={skillSearchQuery}
+                          onChange={(e) => {
+                            setSkillSearchQuery(e.target.value);
+                            setShowSkillDropdown(true);
+                          }}
+                          onFocus={() => setShowSkillDropdown(true)}
+                          className="flex-1 bg-transparent py-2.5 px-2 outline-none text-sm"
+                        />
+                      </div>
+  
+                      <AnimatePresence>
+                        {showSkillDropdown && skillSearchQuery && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setShowSkillDropdown(false)} />
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className={`absolute top-full left-0 right-0 mt-2 p-2 rounded-xl border shadow-2xl z-20 max-h-60 overflow-y-auto ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
+                            >
+                              {dbSkills
+                                .filter(s => {
+                                  const matchesQuery = s.name.toLowerCase().includes(skillSearchQuery.toLowerCase());
+                                  const inCategory = formData.categories.length === 0 || !s.category?._id || formData.categories.includes(s.category._id);
+                                  return matchesQuery && inCategory;
+                                })
+                                .map(skill => (
+                                  <button
+                                    key={skill._id}
+                                    type="button"
+                                    onClick={() => {
+                                      toggleSkill(skill._id);
+                                      setSkillSearchQuery('');
+                                      setShowSkillDropdown(false);
+                                    }}
+                                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-colors ${formData.skills.includes(skill._id)
+                                      ? 'bg-[#F24C20]/10 text-[#F24C20]'
+                                      : isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-50 text-neutral-700'
+                                      }`}
+                                  >
+                                    <span>{skill.name}</span>
+                                    {formData.skills.includes(skill._id) ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 opacity-0 group-hover:opacity-100" />}
+                                  </button>
+                                ))
+                              }
+                              {dbSkills.filter(s => {
                                 const matchesQuery = s.name.toLowerCase().includes(skillSearchQuery.toLowerCase());
                                 const inCategory = formData.categories.length === 0 || !s.category?._id || formData.categories.includes(s.category._id);
                                 return matchesQuery && inCategory;
-                              })
-                              .map(skill => (
-                                <button
-                                  key={skill._id}
-                                  type="button"
-                                  onClick={() => {
-                                    toggleSkill(skill._id);
-                                    setSkillSearchQuery('');
-                                    setShowSkillDropdown(false);
-                                  }}
-                                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-colors ${
-                                    formData.skills.includes(skill._id) 
-                                      ? 'bg-[#F24C20]/10 text-[#F24C20]' 
-                                      : isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-50 text-neutral-700'
-                                  }`}
-                                >
-                                  <span>{skill.name}</span>
-                                  {formData.skills.includes(skill._id) ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 opacity-0 group-hover:opacity-100" />}
-                                </button>
-                              ))
-                            }
-                            {dbSkills.filter(s => {
-                              const matchesQuery = s.name.toLowerCase().includes(skillSearchQuery.toLowerCase());
-                              const inCategory = formData.categories.length === 0 || !s.category?._id || formData.categories.includes(s.category._id);
-                              return matchesQuery && inCategory;
-                            }).length === 0 && (
-                              <div className="p-4 text-center text-sm text-neutral-500">No matching skills found in selected categories</div>
-                            )}
-                          </motion.div>
-                        </>
+                              }).length === 0 && (
+                                  <div className="p-4 text-center text-sm text-neutral-500">No matching skills found in selected categories</div>
+                                )}
+                            </motion.div>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </div>
+  
+                    <div className="flex flex-wrap gap-3 mb-6 min-h-[44px]">
+                      {formData.skills.map((skillId) => {
+                        const skillObj = dbSkills.find(s => s._id === skillId);
+                        return (
+                          <button
+                            key={skillId}
+                            type="button"
+                            onClick={() => toggleSkill(skillId)}
+                            className="px-4 py-2 rounded-lg border-2 border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20] hover:bg-[#F24C20] hover:text-white transition-colors flex items-center gap-2 font-medium"
+                          >
+                            <span>{skillObj ? skillObj.name : 'Unknown Skill'}</span>
+                            <X className="w-3 h-3" />
+                          </button>
+                        )
+                      })}
+                      {formData.skills.length === 0 && (
+                        <p className="text-sm text-neutral-500 italic">No skills selected yet. Use the search bar above to add skills.</p>
                       )}
-                    </AnimatePresence>
+                    </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-3 mb-6 min-h-[44px]">
-                    {formData.skills.map((skillId) => {
-                      const skillObj = dbSkills.find(s => s._id === skillId);
-                      return (
-                      <button 
-                        key={skillId} 
-                        type="button" 
-                        onClick={() => toggleSkill(skillId)} 
-                        className="px-4 py-2 rounded-lg border-2 border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20] hover:bg-[#F24C20] hover:text-white transition-colors flex items-center gap-2 font-medium"
-                      >
-                        <span>{skillObj ? skillObj.name : 'Unknown Skill'}</span>
-                        <X className="w-3 h-3" />
-                      </button>
-                    )})}
-                    {formData.skills.length === 0 && (
-                      <p className="text-sm text-neutral-500 italic">No skills selected yet. Use the search bar above to add skills.</p>
-                    )}
-                  </div>
-                </div>
+                )}
 
                 <button type="submit" disabled={isSaving} className="px-8 py-3 bg-[#044071] text-white rounded-xl font-medium hover:bg-[#044071]/90 transition-colors disabled:opacity-50 flex items-center justify-center min-w-[160px]">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
@@ -1026,15 +1141,15 @@ export default function Settings() {
                     <p className="text-sm text-neutral-500">Securely update your account access</p>
                   </div>
                 </div>
-                
+
                 <p className={`text-sm mb-8 leading-relaxed ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                  For your security, we use an email-based verification process. 
+                  For your security, we use an email-based verification process.
                   Click the button below and we'll send a secure password reset link to your registered email address <strong>{formData.email}</strong>.
                 </p>
 
-                <button 
-                  onClick={handleSendResetLink} 
-                  disabled={isSaving} 
+                <button
+                  onClick={handleSendResetLink}
+                  disabled={isSaving}
                   className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] transition-all shadow-lg shadow-[#044071]/20 flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
@@ -1077,16 +1192,39 @@ export default function Settings() {
       <AnimatePresence>
         {showDeleteModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-              className={`w-full max-w-md p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`w-full max-w-md p-8 rounded-3xl border shadow-2xl overflow-hidden relative ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-white' : 'bg-white border-neutral-200 text-neutral-900'}`}
             >
-              <h3 className="text-xl font-bold mb-2">Are you absolutely sure?</h3>
-              <p className="text-neutral-500 mb-6 font-medium">This action cannot be undone. This will permanently delete your account and remove all data from our servers.</p>
-              <div className="flex gap-4">
-                <button onClick={() => setShowDeleteModal(false)} className={`flex-1 px-6 py-3 rounded-xl font-medium border ${isDarkMode ? 'border-neutral-700 hover:bg-neutral-800' : 'border-neutral-200 hover:bg-neutral-50'}`}>Cancel</button>
-                <button onClick={handleDeleteAccount} disabled={isSaving} className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium disabled:opacity-50">
-                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Yes, Delete'}
-                </button>
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6">
+                  <AlertTriangle className="w-8 h-8 text-red-500" />
+                </div>
+                
+                <h3 className="text-2xl font-bold mb-3">Terminate Account?</h3>
+                <p className="text-neutral-500 mb-8 font-medium leading-relaxed">
+                  This action is irreversible. All your projects, wallet balance, and expert profile data will be permanently wiped from our systems.
+                </p>
+                
+                <div className="flex w-full gap-4">
+                  <button 
+                    onClick={() => setShowDeleteModal(false)} 
+                    className={`flex-1 px-6 py-4 rounded-xl font-bold border transition-all ${isDarkMode ? 'border-neutral-700 hover:bg-neutral-800' : 'border-neutral-200 hover:bg-neutral-100'}`}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleDeleteAccount} 
+                    disabled={isSaving} 
+                    className="flex-1 px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-600/20 disabled:opacity-50"
+                  >
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Confirm Delete'}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

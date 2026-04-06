@@ -1,6 +1,7 @@
 import { motion, useInView } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { FileText, Users, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const steps = [
   {
@@ -26,6 +27,20 @@ const steps = [
 export default function HowItWorksSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem('token'));
+  }, []);
+
+  const handleCTA = () => {
+    if (isLoggedIn) {
+      navigate('/dashboard');
+    } else {
+      navigate('/signin');
+    }
+  };
 
   return (
     <section 
@@ -201,6 +216,7 @@ export default function HowItWorksSection() {
           className="text-center mt-20"
         >
           <motion.button
+            onClick={handleCTA}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="px-10 py-4 bg-[#044071] hover:bg-[#055a99] text-white rounded-2xl font-semibold transition-all duration-300 shadow-2xl shadow-[#044071]/40 text-lg"

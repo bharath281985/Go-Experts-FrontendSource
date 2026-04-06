@@ -31,6 +31,8 @@ import ChatWindow from "@/app/components/dashboard/ChatWindow";
 import KYCSettings from "@/app/components/dashboard/KYCSettings";
 import StartupIdeaForm from "@/app/components/dashboard/StartupIdeaForm";
 import SubscriptionCredits from "@/app/pages/dashboard/shared/SubscriptionCredits";
+import ExploreStartupIdeas from "@/app/pages/dashboard/shared/ExploreStartupIdeas";
+import StartupIdeaDashboardDetail from "@/app/pages/dashboard/shared/StartupIdeaDashboardDetail";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -248,7 +250,18 @@ export default function StartupCreatorDashboard() {
                     <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
                 <button 
-                  onClick={() => handleNav('ideas', 'new')}
+                  onClick={() => {
+                      if (kycStatus !== 'fully_verified') {
+                          toast.error('KYC verification required to submit startup ideas. Please complete your profile in Settings section.', {
+                              action: {
+                                  label: 'Settings',
+                                  onClick: () => handleNav('settings')
+                              }
+                          });
+                          return;
+                      }
+                      handleNav('ideas', 'new');
+                  }}
                   className="flex items-center gap-2 rounded-2xl bg-[#F24C20] px-6 py-3 font-bold text-white shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all"
                 >
                     <Plus className="w-5 h-5" />
@@ -343,10 +356,21 @@ export default function StartupCreatorDashboard() {
                                 <IdeaCard key={idea._id} idea={idea} />
                             ))}
                             <button 
-                                onClick={() => handleNav('ideas', 'new')}
+                                onClick={() => {
+                                    if (kycStatus !== 'fully_verified') {
+                                        toast.error('KYC verification required. Please complete your profile in Settings.', {
+                                            action: {
+                                                label: 'Settings',
+                                                onClick: () => handleNav('settings')
+                                            }
+                                        });
+                                        return;
+                                    }
+                                    handleNav('ideas', 'new');
+                                }}
                                 className={`group rounded-[2.5rem] border-4 border-dashed flex flex-col items-center justify-center p-12 transition-all hover:bg-[#F24C20]/5 hover:border-[#F24C20]/50 min-h-[300px] ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}
                             >
-                                <div className="w-20 h-20 rounded-[2rem] bg-neutral-900 flex items-center justify-center group-hover:bg-[#F24C20] group-hover:rotate-12 transition-all mb-6">
+                                <div className="w-20 h-20 rounded-[2rem] bg-neutral-900 flex items-center justify-center group-hover:bg-[#F24C20] group-hover:rotate-12 transition-all mb-6" >
                                     <Plus className="w-10 h-10 text-neutral-400 group-hover:text-white" />
                                 </div>
                                 <span className="text-base font-black text-neutral-500 group-hover:text-[#F24C20] uppercase tracking-widest">New Presentation</span>
@@ -449,6 +473,20 @@ export default function StartupCreatorDashboard() {
                 </div>
             </div>
         )}
+        {/* --- SECTION: MARKETPLACE --- */}
+        {activeMenuId === 'explore-ideas' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <ExploreStartupIdeas />
+            </div>
+        )}
+
+        {/* --- SECTION: DETAILS --- */}
+        {activeMenuId === 'startup-ideas' && (
+             <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <StartupIdeaDashboardDetail />
+            </div>
+        )}
+
         {/* --- SECTION: SETTINGS --- */}
         {activeMenuId === 'settings' && (
             <div className="animate-in fade-in slide-in-from-bottom-5 duration-500 max-w-4xl">

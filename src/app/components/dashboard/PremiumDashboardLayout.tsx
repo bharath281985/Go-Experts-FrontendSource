@@ -52,6 +52,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['Dashboard']);
   const [walletBalance, setWalletBalance] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
   useEffect(() => {
     fetchHeaderData();
@@ -65,9 +66,12 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       }
 
       const newNotifs: any[] = [];
-      
+
       const msgRes = await api.get('/messages/conversations');
       if (msgRes.data.success) {
+        const totalUnread = msgRes.data.data.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
+        setUnreadMessageCount(totalUnread);
+
         const unreadMsgs = msgRes.data.data.filter((c: any) => c.unreadCount > 0);
         newNotifs.push(...unreadMsgs.map((c: any) => ({
           id: `msg-${c.user._id}`,
@@ -78,21 +82,21 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       }
 
       if (userType === 'freelancer') {
-         const invRes = await api.get('/invitations');
-         if (invRes.data.success) {
-           const pendingInvs = invRes.data.data.filter((i: any) => i.status === 'pending');
-           newNotifs.push(...pendingInvs.map((i: any) => ({
-             id: `inv-${i._id}`,
-             title: `New project invitation`,
-             time: new Date(i.createdAt),
-             path: '/dashboard/clients'
-           })));
-         }
+        const invRes = await api.get('/invitations');
+        if (invRes.data.success) {
+          const pendingInvs = invRes.data.data.filter((i: any) => i.status === 'pending');
+          newNotifs.push(...pendingInvs.map((i: any) => ({
+            id: `inv-${i._id}`,
+            title: `New project invitation`,
+            time: new Date(i.createdAt),
+            path: '/dashboard/clients'
+          })));
+        }
       }
 
       newNotifs.sort((a, b) => b.time.getTime() - a.time.getTime());
       setNotifications(newNotifs);
-    } catch(e) {
+    } catch (e) {
       console.log('Error fetching header data', e);
     }
   };
@@ -106,7 +110,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       path: '/dashboard/projects',
       submenu: [
         { label: 'Create Project', path: '/dashboard/projects/create' },
-        { label: 'Explore All Projects', path: '/dashboard/projects/explore' },
+        // { label: 'Explore All Projects', path: '/dashboard/projects/explore' },
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
       ]
     },
@@ -122,13 +126,18 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'Startup Ideas',
       icon: Briefcase,
-      path: '/dashboard/startup-ideas'
+      path: '/dashboard/startup-ideas',
+      submenu: [
+        { label: 'My Submissions', path: '/dashboard/startup-ideas' },
+        { label: 'Saved Ideas', path: '/dashboard/saved?tab=ideas' },
+        { label: 'Explore Portal', path: '/dashboard/explore-ideas' }
+      ]
     },
     { label: 'Find Talent', icon: Users, path: '/dashboard/talent' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: 2 },
-    { label: 'Invoices', icon: FileText, path: '/dashboard/invoices' },
+    // { label: 'Invoices', icon: FileText, path: '/dashboard/invoices' },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
-    { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: 5 },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
     // { label: 'Account Balance', icon: Wallet, path: '/dashboard/balance' },
     { label: 'Subscription', icon: Settings, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
@@ -157,15 +166,20 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       ]
     }, -- Commented as requested */
     {
-       label: 'Startup Ideas',
-       icon: Briefcase,
-       path: '/dashboard/startup-ideas'
+      label: 'Startup Ideas',
+      icon: Briefcase,
+      path: '/dashboard/startup-ideas',
+      submenu: [
+        { label: 'My Submissions', path: '/dashboard/startup-ideas' },
+        { label: 'Saved Ideas', path: '/dashboard/saved?tab=ideas' },
+        { label: 'Explore Portal', path: '/dashboard/explore-ideas' }
+      ]
     },
-    { label: 'Find Clients', icon: Users, path: '/dashboard/clients' },
+    // { label: 'Find Clients', icon: Users, path: '/dashboard/clients' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes' },
-    { label: 'Invoices', icon: FileText, path: '/dashboard/invoices' },
+    // { label: 'Invoices', icon: FileText, path: '/dashboard/invoices' },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
-    { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: 3 },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
     // { label: 'Wallet & Withdraw', icon: Wallet, path: '/dashboard/wallet' },
     { label: 'Subscription', icon: Settings, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
@@ -175,12 +189,12 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const investorNavItems: NavItem[] = [
     { label: 'Overview', icon: LayoutDashboard, path: '/dashboard-investor' },
     {
-      label: 'Deal Flow',
+      label: 'Startup Ideas',
       icon: Briefcase,
-      path: '/dashboard-investor/pipeline',
+      path: '/dashboard-investor/explore-ideas',
       submenu: [
-        { label: 'Active Pipeline', path: '/dashboard-investor/pipeline' },
-        { label: 'Portfolio', path: '/dashboard-investor/portfolio' }
+        { label: 'Explore All', path: '/dashboard-investor/explore-ideas' },
+        { label: 'Saved Content', path: '/dashboard-investor/pipeline' }
       ]
     },
     { label: 'Meetings', icon: Calendar, path: '/dashboard-investor/meetings' },
@@ -193,12 +207,13 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const startupCreatorNavItems: NavItem[] = [
     { label: 'Overview', icon: LayoutDashboard, path: '/dashboard-startup' },
     {
-      label: 'My Ideas',
+      label: 'My Portals',
       icon: Briefcase,
       path: '/dashboard-startup/ideas',
       submenu: [
-        { label: 'Manage Ideas', path: '/dashboard-startup/ideas' },
-        { label: 'New Submission', path: '/dashboard-startup/ideas/new' }
+        { label: 'My Submissions', path: '/dashboard-startup/ideas' },
+        { label: 'Saved Items', path: '/dashboard/saved?tab=ideas' },
+        { label: 'Explore Portal', path: '/dashboard-startup/explore-ideas' }
       ]
     },
     { label: 'Analytics', icon: Search, path: '/dashboard-startup/analytics' },
@@ -212,12 +227,12 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     { label: 'Admin Panel', icon: LayoutDashboard, path: '/admin' }
   ];
 
-  const navItems = 
-    userType === 'client' ? clientNavItems : 
-    userType === 'freelancer' ? freelancerNavItems : 
-    userType === 'investor' ? investorNavItems : 
-    userType === 'admin' ? adminNavItems :
-    startupCreatorNavItems;
+  const navItems =
+    userType === 'client' ? clientNavItems :
+      userType === 'freelancer' ? freelancerNavItems :
+        userType === 'investor' ? investorNavItems :
+          userType === 'admin' ? adminNavItems :
+            startupCreatorNavItems;
 
   const toggleSubmenu = (label: string) => {
     setExpandedMenus(prev =>
@@ -251,10 +266,10 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user.profile_image) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80";
-      
+
       let imgPath = user.profile_image;
       if (imgPath.startsWith('http')) return imgPath;
-      
+
       if (!imgPath.startsWith('/')) imgPath = '/' + imgPath;
       imgPath = imgPath.replace(/\\/g, '/');
 

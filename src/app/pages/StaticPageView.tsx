@@ -58,6 +58,21 @@ const FALLBACKS: Record<string, StaticPageData> = {
 <h2>Your Rights</h2>
 <p>You have the right to access, update, or delete your personal information at any time through your account settings.</p>`,
     },
+    cookies: {
+        title: 'Cookie Policy',
+        slug: 'cookies',
+        updatedAt: new Date().toISOString(),
+        content: `<h2>What are Cookies?</h2>
+<p>Cookies are small text files that are stored on your device to help us provide a better experience. They allow us to remember your preferences and understand how you use our platform.</p>
+<h2>How We Use Cookies</h2>
+<ul>
+  <li><strong>Essential Cookies:</strong> Required for the platform to function properly.</li>
+  <li><strong>Analytical Cookies:</strong> Help us improve our services by understanding user behavior.</li>
+  <li><strong>Preference Cookies:</strong> Remember your settings and choices.</li>
+</ul>
+<h2>Your Choices</h2>
+<p>Most browsers allow you to manage or disable cookies. However, disabling certain cookies may affect your ability to use our services.</p>`,
+    },
 };
 
 export default function StaticPageView() {
@@ -70,7 +85,7 @@ export default function StaticPageView() {
 
     useEffect(() => {
         setLoading(true);
-        api.get(`/cms/pages/${resolvedSlug}`)
+        api.get(`/cms/pages/${resolvedSlug}`, { skipToast: true } as any)
             .then(res => {
                 setPage(res.data.page);
             })

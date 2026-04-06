@@ -11,7 +11,9 @@ import {
   Upload,
   X,
   Loader2,
-  Search
+  Search,
+  ShieldAlert,
+  Clock
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '@/app/utils/api';
@@ -21,6 +23,8 @@ import { useNavigate } from 'react-router-dom';
 export default function CreateProject() {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+  const [kycStatus, setKycStatus] = useState<string>('unverified');
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [projectData, setProjectData] = useState({
@@ -52,10 +56,11 @@ export default function CreateProject() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catRes, skillRes, stepsRes] = await Promise.all([
+        const [catRes, skillRes, stepsRes, userRes] = await Promise.all([
           api.get('/cms/categories'),
           api.get('/cms/skills'),
-          api.get('/cms/registration-steps')
+          api.get('/cms/registration-steps'),
+          api.get('/auth/me')
         ]);
         if (catRes.data.success) setCategories(catRes.data.categories || []);
         if (skillRes.data.success) setAvailableSkills(skillRes.data.skills || []);
@@ -65,6 +70,10 @@ export default function CreateProject() {
           if (budgetStep) setBudgetOptions(budgetStep.options || []);
           const expStep = steps.find((s: any) => s.field === 'experienceLevel');
           if (expStep) setExpOptions(expStep.options || []);
+        }
+        if (userRes.data.success) {
+          setIsVerified(userRes.data.user.kyc_details?.is_verified || false);
+          setKycStatus(userRes.data.user.kyc_status || 'unverified');
         }
       } catch (err) {
         console.error('Failed to fetch data:', err);
@@ -147,6 +156,28 @@ export default function CreateProject() {
     }
   };
 
+  if (isVerified === false && kycStatus !== 'pending') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center space-y-6">
+        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center">
+          <ShieldAlert className="w-10 h-10 text-orange-500" />
+        </div>
+        <div>
+          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>KYC Verification Required</h2>
+          <p className={`mt-2 max-w-md ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            To maintain a safe community, we require all clients to complete their KYC verification before posting projects.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/dashboard/settings')}
+          className="px-8 py-3 bg-[#F24C20] text-white rounded-xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-transform"
+        >
+          Complete Verification Now
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -160,6 +191,14 @@ export default function CreateProject() {
         <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
           Post your project and find the perfect freelancer
         </p>
+        {!isVerified && kycStatus === 'pending' && (
+          <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
+             <Clock className="w-5 h-5 text-orange-500" />
+             <p className="text-sm font-medium text-orange-600">
+               Your account verification is in progress. You can submit projects, but they will be reviewed only after your KYC is approved.
+             </p>
+          </div>
+        )}
       </motion.div>
 
       {/* Stepper */}
@@ -334,43 +373,101 @@ export default function CreateProject() {
         {/* Step 2: Budget & Timeline */}
         {currentStep === 2 && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Budget Range */}
+              <div className="space-y-4">
+                <label className={`block text-sm font-medium ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>
                   Budget Range *
                 </label>
-                <select
-                  value={projectData.budget_range}
-                  onChange={(e) => setProjectData({ ...projectData, budget_range: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl border ${isDarkMode
-                      ? 'bg-neutral-800/50 border-neutral-700 text-white'
-                      : 'bg-white border-neutral-300 text-neutral-900'
-                    } outline-none focus:border-[#F24C20] transition-colors`}
-                >
-                  <option value="">Select Budget Range</option>
-                  {budgetOptions.map((opt) => (
-                    <option key={opt.value} value={opt.label}>{opt.label}</option>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    '₹1,000 - ₹5,000',
+                    '₹5,000 - ₹20,000',
+                    '₹20,000 - ₹50,000',
+                    '₹50,000 - ₹1,00,000',
+                    '₹1,00,000 - ₹5,00,000',
+                    'Custom'
+                  ].map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      onClick={() => setProjectData({ ...projectData, budget_range: range === 'Custom' ? '' : range })}
+                      className={`p-3 rounded-xl border-2 text-sm font-medium transition-all text-center ${
+                        projectData.budget_range === range || (range === 'Custom' && !['₹1,00,000 - ₹5,00,000', '₹50,000 - ₹1,00,000', '₹20,000 - ₹50,000', '₹5,000 - ₹20,000', '₹1,00,000 - ₹5,00,000', '₹1,000 - ₹5,00,000'].includes(projectData.budget_range) && projectData.budget_range !== '')
+                          ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]'
+                          : isDarkMode
+                            ? 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                      }`}
+                    >
+                      {range}
+                    </button>
                   ))}
-                </select>
+                </div>
+                
+                {/* Custom Budget Input */}
+                {(![
+                    '₹1,000 - ₹5,000',
+                    '₹5,000 - ₹20,000',
+                    '₹20,000 - ₹50,000',
+                    '₹50,000 - ₹1,00,000',
+                    '₹1,00,000 - ₹5,00,000'
+                  ].includes(projectData.budget_range) || projectData.budget_range === '') && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative"
+                  >
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <IndianRupee className="h-4 w-4 text-neutral-500" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter custom budget or range (e.g., ₹2.5L - ₹3L)"
+                      value={projectData.budget_range}
+                      onChange={(e) => setProjectData({ ...projectData, budget_range: e.target.value })}
+                      className={`w-full pl-10 pr-4 py-3 rounded-xl border ${isDarkMode
+                          ? 'bg-neutral-800/50 border-neutral-700 text-white placeholder:text-neutral-500'
+                          : 'bg-white border-neutral-300 text-neutral-900 placeholder:text-neutral-400'
+                        } outline-none focus:border-[#F24C20] transition-colors`}
+                    />
+                  </motion.div>
+                )}
               </div>
 
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>
+              {/* Experience Level */}
+              <div className="space-y-4">
+                <label className={`block text-sm font-medium ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>
                   Experience Level *
                 </label>
-                <select
-                  value={projectData.experienceLevel}
-                  onChange={(e) => setProjectData({ ...projectData, experienceLevel: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl border ${isDarkMode
-                      ? 'bg-neutral-800/50 border-neutral-700 text-white'
-                      : 'bg-white border-neutral-300 text-neutral-900'
-                    } outline-none focus:border-[#F24C20] transition-colors`}
-                >
-                  <option value="">Select Experience Level</option>
-                  {expOptions.map((opt) => (
-                    <option key={opt.value} value={opt.label}>{opt.label}</option>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { label: 'Entry Level', desc: 'Looking for cost-effective solutions', value: 'Entry' },
+                    { label: 'Intermediate', desc: 'Seeking verified experience & quality', value: 'Intermediate' },
+                    { label: 'Expert', desc: 'Highest quality for complex projects', value: 'Expert' }
+                  ].map((level) => (
+                    <button
+                      key={level.value}
+                      type="button"
+                      onClick={() => setProjectData({ ...projectData, experienceLevel: level.label })}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${
+                        projectData.experienceLevel === level.label
+                          ? 'border-[#044071] bg-[#044071]/10'
+                          : isDarkMode
+                            ? 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                            : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                      }`}
+                    >
+                      <div className="font-bold flex items-center justify-between">
+                         <span className={projectData.experienceLevel === level.label ? 'text-[#044071]' : isDarkMode ? 'text-white' : 'text-neutral-900'}>
+                           {level.label}
+                         </span>
+                         {projectData.experienceLevel === level.label && <CheckCircle className="w-5 h-5 text-[#044071]" />}
+                      </div>
+                      <p className={`text-xs mt-1 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>{level.desc}</p>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
             </div>
 

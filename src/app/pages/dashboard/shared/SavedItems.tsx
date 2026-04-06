@@ -4,7 +4,7 @@ import { Bookmark, Briefcase, Users, Package, X, ExternalLink, Star, MapPin, Dol
 import { useState, useEffect } from 'react';
 import api from '@/app/utils/api';
 
-type TabType = 'projects' | 'talents' | 'gigs';
+type TabType = 'projects' | 'talents' | 'gigs' | 'ideas';
 
 interface SavedProject {
   id: string;
@@ -15,6 +15,15 @@ interface SavedProject {
   skills: string[];
   postedBy: string;
   applicants: number;
+}
+
+interface SavedIdea {
+    id: string;
+    title: string;
+    shortDescription: string;
+    category: string;
+    creator: string;
+    status: string;
 }
 
 interface SavedTalent {
@@ -47,63 +56,114 @@ export default function SavedItems() {
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
   const [savedTalents, setSavedTalents] = useState<any[]>([]);
   const [savedGigs, setSavedGigs] = useState<any[]>([]);
+  const [savedIdeas, setSavedIdeas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
-    const fetchSavedItems = async () => {
-      setLoading(true);
-      try {
-        const gigRes = await api.get('/users/saved-gigs');
-        if (gigRes.data.success) {
-          // Map backend saved gigs to the frontend model schema
-          const mappedGigs = gigRes.data.data.map((item: any) => {
-             const gig = item.gig || {};
-             return {
-                id: gig._id,
-                title: gig.title || 'Untitled Gig',
-                seller: gig.freelancer_id?.full_name || 'Unknown',
-                price: gig.investment_required || 0,
-                image: gig.thumbnail ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${gig.thumbnail}` : 'https://via.placeholder.com/400',
-                rating: 4.9,
-                reviews: 15,
-                category: gig.category || 'Uncategorized'
-             };
-          });
-          setSavedGigs(mappedGigs);
-        }
-      } catch (err) {
-        console.error('Failed to load saved items', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchSavedItems();
+    
+    // Check URL for pre-selected tab
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'ideas') setActiveTab('ideas');
   }, []);
 
-  // Auto-switch to first tab with data
+  const fetchSavedItems = async () => {
+    setLoading(true);
+    try {
+      const [gigRes, projectRes, ideaRes] = await Promise.all([
+        api.get('/users/saved-gigs'),
+        api.get('/users/favorites'),
+        api.get('/users/favorites-ideas')
+      ]);
+
+      if (gigRes.data.success) {
+        const mappedGigs = gigRes.data.data.map((item: any) => {
+          const gig = item.gig || {};
+          return {
+            id: gig._id,
+            title: gig.title || 'Untitled Gig',
+            seller: gig.freelancer_id?.full_name || 'Unknown',
+            price: gig.investment_required || 0,
+            image: gig.thumbnail ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${gig.thumbnail}` : 'https://via.placeholder.com/400',
+            rating: 4.9,
+            reviews: 15,
+            category: gig.category || 'Uncategorized'
+          };
+        });
+        setSavedGigs(mappedGigs);
+      }
+
+      if (projectRes.data.success) {
+        setSavedProjects(projectRes.data.data.map((p: any) => ({
+             id: p._id,
+             title: p.title,
+             description: p.description,
+             budget: `₹${p.budget_range}`,
+             duration: p.timeline || 'TBD',
+             skills: p.skills_required || [],
+             postedBy: p.client_id?.full_name || 'Unknown',
+             applicants: 5, // Mocked for now
+             status: p.status
+        })));
+      }
+
+      if (ideaRes.data.success) {
+        setSavedIdeas(ideaRes.data.data.map((i: any) => ({
+             id: i._id,
+             title: i.title,
+             shortDescription: i.shortDescription,
+             category: i.category,
+             creator: i.creator?.full_name || 'Unknown',
+             status: i.status
+        })));
+      }
+    } catch (err) {
+      console.error('Failed to load saved items', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Auto-switch to first tab with data if no specific tab requested
   useEffect(() => {
-    if (!loading) {
+    const params = new URLSearchParams(window.location.search);
+    if (!loading && !params.get('tab')) {
       if (savedProjects.length > 0) setActiveTab('projects');
       else if (savedTalents.length > 0) setActiveTab('talents');
       else if (savedGigs.length > 0) setActiveTab('gigs');
+      else if (savedIdeas.length > 0) setActiveTab('ideas');
     }
-  }, [loading, savedProjects.length, savedTalents.length, savedGigs.length]);
+  }, [loading, savedProjects.length, savedTalents.length, savedGigs.length, savedIdeas.length]);
 
   const tabs: { id: TabType; label: string; icon: any; count: number }[] = [
     { id: 'projects', label: 'Saved Projects', icon: Briefcase, count: savedProjects.length },
     { id: 'talents', label: 'Saved Talents', icon: Users, count: savedTalents.length },
-    { id: 'gigs', label: 'Saved Gigs', icon: Package, count: savedGigs.length }
+    { id: 'gigs', label: 'Saved Gigs', icon: Package, count: savedGigs.length },
+    { id: 'ideas', label: 'Saved Ideas', icon: Bookmark, count: savedIdeas.length }
   ];
 
   const handleRemove = async (id: string, type: string) => {
-    if (type === 'gigs') {
-       try {
-         const res = await api.post(`/users/saved-gigs/${id}`);
-         if (res.data.success) {
-            setSavedGigs(prev => prev.filter(g => g.id !== id));
-         }
-       } catch (err) { }
+    try {
+      if (type === 'gigs') {
+        const res = await api.post(`/users/saved-gigs/${id}`);
+        if (res.data.success) {
+          setSavedGigs(prev => prev.filter(g => g.id !== id));
+        }
+      } else if (type === 'projects') {
+        const res = await api.put(`/users/favorites/${id}`);
+        if (res.data.success) {
+          setSavedProjects(prev => prev.filter(p => p.id !== id));
+        }
+      } else if (type === 'ideas') {
+        const res = await api.put(`/users/favorites-ideas/${id}`);
+        if (res.data.success) {
+          setSavedIdeas(prev => prev.filter(i => i.id !== id));
+        }
+      }
+    } catch (err) {
+      console.error('Removal failed', err);
     }
   };
 
@@ -155,7 +215,6 @@ export default function SavedItems() {
 
       {/* Tab Content */}
       <div className="space-y-4">
-        {/* Saved Projects */}
         {activeTab === 'projects' && (
           <div className="space-y-4">
             {savedProjects.map((project, index) => (
@@ -164,12 +223,18 @@ export default function SavedItems() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`p-6 rounded-2xl border backdrop-blur-sm ${
+                className={`p-6 rounded-2xl border backdrop-blur-sm relative overflow-hidden transition-all duration-300 ${
                   isDarkMode
                     ? 'bg-neutral-900/50 border-neutral-800'
                     : 'bg-white/50 border-neutral-200'
-                }`}
+                } ${project.status === 'closed' ? 'grayscale opacity-70 border-neutral-700 shadow-none' : ''}`}
               >
+                {/* Expired Ribbon */}
+                {project.status === 'closed' && (
+                  <div className="absolute top-6 -right-10 bg-neutral-800 text-white border border-white/20 px-12 py-1 rotate-45 font-black text-[10px] shadow-2xl z-20 pointer-events-none">
+                     EXPIRED
+                  </div>
+                )}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
@@ -444,6 +509,89 @@ export default function SavedItems() {
                 </h3>
                 <p className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>
                   Explore gigs marketplace and save your favorites
+                </p>
+              </motion.div>
+            )}
+          </div>
+        )}
+
+        {/* Saved Startup Ideas */}
+        {activeTab === 'ideas' && (
+          <div className="space-y-4">
+            {savedIdeas.map((idea, index) => (
+              <motion.div
+                key={idea.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${
+                  isDarkMode
+                    ? 'bg-neutral-900/50 border-neutral-800'
+                    : 'bg-white/50 border-neutral-200'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                       <span className="px-2 py-0.5 rounded bg-orange-500/10 text-orange-500 text-[10px] font-bold uppercase tracking-wider">
+                          {idea.category}
+                       </span>
+                       <span className={`text-[10px] uppercase font-bold tracking-wider ${
+                          idea.status === 'approved' ? 'text-green-500' : 'text-yellow-500'
+                       }`}>
+                          {idea.status}
+                       </span>
+                    </div>
+                    <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                      {idea.title}
+                    </h3>
+                    <p className={`mb-4 line-clamp-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                      {idea.shortDescription}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleRemove(idea.id, 'ideas')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? 'hover:bg-red-500/10 text-red-400'
+                        : 'hover:bg-red-50 text-red-600'
+                    }`}
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                    Idea by {idea.creator}
+                  </span>
+                  <button 
+                    onClick={() => window.location.href = `/startup-ideas/${idea.id}`}
+                    className="flex items-center gap-2 px-6 py-2 bg-[#F24C20] text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                  >
+                    View Concept
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+
+            {savedIdeas.length === 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-12 rounded-2xl border backdrop-blur-sm text-center ${
+                  isDarkMode
+                    ? 'bg-neutral-900/50 border-neutral-800'
+                    : 'bg-white/50 border-neutral-200'
+                }`}
+              >
+                <Bookmark className={`w-16 h-16 mx-auto mb-4 ${isDarkMode ? 'text-neutral-700' : 'text-neutral-300'}`} />
+                <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  No Saved Ideas
+                </h3>
+                <p className={isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}>
+                  Follow interesting startup concepts to see them here
                 </p>
               </motion.div>
             )}

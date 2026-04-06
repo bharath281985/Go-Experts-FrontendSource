@@ -16,6 +16,7 @@ import ResetPasswordPage from '@/app/pages/ResetPasswordPage';
 import FreelancerOnboarding from '@/app/pages/onboarding/FreelancerOnboarding';
 import ClientOnboarding from '@/app/pages/onboarding/ClientOnboarding';
 import NewDashboardPage from '@/app/pages/NewDashboardPage';
+import AllCategoriesPage from './pages/AllCategoriesPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import FAQsPage from './pages/FAQsPage';
@@ -53,6 +54,7 @@ export default function App() {
             <Route path="/explore-ideas/:id" element={<StartupIdeaPublicDetailPage />} />
             {/* <Route path="/gigs/:id/checkout" element={<GigCheckout />} />
             <Route path="/gigs/:id/success" element={<GigOrderSuccess />} /> */}
+            <Route path="/categories" element={<AllCategoriesPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/talent" element={<TalentPage />} />
@@ -91,6 +93,7 @@ export default function App() {
             />
             <Route path="/terms" element={<StaticPageView />} />
             <Route path="/privacy" element={<StaticPageView />} />
+            <Route path="/cookies" element={<StaticPageView />} />
             <Route path="/pages/:slug" element={<StaticPageView />} />
             <Route path="/subscription" element={<SubscriptionPlansPricingPage />} />
             <Route path="/payment/success" element={<PaymentStatus />} />

@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, User, Moon, Sun, Menu, X, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -6,7 +6,7 @@ import logoFallback from '@/assets/0772c85ef8b5349a958c92c3b3261c8a881ce229.png'
 import RegistrationWizard from '@/app/components/onboarding/RegistrationWizard';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 
 
 export default function Header() {
@@ -15,12 +15,13 @@ export default function Header() {
   const { isDarkMode, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showRegistration, setShowRegistration] = useState(false);
-  const { site_logo } = useSiteSettings();
+  const { header_logo, site_logo, site_name } = useSiteSettings();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const logoUrl = site_logo ? (site_logo.startsWith('http') ? site_logo : `${apiUrl}${site_logo}`) : logoFallback;
+  const logoUrl = getImgUrl(header_logo || site_logo) || logoFallback;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +56,38 @@ export default function Header() {
     window.location.href = '/';
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+
+    // Choose search target based on current path or default to talent
+    if (location.pathname.startsWith('/projects')) {
+      navigate(`/projects?search=${encodeURIComponent(searchTerm.trim())}`);
+    } else {
+      navigate(`/talent?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+    setSearchTerm('');
+    setMobileMenuOpen(false);
+  };
+
   const [navLinks, setNavLinks] = useState<{ path: string; label: string; open_in_new_tab?: boolean }[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check login status and role
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      setIsLoggedIn(true);
+      try {
+        const userData = JSON.parse(user);
+        setUserName(userData.full_name || 'User');
+        setUserRole(userData.role || (userData.roles ? userData.roles[0] : 'freelancer'));
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const fetchMenus = async () => {
@@ -78,17 +110,38 @@ export default function Header() {
       } catch (err) {
         console.warn('Failed to fetch header menus', err);
       }
-      // Fallback
-      setNavLinks([
-        { path: '/', label: 'Home' },
-        { path: '/projects', label: 'Go Projects' },
-        { path: '/talent', label: 'Go Talent' },
+
+      // Fallback Static Menus based on Role
+      let links = [
+        { path: '/', label: 'Home' }
+      ];
+
+      if (!isLoggedIn) {
+        links.push(
+          { path: '/projects', label: 'Go Projects' },
+          { path: '/talent', label: 'Go Talent' }
+        );
+      } else if (userRole === 'freelancer') {
+        links.push(
+          { path: '/projects', label: 'Go Projects' },
+          { path: '/dashboard/proposals', label: 'My Proposals' }
+        );
+      } else if (userRole === 'client') {
+        links.push(
+          { path: '/talent', label: 'Go Talent' },
+          { path: '/dashboard/post-project', label: 'Post a Project' }
+        );
+      }
+
+      links.push(
         { path: '/explore-ideas', label: 'Explore Ideas' },
-        { path: '/plans', label: 'Plans' },
-      ]);
+        { path: '/plans', label: 'Plans' }
+      );
+
+      setNavLinks(links);
     };
     fetchMenus();
-  }, []);
+  }, [isLoggedIn, userRole]);
 
   return (
     <>
@@ -117,14 +170,20 @@ export default function Header() {
           <div className="relative px-6 py-4">
             <div className="flex items-center justify-between">
               {/* Logo */}
-              <Link to="/" className="flex items-center gap-2 group">
-                <div className="relative">
+              <Link to="/" className="flex items-center gap-3 group">
+                <div className="relative flex items-center">
                   <img
                     src={logoUrl}
-                    alt="Go Experts"
-                    className={`h-10 w-auto transition-all transition-transform group-hover:scale-105 ${isDarkMode ? 'brightness-110' : ''}`}
+                    alt={site_name || "Go Experts"}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== logoFallback) {
+                        target.src = logoFallback;
+                      }
+                    }}
+                    className={`h-11 md:h-12 w-auto object-contain transition-all duration-500 group-hover:scale-105 ${isDarkMode ? 'brightness-110' : ''}`}
                   />
-                  <div className="absolute -inset-2 bg-[#F24C20]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+                  <div className="absolute -inset-2 bg-[#F24C20]/20 blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-full" />
                 </div>
               </Link>
 
@@ -166,14 +225,18 @@ export default function Header() {
               {/* Right Actions - Desktop */}
               <div className="hidden lg:flex items-center gap-3">
                 {/* Search Bar */}
-                <div className="relative group">
+                <form onSubmit={handleSearch} className="relative group">
                   <input
                     type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search..."
                     className="pl-10 pr-4 py-2 w-48 focus:w-64 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all duration-300 text-white placeholder:text-neutral-500 backdrop-blur-sm"
                   />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-[#F24C20] transition-colors" />
-                </div>
+                  <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <Search className="w-4 h-4 text-neutral-400 group-focus-within:text-[#F24C20] transition-colors" />
+                  </button>
+                </form>
 
                 {/* Dark/Light Mode Toggle */}
                 <button
@@ -295,14 +358,18 @@ export default function Header() {
                 </nav>
 
                 {/* Mobile Search */}
-                <div className="relative mb-4">
+                <form onSubmit={handleSearch} className="relative mb-4">
                   <input
                     type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search..."
                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all text-white placeholder:text-neutral-500"
                   />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                </div>
+                  <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <Search className="w-4 h-4 text-neutral-400" />
+                  </button>
+                </form>
 
                 {/* Mobile Actions */}
                 <div className="space-y-2">

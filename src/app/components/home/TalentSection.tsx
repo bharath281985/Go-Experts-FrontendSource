@@ -11,23 +11,46 @@ export default function TalentSection() {
   const [talents, setTalents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const mockTalents = [
+    { id: '1', full_name: 'Sarah Johnson', role: 'Full Stack Developer', rating: '4.9', reviews: 124, location: 'San Francisco, CA', skills: ['React', 'Node.js', 'PostgreSQL'], hourly_rate: '1500', verified: true, profile_image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150' },
+    { id: '2', full_name: 'David Chen', role: 'UI/UX Designer', rating: '4.8', reviews: 89, location: 'Austin, TX', skills: ['Figma', 'UI Design', 'Design Systems'], hourly_rate: '2000', verified: true, profile_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150' },
+    { id: '3', full_name: 'Michel Williams', role: 'DevOps Engineer', rating: '5.0', reviews: 56, location: 'London, UK', skills: ['Docker', 'AWS', 'Kubernetes'], hourly_rate: '2500', verified: true, profile_image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150' },
+    { id: '4', full_name: 'Aisha Patel', role: 'Product Manager', rating: '4.7', reviews: 112, location: 'Mumbai, India', skills: ['Agile', 'Scrum', 'Backlog Management'], hourly_rate: '1800', verified: true, profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150' },
+  ];
+
   useEffect(() => {
     const fetchTalents = async () => {
       try {
+        const userStr = localStorage.getItem('user');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        const currentUserId = currentUser?._id;
+
         const res = await api.get('/users/freelancers');
-        if (res.data.success) {
-          // Take only the first 4 talents, and mock missing fields for UI display
-          const processed = res.data.data.slice(0, 4).map((t: any) => ({
+        if (res.data.success && res.data.data.length > 0) {
+          // Filter out current user and take top 4
+          const filtered = res.data.data.filter((t: any) => t._id !== currentUserId);
+          const processed = filtered.slice(0, 4).map((t: any) => ({
             ...t,
-            rating: (4.5 + Math.random() * 0.5).toFixed(1),
-            reviews: Math.floor(Math.random() * 200)
+            id: t._id, // Map database _id to id for Links
+            rating: t.rating || (4.5 + Math.random() * 0.5).toFixed(1),
+            reviews: t.reviews || Math.floor(Math.random() * 200),
+            location: t.location || 'Remote',
+            skills: t.skills || ['Expertise', 'Quality'],
+            role: t.role || 'Expert Professional',
+            profile_image: t.profile_image 
+              ? (t.profile_image.startsWith('http') ? t.profile_image : `https://backendapis.goexperts.in${t.profile_image}`)
+              : null,
+            hourly_rate: t.hourly_rate || '1200'
           }));
           setTalents(processed);
+        } else {
+          setTalents(mockTalents);
         }
       } catch (error) {
         console.error('Error fetching talents:', error);
+        setTalents(mockTalents);
       } finally {
-        setLoading(false);
+        setTimeout(() => setLoading(false), 800);
       }
     };
     fetchTalents();
@@ -36,7 +59,7 @@ export default function TalentSection() {
   return (
     <section
       ref={ref}
-      className="relative py-32 overflow-hidden"
+      className="relative py-25 overflow-hidden"
       style={{
         background: 'radial-gradient(ellipse at bottom, #0f0505 0%, #000000 100%)',
       }}
@@ -87,58 +110,51 @@ export default function TalentSection() {
         </motion.div>
 
         {/* Floating Talent Cards - Staggered Grid */}
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-10 h-10 text-[#F24C20] animate-spin" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {talents.map((talent, index) => (
-              <motion.div
-                key={talent.id}
-                initial={{ opacity: 0, y: 60, rotateY: -20 }}
-                animate={isInView ? { opacity: 1, y: 0, rotateY: 0 } : {}}
-                transition={{ duration: 0.8, delay: index * 0.15 }}
-                className="relative group"
-                style={{
-                  perspective: '1000px',
-                }}
-              >
-                <Link to={`/talent/${talent.id}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 items-stretch">
+          {(loading ? mockTalents : talents).map((talent, index) => (
+            <motion.div
+              key={talent.id}
+              initial={{ opacity: 0, y: 60, rotateY: -20 }}
+              animate={isInView ? { opacity: 1, y: 0, rotateY: 0 } : {}}
+              transition={{ duration: 0.8, delay: index * 0.15 }}
+              className={`relative group h-full ${loading ? 'animate-pulse pointer-events-none' : ''}`}
+              style={{ perspective: '1000px' }}
+            >
+              <Link to={`/talent/${talent.id}`} className="block h-full">
+                <motion.div
+                  whileHover={!loading ? {
+                    y: -20,
+                    scale: 1.05,
+                    rotateY: 5,
+                  } : {}}
+                  transition={{ duration: 0.4 }}
+                  className="relative p-8 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden h-full flex flex-col"
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  {/* Glow Effect */}
                   <motion.div
-                    whileHover={{
-                      y: -20,
-                      scale: 1.05,
-                      rotateY: 5,
-                    }}
-                    transition={{ duration: 0.4 }}
-                    className="relative p-8 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
-                      transformStyle: 'preserve-3d',
+                      background: 'radial-gradient(circle at top, rgba(242, 76, 32, 0.15) 0%, transparent 70%)',
                     }}
-                  >
-                    {/* Glow Effect */}
+                  />
+
+                  {/* Top Badge */}
+                  {talent.topRated && (
                     <motion.div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{
-                        background: 'radial-gradient(circle at top, rgba(242, 76, 32, 0.15) 0%, transparent 70%)',
-                      }}
-                    />
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={isInView ? { scale: 1, rotate: 0 } : {}}
+                      transition={{ duration: 0.5, delay: index * 0.15 + 0.3, type: 'spring' }}
+                      className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 text-xs font-semibold border border-purple-500/50 shadow-lg"
+                    >
+                      ⭐ Top Rated
+                    </motion.div>
+                  )}
 
-                    {/* Top Badge */}
-                    {talent.topRated && (
-                      <motion.div
-                        initial={{ scale: 0, rotate: -45 }}
-                        animate={isInView ? { scale: 1, rotate: 0 } : {}}
-                        transition={{ duration: 0.5, delay: index * 0.15 + 0.3, type: 'spring' }}
-                        className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 text-xs font-semibold border border-purple-500/50 shadow-lg"
-                      >
-                        ⭐ Top Rated
-                      </motion.div>
-                    )}
-
-                    {/* Content */}
-                    <div className="relative text-center">
+                  {/* Content Container */}
+                  <div className="relative text-center flex flex-col h-full">
+                    {/* Top Content Area (Grows to push footer down) */}
+                    <div className="flex-1">
                       {/* Avatar */}
                       <motion.div
                         className="relative inline-block mb-6"
@@ -148,7 +164,7 @@ export default function TalentSection() {
                         <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center shadow-2xl shadow-[#F24C20]/40 relative">
                           <div className="w-full h-full rounded-full overflow-hidden">
                             <ImageWithFallback
-                              src={talent.profile_image ? (talent.profile_image.startsWith('http') ? talent.profile_image : `${import.meta.env.VITE_API_URL}${talent.profile_image}`) : `https://ui-avatars.com/api/?name=${talent.full_name || talent.name}&size=128`}
+                              src={talent.profile_image ? (talent.profile_image.startsWith('http') ? talent.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${talent.profile_image}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(talent.full_name || talent.name)}&size=128&background=random&color=fff`}
                               alt={talent.full_name || talent.name}
                               className="w-full h-full object-cover"
                             />
@@ -186,7 +202,7 @@ export default function TalentSection() {
                       <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#F24C20] transition-colors">
                         {talent.full_name || talent.name}
                       </h3>
-                      <p className="text-sm text-neutral-400 mb-4 capitalize">{talent.role}</p>
+                      <p className="text-sm text-neutral-400 mb-4 capitalize line-clamp-1">{talent.role}</p>
 
                       {/* Rating */}
                       <div className="flex items-center justify-center gap-2 mb-4">
@@ -198,65 +214,69 @@ export default function TalentSection() {
                       {/* Location */}
                       <div className="flex items-center justify-center gap-2 text-sm text-neutral-400 mb-6">
                         <MapPin className="w-4 h-4 text-[#F24C20]" />
-                        <span>{talent.location}</span>
+                        <span className="line-clamp-1">{talent.location}</span>
                       </div>
 
-                      {/* Skills */}
+                      {/* Skills/Categories */}
                       <div className="flex flex-wrap gap-2 justify-center mb-6">
-                        {talent.skills?.slice(0, 3).map((skill: string) => (
-                          <span
-                            key={skill}
-                            className="px-3 py-1.5 rounded-lg bg-neutral-800/70 text-xs font-medium text-neutral-300 border border-neutral-700"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                        {talent.skills?.slice(0, 3).map((skill: any) => {
+                          const skillName = typeof skill === 'object' ? skill.name : skill;
+                          if (!skillName) return null;
+                          return (
+                            <span
+                              key={typeof skill === 'object' ? skill._id : skill}
+                              className="px-3 py-1.5 rounded-lg bg-neutral-800/70 text-xs font-medium text-neutral-300 border border-neutral-700 whitespace-nowrap"
+                            >
+                              {skillName}
+                            </span>
+                          );
+                        })}
                       </div>
-
-                      {/* Price */}
-                      <div className="pt-4 border-t border-neutral-800">
-                        <div className="text-2xl font-bold text-[#F24C20] mb-1">₹{talent.hourly_rate || '1200'}/hr</div>
-                        <div className="text-xs text-neutral-500">Starting rate</div>
-                      </div>
-
-                      {/* Hover Arrow */}
-                      <motion.div
-                        className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        initial={{ x: -10 }}
-                        whileHover={{ x: 0 }}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-[#F24C20] flex items-center justify-center shadow-lg">
-                          <ArrowRight className="w-5 h-5 text-white" />
-                        </div>
-                      </motion.div>
-
-                      {/* Floating Particles */}
-                      {[...Array(3)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute w-1.5 h-1.5 rounded-full bg-[#F24C20]"
-                          style={{
-                            top: `${30 + i * 20}%`,
-                            left: `${10 + i * 30}%`,
-                          }}
-                          animate={{
-                            y: [0, -15, 0],
-                            opacity: [0.3, 1, 0.3],
-                          }}
-                          transition={{
-                            duration: 2,
-                            delay: i * 0.4,
-                            repeat: Infinity,
-                          }}
-                        />
-                      ))}
                     </div>
-                  </motion.div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        )}
+
+                    {/* Footer Area - Price (Fixed at bottom) */}
+                    <div className="pt-6 border-t border-neutral-800/50 mt-auto">
+                      <div className="text-2xl font-black text-[#F24C20] mb-0.5 tracking-tight">₹{talent.hourly_rate || '1200'}/hr</div>
+                      <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-500">Starting rate</div>
+                    </div>
+
+                    {/* Hover Arrow */}
+                    <motion.div
+                      className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      initial={{ x: -10 }}
+                      whileHover={{ x: 0 }}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#F24C20] flex items-center justify-center shadow-lg">
+                        <ArrowRight className="w-5 h-5 text-white" />
+                      </div>
+                    </motion.div>
+
+                    {/* Floating Particles */}
+                    {[...Array(3)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-1.5 h-1.5 rounded-full bg-[#F24C20]"
+                        style={{
+                          top: `${30 + i * 20}%`,
+                          left: `${10 + i * 30}%`,
+                        }}
+                        animate={{
+                          y: [0, -15, 0],
+                          opacity: [0.3, 1, 0.3],
+                        }}
+                        transition={{
+                          duration: 2,
+                          delay: i * 0.4,
+                          repeat: Infinity,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
 
         {/* View All CTA */}
         <motion.div

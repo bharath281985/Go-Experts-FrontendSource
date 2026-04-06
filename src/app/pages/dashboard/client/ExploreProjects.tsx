@@ -68,9 +68,10 @@ export default function ExploreProjects() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catRes, stepsRes] = await Promise.all([
+        const [catRes, stepsRes, favRes] = await Promise.all([
           api.get('/cms/categories'),
-          api.get('/cms/registration-steps')
+          api.get('/cms/registration-steps'),
+          api.get('/users/favorites')
         ]);
         if (catRes.data.success) {
           setCategories(catRes.data.categories || catRes.data.data || []);
@@ -81,6 +82,9 @@ export default function ExploreProjects() {
           if (budgetStep) setAvailableBudgetRanges(budgetStep.options || []);
           const expStep = steps.find((s: any) => s.field === 'experienceLevel');
           if (expStep) setAvailableExpLevels(expStep.options || []);
+        }
+        if (favRes.data.success) {
+          setSavedProjects(favRes.data.data.map((p: any) => p._id));
         }
       } catch (err) {
         console.error('Failed to fetch data:', err);
@@ -95,10 +99,19 @@ export default function ExploreProjects() {
     { name: 'Okay Match', value: 20, color: '#64748b' }
   ];
 
-  const toggleSave = (projectId: string) => {
-    setSavedProjects((prev) =>
-      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
-    );
+  const toggleSave = async (projectId: string) => {
+    try {
+      const res = await api.put(`/users/favorites/${projectId}`);
+      if (res.data.success) {
+        if (res.data.isFavorited) {
+          setSavedProjects(prev => [...prev, projectId]);
+        } else {
+          setSavedProjects(prev => prev.filter(id => id !== projectId));
+        }
+      }
+    } catch (err) {
+      console.error('Error toggling favorite:', err);
+    }
   };
 
   return (
@@ -350,11 +363,7 @@ export default function ExploreProjects() {
                                 : 'hover:bg-neutral-100 text-neutral-600'
                             }`}
                         >
-                          {savedProjects.includes(project._id) ? (
-                            <BookmarkCheck className="w-5 h-5" />
-                          ) : (
-                            <Bookmark className="w-5 h-5" />
-                          )}
+                          <Bookmark className={`w-5 h-5 ${savedProjects.includes(project._id) ? 'fill-current' : ''}`} />
                         </button>
                       </div>
   
@@ -402,10 +411,24 @@ export default function ExploreProjects() {
                       </div>
   
                       {/* Footer */}
-                      <div className="flex items-center justify-between">
-                        <span className={`text-sm ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                          Posted {formatDistanceToNow(new Date(project.createdAt))} ago
-                        </span>
+                      <div className="flex items-center justify-between pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                        <div className="flex items-center gap-3">
+                           <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                 {project.client_id?.full_name?.substring(0, 2).toUpperCase() || 'EX'}
+                              </div>
+                              <Link 
+                                to={`/dashboard/projects/explore?search=${project.client_id?.full_name}`}
+                                className={`font-medium text-sm hover:text-[#F24C20] transition-colors ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}
+                              >
+                                 {project.client_id?.full_name || 'Client'}
+                              </Link>
+                           </div>
+                           <span className="text-neutral-300 dark:text-neutral-700">|</span>
+                           <span className={`text-xs ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                             Posted {formatDistanceToNow(new Date(project.createdAt))} ago
+                           </span>
+                        </div>
                         <Link
                           to={`/dashboard/projects/${project._id}`}
                           className="px-6 py-2 bg-[#F24C20] hover:bg-orange-600 text-white rounded-lg font-medium transition-all"

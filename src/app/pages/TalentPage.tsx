@@ -1,10 +1,27 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import TalentFinderWizard, { QuestionaryAnswers } from '@/app/components/talent/TalentFinderWizard';
 import TalentResultsPage from '@/app/components/talent/TalentResultsPage';
 
 export default function TalentPage() {
-  const [showWizard, setShowWizard] = useState(true);
-  const [questionaryAnswers, setQuestionaryAnswers] = useState<QuestionaryAnswers | null>(null);
+  const [searchParams] = useSearchParams();
+  const searchParam = searchParams.get('search');
+  const categoryParam = searchParams.get('category');
+
+  const [showWizard, setShowWizard] = useState(!searchParam && !categoryParam);
+  const [questionaryAnswers, setQuestionaryAnswers] = useState<QuestionaryAnswers | null>(
+    (searchParam || categoryParam) ? {
+      role: categoryParam || '',
+      workType: '',
+      budget: '',
+      experience: '',
+      location: '',
+      availability: '',
+      skills: [],
+      preferences: [],
+      searchTerm: searchParam || ''
+    } : null
+  );
 
   const handleWizardComplete = (answers: QuestionaryAnswers) => {
     setQuestionaryAnswers(answers);
@@ -12,7 +29,6 @@ export default function TalentPage() {
   };
 
   const handleWizardClose = () => {
-    // If user closes wizard without completing, redirect to home or show a message
     window.location.href = '/';
   };
 

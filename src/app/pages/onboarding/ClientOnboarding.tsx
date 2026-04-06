@@ -47,9 +47,8 @@ export default function ClientOnboarding() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Project data:', formData);
-    // Mark onboarding as complete
-    localStorage.setItem('onboardingComplete', 'true');
     // Redirect to client dashboard
+    localStorage.setItem('userType', 'client');
     navigate('/dashboard');
   };
 

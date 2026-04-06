@@ -21,29 +21,45 @@ export default function FreelancerOnboarding() {
   const [customSkill, setCustomSkill] = useState('');
 
   useEffect(() => {
-    const fetchSkills = async () => {
+    const fetchInitialData = async () => {
       try {
-        const response = await api.get('/cms/skills');
-        if (response.data.success) {
-          setDbSkills(response.data.skills.filter((s: any) => s.is_active));
+        const [skillsRes, profileRes] = await Promise.all([
+          api.get('/cms/skills'),
+          api.get('/auth/me')
+        ]);
+        
+        if (skillsRes.data.success) {
+          setDbSkills(skillsRes.data.skills.filter((s: any) => s.is_active));
+        }
+        
+        if (profileRes.data.success) {
+          const user = profileRes.data.user;
+          setFormData(prev => ({
+            ...prev,
+            skills: user.skills || [],
+            hourlyRate: user.hourly_rate?.toString() || '',
+            bio: user.bio || '',
+            profileImage: user.profile_image || '',
+          }));
         }
       } catch (error) {
-        console.error('Failed to load skills:', error);
+        console.error('Failed to load initial data:', error);
       }
     };
-    fetchSkills();
+    fetchInitialData();
   }, []);
 
-  const toggleSkill = (skill: string) => {
-    if (formData.skills.includes(skill)) {
-      setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
+  const toggleSkill = (skillId: string) => {
+    if (formData.skills.includes(skillId)) {
+      setFormData({ ...formData, skills: formData.skills.filter(s => s !== skillId) });
     } else {
-      setFormData({ ...formData, skills: [...formData.skills, skill] });
+      setFormData({ ...formData, skills: [...formData.skills, skillId] });
     }
   };
 
   const handleAddCustomSkill = () => {
     const trimmed = customSkill.trim();
+    // Note: Custom skills might be filtered out by backend if they aren't valid IDs
     if (trimmed && !formData.skills.includes(trimmed)) {
       setFormData({ ...formData, skills: [...formData.skills, trimmed] });
     }
@@ -75,7 +91,7 @@ export default function FreelancerOnboarding() {
         // Update local user data
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         localStorage.setItem('user', JSON.stringify({ ...storedUser, ...response.data.user }));
-
+        localStorage.setItem('userType', 'freelancer');
         navigate('/dashboard');
       }
     } catch (error: any) {
@@ -147,12 +163,12 @@ export default function FreelancerOnboarding() {
               <div className="flex flex-wrap gap-3 mb-6">
                 {/* Dynamically render fetched skills */}
                 {dbSkills.map((skill) => {
-                  const isSelected = formData.skills.includes(skill.name);
+                  const isSelected = formData.skills.includes(skill._id);
                   return (
                     <motion.button
                       key={skill._id}
                       type="button"
-                      onClick={() => toggleSkill(skill.name)}
+                      onClick={() => toggleSkill(skill._id)}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${isSelected
@@ -165,20 +181,26 @@ export default function FreelancerOnboarding() {
                   );
                 })}
 
-                {/* Render manually added custom skills that are not from the database */}
-                {formData.skills.filter(s => !dbSkills.some(dbS => dbS.name === s)).map((customSkillStr) => (
-                  <motion.button
-                    key={customSkillStr}
-                    type="button"
-                    onClick={() => toggleSkill(customSkillStr)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-4 py-2 rounded-lg border-2 transition-all font-medium border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20] flex items-center gap-2"
-                  >
-                    <span>{customSkillStr}</span>
-                    <X className="w-3 h-3" />
-                  </motion.button>
-                ))}
+                {/* Render manually added custom skills that are not from the database (currently these will be filtered by backend) */}
+                {formData.skills.filter(s => !dbSkills.some(dbS => dbS._id === s)).map((skillId) => {
+                  // Try to find the skill name in dbSkills, though it should be filtered out by the filter above if it exists in db
+                  const skillObj = dbSkills.find(s => s._id === skillId);
+                  const displayText = skillObj ? skillObj.name : skillId; // Fallback if it's a raw custom string
+
+                  return (
+                    <motion.button
+                      key={skillId}
+                      type="button"
+                      onClick={() => toggleSkill(skillId)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-4 py-2 rounded-lg border-2 transition-all font-medium border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20] flex items-center gap-2"
+                    >
+                      <span>{displayText}</span>
+                      <X className="w-3 h-3" />
+                    </motion.button>
+                  );
+                })}
               </div>
 
               {/* Add Others field */}

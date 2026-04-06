@@ -17,6 +17,7 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
   const [unlocking, setUnlocking] = useState(false);
   const [subStatus, setSubStatus] = useState<any>(null);
   const [isAlreadyUnlocked, setIsAlreadyUnlocked] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,8 +29,11 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
     try {
       setLoading(true);
       const [statusRes, unlockRes] = await Promise.all([
-        api.get('/subscription/my-status'),
-        api.get(`/subscription/is-unlocked/${targetId}`)
+        api.get('/subscription/my-status', { skipAuthRedirect: true } as any).catch(err => {
+          if (err.response?.status === 401) setIsGuest(true);
+          return { data: { success: false } };
+        }),
+        api.get(`/subscription/is-unlocked/${targetId}`, { skipAuthRedirect: true } as any).catch(() => ({ data: { success: false } }))
       ]);
 
       if (statusRes.data.success) {
@@ -41,10 +45,15 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
         onUnlocked(); // Auto-close or just tell the parent it's unlocked
       }
     } catch (err) {
-      console.error('Error fetching subscription status:', err);
+      console.error('Error fetching subscription data:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAuthRedirect = (type: 'signin' | 'signup') => {
+    const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `/${type}?redirect=${currentPath}`;
   };
 
   const handleUnlock = async () => {
@@ -53,15 +62,19 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
       const res = await api.post('/subscription/unlock', { targetId, targetType });
       if (res.data.success) {
         toast.success(res.data.message);
+        
+        // Update local user if returned
+        if (res.data.user) {
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+          window.dispatchEvent(new CustomEvent('userUpdate', { detail: res.data.user }));
+        }
+
         onUnlocked();
         onClose();
       }
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Failed to unlock';
       toast.error(msg);
-      if (err.response?.data?.type === 'OUT_OF_CREDITS' || err.response?.data?.type === 'PLAN_EXPIRED') {
-        // Option to redirect to upgrade page
-      }
     } finally {
       setUnlocking(false);
     }
@@ -96,23 +109,46 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
               <div className="w-20 h-20 rounded-[2rem] bg-[#F24C20]/10 flex items-center justify-center mx-auto mb-6">
                 <Lock className="w-10 h-10 text-[#F24C20]" />
               </div>
-              <h3 className="text-2xl font-bold text-[#044071] dark:text-white mb-2">Content Locked</h3>
+              <h3 className="text-2xl font-bold text-[#044071] dark:text-white mb-2">
+                {isGuest ? 'Sign in to Unlock' : 'Content Locked'}
+              </h3>
               <p className="text-neutral-500 text-sm leading-relaxed px-4">
-                You are on the <span className="text-[#F24C20] font-bold">{subStatus?.plan_name || 'Starter Plan'}</span>. 
-                View complete {targetType} details and contact info by using 1 credit.
+                {isGuest 
+                  ? `Please sign in or create an account to view complete ${targetType} details and protected contact info.`
+                  : `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details by using 1 credit.`
+                }
               </p>
             </div>
 
-            {/* Credit Info */}
+            {/* Credit Info or Auth Buttons */}
             <div className="p-8 space-y-6 relative">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-4">
                   <Loader2 className="w-8 h-8 text-[#F24C20] animate-spin mb-2" />
                   <p className="text-xs text-neutral-400">Comparing your credits...</p>
                 </div>
+              ) : isGuest ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => handleAuthRedirect('signin')}
+                    className="w-full py-4 bg-[#044071] hover:bg-[#055a99] text-white rounded-2xl font-bold transition-all shadow-xl shadow-[#044071]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2"
+                  >
+                    Sign In
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleAuthRedirect('signup')}
+                    className="w-full py-4 bg-transparent hover:bg-neutral-100 dark:hover:bg-white/5 text-[#F24C20] rounded-2xl font-bold transition-all border border-[#F24C20]/20 flex items-center justify-center gap-2"
+                  >
+                    Create Free Account
+                  </button>
+                  <p className="text-[10px] text-center text-neutral-500 px-8">
+                    By signing up, you'll receive free credits to explore talent and projects.
+                  </p>
+                </div>
               ) : (
                 <>
-                  {/* Usage Gating Alert (70-80% threshold) */}
+                  {/* Usage Gating Alert */}
                   {(targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 10 && (
                      <div className="bg-[#F24C20]/10 border border-[#F24C20]/20 rounded-2xl p-4 flex items-center gap-3 mb-4 animate-pulse">
                         <AlertCircle className="w-5 h-5 text-[#F24C20]" />

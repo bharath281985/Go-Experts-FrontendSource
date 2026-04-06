@@ -31,6 +31,8 @@ import PremiumDashboardLayout from "@/app/components/dashboard/PremiumDashboardL
 import ChatWindow from "@/app/components/dashboard/ChatWindow";
 import KYCSettings from "@/app/components/dashboard/KYCSettings";
 import SubscriptionCredits from "@/app/pages/dashboard/shared/SubscriptionCredits";
+import ExploreStartupIdeas from "@/app/pages/dashboard/shared/ExploreStartupIdeas";
+import StartupIdeaDashboardDetail from "@/app/pages/dashboard/shared/StartupIdeaDashboardDetail";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -380,25 +382,17 @@ export default function InvestorDashboard() {
             </div>
         )}
 
-        {/* --- SECTION: DISCOVER --- */}
-        {activeMenuId === 'discover' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-neutral-500">
-                        <Search className="w-5 h-5" />
-                    </div>
-                    <input 
-                        type="text" 
-                        placeholder="Search sectors, technology, traction..."
-                        className={`w-full pl-12 pr-6 py-4 rounded-3xl border-0 ring-1 outline-none focus:ring-2 focus:ring-[#F24C20] transition-all text-lg font-medium shadow-2xl ${isDarkMode ? 'bg-neutral-900 ring-neutral-800 text-white placeholder:text-neutral-600' : 'bg-white ring-neutral-200 text-neutral-900 placeholder:text-neutral-400'}`}
-                    />
-                </div>
+        {/* --- SECTION: DISCOVER / MARKETPLACE --- */}
+        {activeMenuId === 'explore-ideas' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <ExploreStartupIdeas />
+            </div>
+        )}
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {discoverIdeas.map(idea => (
-                        <StartupDiscoverCard key={idea._id} idea={idea} />
-                    ))}
-                </div>
+        {/* --- SECTION: DETAIL VIEW --- */}
+        {activeMenuId === 'startup-ideas' && (
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <StartupIdeaDashboardDetail />
             </div>
         )}
 

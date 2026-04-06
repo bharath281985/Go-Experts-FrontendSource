@@ -1,16 +1,3 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Globe, Smartphone, Palette, TrendingUp, FileText, Video, Shield, Briefcase,
-  DollarSign, Clock, Award, MapPin, CheckCircle2, ArrowRight, ArrowLeft, 
-  Sparkles, X, Tag
-} from 'lucide-react';
-
-interface ProjectFinderWizardProps {
-  onClose: () => void;
-  onComplete: (answers: ProjectAnswers) => void;
-}
-
 export interface ProjectAnswers {
   projectType: string;
   priceType: string;
@@ -22,698 +9,417 @@ export interface ProjectAnswers {
   extraFilters: string[];
 }
 
-const projectTypeOptions = [
-  { value: 'website', label: 'Website Design', icon: Globe },
-  { value: 'mobile', label: 'Mobile App', icon: Smartphone },
-  { value: 'uiux', label: 'UI/UX Design', icon: Palette },
-  { value: 'branding', label: 'Branding', icon: Sparkles },
-  { value: 'marketing', label: 'Digital Marketing', icon: TrendingUp },
-  { value: 'writing', label: 'Content Writing', icon: FileText },
-  { value: 'video', label: 'Video Editing', icon: Video },
-  { value: 'security', label: 'Cybersecurity', icon: Shield },
-  { value: 'consulting', label: 'Business Consulting', icon: Briefcase },
-];
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Globe, Smartphone, Palette, TrendingUp, FileText, Video, Shield, Briefcase,
+  DollarSign, Clock, Award, MapPin, CheckCircle2, ArrowRight, ArrowLeft, 
+  Sparkles, X, Database, MousePointerClick, ListChecks, Type, CircleDashed, 
+  UserPlus, Tag, Search, CheckCircle, Info
+} from 'lucide-react';
+import api from '@/app/utils/api';
 
-const priceTypeOptions = [
-  { value: 'fixed', label: 'Fixed Price Project', description: 'One-time payment for complete project' },
-  { value: 'hourly', label: 'Hourly Project', description: 'Pay by the hour' },
-  { value: 'contract', label: 'Long-term Contract', description: 'Ongoing relationship' },
-];
-
-const budgetOptions = [
-  { value: '5k-15k', label: '₹5K - ₹15K', range: 'Starter' },
-  { value: '15k-50k', label: '₹15K - ₹50K', range: 'Standard' },
-  { value: '50k-1l', label: '₹50K - ₹1L', range: 'Premium' },
-  { value: '1l+', label: '₹1L+', range: 'Enterprise' },
-];
-
-const timelineOptions = [
-  { value: 'urgent', label: 'Urgent (1-3 days)', icon: '🔥' },
-  { value: '1week', label: '1 week', icon: '⚡' },
-  { value: '2-4weeks', label: '2-4 weeks', icon: '📅' },
-  { value: 'flexible', label: 'Flexible', icon: '🕐' },
-];
-
-const experienceOptions = [
-  { value: 'beginner', label: 'Beginner friendly', icon: '🌱' },
-  { value: 'intermediate', label: 'Intermediate', icon: '⚡' },
-  { value: 'expert', label: 'Expert only', icon: '🏆' },
-  { value: 'verified', label: 'Verified experts only', icon: '⭐' },
-];
-
-const workPreferenceOptions = [
-  { value: 'remote', label: 'Remote', icon: Globe },
-  { value: 'onsite', label: 'Onsite', icon: MapPin },
-  { value: 'hybrid', label: 'Hybrid', icon: MapPin },
-];
-
-const skillsOptions = [
-  'Figma', 'React', 'Flutter', 'WordPress', 'Node.js', 'SEO', 'AWS', 
-  'Python', 'JavaScript', 'TypeScript', 'Vue.js', 'Angular', 'MongoDB',
-  'PostgreSQL', 'Docker', 'Kubernetes', 'UI Design', 'UX Research',
-  'Adobe Creative Suite', 'Video Editing', 'Content Writing', 'Social Media'
-];
-
-const extraFilterOptions = [
-  { value: 'nda', label: 'NDA required' },
-  { value: 'startup', label: 'Startup-friendly' },
-  { value: 'communication', label: 'Quick communication' },
-  { value: 'updates', label: 'Daily updates' },
-  { value: 'portfolio', label: 'Portfolio required' },
-];
+interface ProjectFinderWizardProps {
+  onClose: () => void;
+  onComplete: (answers: any) => void;
+}
 
 export default function ProjectFinderWizard({ onClose, onComplete }: ProjectFinderWizardProps) {
+  const [steps, setSteps] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [skills, setSkills] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
-  const [answers, setAnswers] = useState<ProjectAnswers>({
-    projectType: '',
-    priceType: '',
-    budget: '',
-    timeline: '',
-    experience: '',
-    workPreference: '',
-    skills: [],
-    extraFilters: [],
-  });
+  const [answers, setAnswers] = useState<any>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const totalSteps = 8;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [stepsRes, categoriesRes, skillsRes] = await Promise.all([
+          api.get('/cms/registration-steps?module=project_finder'),
+          api.get('/cms/categories'),
+          api.get('/cms/skills')
+        ]);
+        setSteps(stepsRes.data.data || []);
+        setCategories(categoriesRes.data.data || categoriesRes.data.categories || []);
+        setSkills(skillsRes.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch wizard data', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const updateAnswer = (field: keyof ProjectAnswers, value: any) => {
-    setAnswers(prev => ({ ...prev, [field]: value }));
+  const totalSteps = steps.length;
+  const currentStepData = steps[currentStep - 1];
+
+  // Reset search when step changes
+  useEffect(() => {
+    setSearchQuery('');
+  }, [currentStep]);
+
+  const updateAnswer = (field: string, value: any) => {
+    setAnswers((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(prev => prev + 1);
-    }
+    if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const canProceed = () => {
-    switch (currentStep) {
-      case 1: return answers.projectType !== '';
-      case 2: return answers.priceType !== '';
-      case 3: return answers.budget !== '';
-      case 4: return answers.timeline !== '';
-      case 5: return answers.experience !== '';
-      case 6: return answers.workPreference !== '';
-      case 7: return true; // Skills are optional
-      case 8: return true; // Extra filters are optional
-      default: return false;
+    if (!currentStepData) return false;
+    const val = answers[currentStepData.field];
+    if (currentStepData.type === 'multi-selection') {
+        return Array.isArray(val) && val.length > 0;
     }
+    return !!val;
   };
 
   const handleComplete = () => {
     onComplete(answers);
   };
 
-  const steps = [
-    { number: 1, label: 'Project Type', completed: currentStep > 1 },
-    { number: 2, label: 'Pricing', completed: currentStep > 2 },
-    { number: 3, label: 'Budget', completed: currentStep > 3 },
-    { number: 4, label: 'Timeline', completed: currentStep > 4 },
-    { number: 5, label: 'Experience', completed: currentStep > 5 },
-    { number: 6, label: 'Location', completed: currentStep > 6 },
-    { number: 7, label: 'Skills', completed: currentStep > 7 },
-    { number: 8, label: 'Filters', completed: currentStep > 8 },
-  ];
+  const getIcon = (iconName: string) => {
+    const icons: any = {
+      Globe, Smartphone, Palette, TrendingUp, FileText, Video, Shield, Briefcase,
+      DollarSign, Clock, Award, MapPin, Sparkles, Database, MousePointerClick, 
+      ListChecks, Type, CircleDashed, UserPlus, Tag
+    };
+    return icons[iconName] || Globe;
+  };
+
+  const selectedCategoryId = useMemo(() => {
+    const type = answers['projectType'];
+    if (!type) return null;
+    const matched = categories.find(c => c.name.toLowerCase() === type.toLowerCase());
+    return matched?._id || null;
+  }, [answers.projectType, categories]);
+
+  const filteredOptions = useMemo(() => {
+    if (!currentStepData) return [];
+    
+    let options = [];
+    if (currentStepData.field === 'projectType') {
+      options = categories.map(c => ({
+        value: c.name.toLowerCase(),
+        label: c.name,
+        icon: c.icon
+      }));
+    } else if (currentStepData.field === 'skills') {
+      // Filter skills by category ID
+      const skillOptions = skills
+        .filter(s => !selectedCategoryId || s.category === selectedCategoryId)
+        .map(s => ({
+          value: s.name,
+          label: s.name
+        }));
+      
+      // Fallback: if no skills for this category, but we have seeded options, maybe show those or all?
+      // For now, let's show all active skills if we can't find specific ones but search handles focus.
+      options = skillOptions.length > 0 ? skillOptions : (skills.length > 0 ? skills.map(s => ({
+          value: s.name,
+          label: s.name
+      })) : currentStepData.options || []);
+    } else {
+      options = currentStepData.options || [];
+    }
+
+    if (!searchQuery) return options;
+    return options.filter((opt: any) => 
+      opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [currentStepData, categories, skills, searchQuery, selectedCategoryId]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-[45] flex items-center justify-center bg-black/90 backdrop-blur-xl">
+        <div className="text-white text-xl font-bold flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#F24C20] border-t-transparent rounded-full animate-spin" />
+          <p className="animate-pulse">Loading Your Journey...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl">
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-6 right-6 p-2 rounded-full bg-neutral-900/50 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20] transition-all group"
-      >
-        <X className="w-5 h-5 text-neutral-400 group-hover:text-[#F24C20]" />
-      </button>
+    <div className="fixed inset-0 z-[45] flex items-center justify-center bg-black/80 backdrop-blur-md pt-24">
+      <div className="relative w-full max-w-7xl h-full mx-auto px-6 overflow-hidden flex gap-8">
+        
+        {/* Sidebar - Left Section */}
+        <div className="w-80 flex-shrink-0 py-12 flex flex-col h-full border-r border-neutral-800/50 pr-8">
+          <div className="mb-12">
+            <h2 className="text-3xl font-black text-white mb-2 flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-[#F24C20]" />
+              Project Finder
+            </h2>
+            <p className="text-neutral-400 text-lg">Personalizing your search</p>
+          </div>
 
-      <div className="w-full max-w-6xl h-[90vh] mx-auto px-6 flex gap-12">
-        {/* Left Side - Progress Steps */}
-        <div className="w-80 flex-shrink-0">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="sticky top-0"
-          >
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Find Your Perfect Project</h2>
-              <p className="text-neutral-400">Quick brief builder to match you with projects</p>
-            </div>
-
-            <div className="space-y-4">
-              {steps.map((step, index) => (
+          <div className="flex-1 space-y-4 overflow-y-auto pr-2 scrollbar-hide">
+            {steps.map((step, index) => {
+              const isActive = currentStep === index + 1;
+              const isCompleted = currentStep > index + 1;
+              return (
                 <motion.div
-                  key={step.number}
+                  key={step._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-4"
+                  className={`flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 ${
+                    isActive ? 'bg-[#F24C20]/10 border border-[#F24C20]/20' : ''
+                  }`}
                 >
-                  <div className="relative">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                        step.completed
-                          ? 'bg-green-500 text-white'
-                          : currentStep === step.number
-                          ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/50'
-                          : 'bg-neutral-800 text-neutral-500'
-                      }`}
-                    >
-                      {step.completed ? (
-                        <CheckCircle2 className="w-6 h-6" />
-                      ) : (
-                        step.number
-                      )}
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div
-                        className={`absolute top-12 left-1/2 -translate-x-1/2 w-0.5 h-8 transition-all duration-300 ${
-                          step.completed ? 'bg-green-500' : 'bg-neutral-800'
-                        }`}
-                      />
-                    )}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-500 ${
+                    isCompleted 
+                      ? 'bg-green-500 text-white' 
+                      : isActive 
+                        ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/30' 
+                        : 'bg-neutral-800 text-neutral-500'
+                  }`}>
+                    {isCompleted ? <CheckCircle className="w-5 h-5" /> : index + 1}
                   </div>
-                  <div>
-                    <div
-                      className={`font-medium transition-colors ${
-                        currentStep === step.number
-                          ? 'text-white'
-                          : step.completed
-                          ? 'text-green-400'
-                          : 'text-neutral-500'
-                      }`}
-                    >
-                      {step.label}
-                    </div>
-                    {currentStep === step.number && (
-                      <div className="text-xs text-neutral-500">Current step</div>
-                    )}
+                  <div className={`font-semibold text-sm transition-colors ${
+                    isActive ? 'text-white' : isCompleted ? 'text-green-500' : 'text-neutral-500'
+                  }`}>
+                    {step.label}
                   </div>
                 </motion.div>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
-            {/* Progress Bar */}
-            <div className="mt-8">
-              <div className="flex justify-between text-sm text-neutral-400 mb-2">
-                <span>Progress</span>
-                <span>{Math.round((currentStep / totalSteps) * 100)}%</span>
-              </div>
-              <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-[#F24C20] to-orange-600"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                  transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+          <div className="mt-8 pt-8 border-t border-neutral-800">
+             <div className="flex justify-between items-end mb-2">
+                <span className="text-neutral-500 text-xs font-bold uppercase tracking-wider">Completion</span>
+                <span className="text-white text-lg font-black">{Math.round((currentStep/totalSteps)*100)}%</span>
+             </div>
+             <div className="h-2 bg-neutral-900 rounded-full overflow-hidden">
+                <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(currentStep/totalSteps)*100}%` }}
+                    className="h-full bg-gradient-to-r from-[#F24C20] to-orange-500" 
                 />
-              </div>
-            </div>
-          </motion.div>
+             </div>
+          </div>
         </div>
 
-        {/* Right Side - Question Content */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto">
-            <AnimatePresence mode="wait">
-              {/* Step 1: Project Type */}
-              {currentStep === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      What kind of project are you looking for?
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      Choose your area of expertise
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    {projectTypeOptions.map((option) => {
-                      const Icon = option.icon;
-                      const isSelected = answers.projectType === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('projectType', option.value)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative p-6 rounded-2xl border-2 transition-all text-center group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div
-                            className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity ${
-                              !isSelected && 'bg-gradient-to-br from-[#F24C20]/5 to-transparent'
-                            }`}
-                          />
-                          <Icon
-                            className={`w-8 h-8 mx-auto mb-3 ${
-                              isSelected ? 'text-[#F24C20]' : 'text-neutral-400'
-                            }`}
-                          />
-                          <div className="font-semibold text-white">{option.label}</div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-4 right-4"
-                            >
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 2: Price Type */}
-              {currentStep === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Project Type
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      How do you prefer to work?
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {priceTypeOptions.map((option) => {
-                      const isSelected = answers.priceType === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('priceType', option.value)}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          className={`relative w-full p-6 rounded-2xl border-2 transition-all text-left group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="font-semibold text-lg text-white mb-1">
-                                {option.label}
-                              </div>
-                              <div className="text-neutral-400">{option.description}</div>
-                            </div>
-                            {isSelected && (
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 3: Budget Range */}
-              {currentStep === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Budget Range
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      Select your expected budget
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {budgetOptions.map((option) => {
-                      const isSelected = answers.budget === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('budget', option.value)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative p-8 rounded-2xl border-2 transition-all text-center group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <DollarSign
-                            className={`w-10 h-10 mx-auto mb-3 ${
-                              isSelected ? 'text-[#F24C20]' : 'text-neutral-400'
-                            }`}
-                          />
-                          <div className="font-bold text-xl text-white mb-1">
-                            {option.label}
-                          </div>
-                          <div className="text-sm text-neutral-400">{option.range}</div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-4 right-4"
-                            >
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 4: Timeline */}
-              {currentStep === 4 && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Timeline
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      When can you start?
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {timelineOptions.map((option) => {
-                      const isSelected = answers.timeline === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('timeline', option.value)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative p-8 rounded-2xl border-2 transition-all text-center group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div className="text-5xl mb-3">{option.icon}</div>
-                          <div className="font-bold text-lg text-white">
-                            {option.label}
-                          </div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-4 right-4"
-                            >
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 5: Experience Needed */}
-              {currentStep === 5 && (
-                <motion.div
-                  key="step5"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Experience Needed
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      What level of projects are you looking for?
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {experienceOptions.map((option) => {
-                      const isSelected = answers.experience === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('experience', option.value)}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative p-8 rounded-2xl border-2 transition-all text-center group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div className="text-5xl mb-3">{option.icon}</div>
-                          <div className="font-bold text-lg text-white">
-                            {option.label}
-                          </div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-4 right-4"
-                            >
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 6: Work Preference */}
-              {currentStep === 6 && (
-                <motion.div
-                  key="step6"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Work Preference
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      Where do you prefer to work?
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {workPreferenceOptions.map((option) => {
-                      const Icon = option.icon;
-                      const isSelected = answers.workPreference === option.value;
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => updateAnswer('workPreference', option.value)}
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          className={`relative w-full p-6 rounded-2xl border-2 transition-all text-left group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Icon
-                              className={`w-8 h-8 ${
-                                isSelected ? 'text-[#F24C20]' : 'text-neutral-400'
-                              }`}
-                            />
-                            <div className="font-semibold text-lg text-white">
-                              {option.label}
-                            </div>
-                            {isSelected && (
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20] ml-auto" />
-                            )}
-                          </div>
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 7: Skills Required */}
-              {currentStep === 7 && (
-                <motion.div
-                  key="step7"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Skills Required
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      Select skills you have (optional)
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    {skillsOptions.map((skill) => {
-                      const isSelected = answers.skills.includes(skill);
-                      return (
-                        <motion.button
-                          key={skill}
-                          onClick={() => {
-                            if (isSelected) {
-                              updateAnswer(
-                                'skills',
-                                answers.skills.filter((s) => s !== skill)
-                              );
-                            } else {
-                              updateAnswer('skills', [...answers.skills, skill]);
-                            }
-                          }}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`px-4 py-2 rounded-lg border-2 transition-all font-medium ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10 text-[#F24C20]'
-                              : 'border-neutral-800 bg-neutral-900/50 text-neutral-300 hover:border-neutral-700'
-                          }`}
-                        >
-                          {skill}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Step 8: Extra Filters */}
-              {currentStep === 8 && (
-                <motion.div
-                  key="step8"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="space-y-6"
-                >
-                  <div>
-                    <h3 className="text-4xl font-bold text-white mb-3">
-                      Extra Filters
-                    </h3>
-                    <p className="text-xl text-neutral-400">
-                      Optional preferences to refine your search
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {extraFilterOptions.map((option) => {
-                      const isSelected = answers.extraFilters.includes(option.value);
-                      return (
-                        <motion.button
-                          key={option.value}
-                          onClick={() => {
-                            if (isSelected) {
-                              updateAnswer(
-                                'extraFilters',
-                                answers.extraFilters.filter((f) => f !== option.value)
-                              );
-                            } else {
-                              updateAnswer('extraFilters', [
-                                ...answers.extraFilters,
-                                option.value,
-                              ]);
-                            }
-                          }}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`relative p-6 rounded-2xl border-2 transition-all text-center group ${
-                            isSelected
-                              ? 'border-[#F24C20] bg-[#F24C20]/10'
-                              : 'border-neutral-800 bg-neutral-900/50 hover:border-neutral-700'
-                          }`}
-                        >
-                          <div className="font-semibold text-white">{option.label}</div>
-                          {isSelected && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="absolute top-4 right-4"
-                            >
-                              <CheckCircle2 className="w-6 h-6 text-[#F24C20]" />
-                            </motion.div>
-                          )}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-neutral-800 mt-6">
-            <button
-              onClick={prevStep}
-              disabled={currentStep === 1}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </button>
-
-            {currentStep < totalSteps ? (
+        {/* content Area - Right Section */}
+        <div className="flex-1 flex flex-col py-12 h-full">
+           <div className="flex justify-end mb-4">
               <button
-                onClick={nextStep}
-                disabled={!canProceed()}
-                className="flex items-center gap-2 px-8 py-3 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#044071]/30"
+                onClick={onClose}
+                className="p-3 hover:bg-neutral-900 rounded-full text-neutral-400 hover:text-white transition-all group border border-transparent hover:border-neutral-800 shadow-xl"
               >
-                Next
-                <ArrowRight className="w-4 h-4" />
+                <X className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
               </button>
-            ) : (
+           </div>
+
+           <div className="flex-1 relative overflow-y-auto pr-6 custom-scrollbar pb-32">
+              <AnimatePresence mode="wait">
+                 {currentStepData && (
+                   <motion.div
+                     key={currentStepData._id}
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     exit={{ opacity: 0, y: -20 }}
+                     className="space-y-8"
+                   >
+                     <div className="max-w-3xl">
+                        <h3 className="text-5xl font-black text-white mb-4 leading-tight italic tracking-tighter">
+                          {currentStepData.title}
+                        </h3>
+                        <p className="text-2xl text-neutral-400 font-medium">
+                          {currentStepData.description}
+                        </p>
+                     </div>
+
+                     {/* Search Bar for complex steps */}
+                     {(currentStepData.field === 'projectType' || currentStepData.field === 'skills') && (
+                       <div className="relative max-w-xl group">
+                          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-neutral-500 group-focus-within:text-[#F24C20] transition-colors" />
+                          <input 
+                            type="text"
+                            placeholder={`Search ${currentStepData.field === 'skills' ? 'skills' : 'categories'}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-16 pr-6 py-5 bg-neutral-900 border-2 border-neutral-800 rounded-[2rem] text-xl text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#F24C20] transition-all shadow-xl"
+                          />
+                       </div>
+                     )}
+
+                     {/* Selected Category Info (Visual Feedback) */}
+                     {currentStepData.field === 'skills' && selectedCategoryId && (
+                       <div className="flex items-center gap-2 text-[#F24C20] bg-[#F24C20]/10 px-4 py-2 rounded-lg w-fit text-sm font-bold border border-[#F24C20]/20">
+                          <Tag className="w-4 h-4" />
+                          Filtered by: {answers['projectType']}
+                       </div>
+                     )}
+
+                     {/* Main Options Grid */}
+                     {currentStepData.type === 'single-selection' && (
+                       <div className={`grid ${currentStepData.field === 'projectType' || filteredOptions.length > 4 ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+                          {filteredOptions.length > 0 ? filteredOptions.map((option: any) => {
+                            const Icon = option.icon ? getIcon(option.icon) : null;
+                            const isSelected = answers[currentStepData.field] === option.value;
+                            return (
+                              <motion.button
+                                key={option.value || option.label}
+                                onClick={() => {
+                                    updateAnswer(currentStepData.field, option.value);
+                                    if (currentStepData.field !== 'skills') setTimeout(nextStep, 300);
+                                }}
+                                whileHover={{ scale: 1.02, y: -5 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`relative p-8 rounded-[2.5rem] border-2 transition-all text-left flex flex-col justify-between min-h-[180px] group ${
+                                  isSelected
+                                    ? 'border-[#F24C20] bg-gradient-to-br from-[#F24C20]/20 to-transparent'
+                                    : 'border-neutral-800 bg-neutral-900/30 hover:border-neutral-700 hover:bg-neutral-900/50'
+                                }`}
+                              >
+                                <div>
+                                    {option.emoji ? (
+                                        <div className="text-5xl mb-4 leading-none">{option.emoji}</div>
+                                    ) : Icon ? (
+                                        <Icon className={`w-12 h-12 mb-4 transition-transform duration-500 group-hover:scale-110 ${isSelected ? 'text-[#F24C20]' : 'text-neutral-500'}`} />
+                                    ) : (
+                                        <Database className={`w-12 h-12 mb-4 ${isSelected ? 'text-[#F24C20]' : 'text-neutral-500'}`} />
+                                    )}
+                                    <div className="font-black text-2xl text-white mb-2 group-hover:text-[#F24C20] transition-colors leading-none">
+                                      {option.label}
+                                    </div>
+                                    {option.subtitle && <div className="text-sm text-neutral-500 font-medium">{option.subtitle}</div>}
+                                </div>
+                                
+                                {isSelected && (
+                                  <motion.div
+                                    initial={{ scale: 0, rotate: -20 }}
+                                    animate={{ scale: 1, rotate: 0 }}
+                                    className="absolute top-6 right-6"
+                                  >
+                                    <CheckCircle2 className="w-8 h-8 text-[#F24C20] fill-[#F24C20]/10" />
+                                  </motion.div>
+                                )}
+                              </motion.button>
+                            );
+                          }) : (
+                            <div className="col-span-full py-12 text-center text-neutral-500 space-y-4">
+                                <Search className="w-12 h-12 mx-auto opacity-20" />
+                                <p className="text-xl">No results found matching your search.</p>
+                            </div>
+                          )}
+                       </div>
+                     )}
+
+                     {currentStepData.type === 'multi-selection' && (
+                       <div className="space-y-6">
+                           <div className="flex flex-wrap gap-4">
+                            {(() => {
+                                const currentChoices = answers[currentStepData.field] || [];
+                                const optionsToDisplay = searchQuery || currentStepData.field !== 'skills'
+                                  ? filteredOptions
+                                  : [
+                                      ...filteredOptions.filter((opt: any) => currentChoices.includes(opt.value)),
+                                      ...filteredOptions.filter((opt: any) => !currentChoices.includes(opt.value)).slice(0, 5)
+                                    ];
+                                
+                                // Unique options just in case
+                                const uniqueOptions = Array.from(new Map(optionsToDisplay.map((item: any) => [item.value, item])).values());
+                                
+                                return uniqueOptions.map((option: any) => {
+                                  const isSelected = currentChoices.includes(option.value);
+                                  return (
+                                    <motion.button
+                                      key={option.value}
+                                      onClick={() => {
+                                        if (isSelected) {
+                                          updateAnswer(
+                                            currentStepData.field,
+                                            currentChoices.filter((s: string) => s !== option.value)
+                                          );
+                                        } else {
+                                          updateAnswer(currentStepData.field, [...currentChoices, option.value]);
+                                        }
+                                      }}
+                                      whileHover={{ scale: 1.05 }}
+                                      whileTap={{ scale: 0.95 }}
+                                      className={`px-8 py-4 rounded-2xl border-2 transition-all font-bold text-lg flex items-center gap-3 ${
+                                        isSelected
+                                          ? 'border-[#F24C20] bg-gradient-to-r from-[#F24C20] to-orange-600 text-white'
+                                          : 'border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-700 hover:text-white'
+                                      }`}
+                                    >
+                                      {option.label}
+                                      {isSelected ? <CheckCircle2 className="w-5 h-5 fill-white/20" /> : <div className="w-5 h-5 rounded-full border-2 border-neutral-800 group-hover:border-neutral-700" />}
+                                    </motion.button>
+                                  );
+                                });
+                            })()}
+                           </div>
+                           {currentStepData.field === 'skills' && (
+                               <div className="flex items-center gap-2 text-neutral-500 bg-neutral-900/50 p-4 rounded-xl max-w-fit">
+                                  <Info className="w-5 h-5" />
+                                  <span className="text-sm font-medium">Select as many skills as you need. Use the search bar for specific requirements.</span>
+                               </div>
+                           )}
+                       </div>
+                     )}
+
+                     {currentStepData.type === 'input' && (
+                       <div className="max-w-2xl">
+                           <input 
+                               type="text"
+                               value={answers[currentStepData.field] || ''}
+                               onChange={(e) => updateAnswer(currentStepData.field, e.target.value)}
+                               placeholder={`Type your response here...`}
+                               className="w-full bg-neutral-900 border-4 border-neutral-800 rounded-3xl p-8 text-3xl font-black text-white focus:outline-none focus:border-[#F24C20] transition-all shadow-2xl placeholder:text-neutral-800"
+                           />
+                       </div>
+                     )}
+                   </motion.div>
+                 )}
+              </AnimatePresence>
+           </div>
+
+           {/* Navigation Controls */}
+           <div className="pt-8 border-t border-neutral-800/50 flex items-center justify-between mt-auto bg-neutral-950/80 backdrop-blur-md sticky bottom-0 z-[10]">
               <button
-                onClick={handleComplete}
-                className="flex items-center gap-2 px-8 py-3 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white font-semibold transition-all shadow-lg shadow-[#044071]/30"
+                onClick={prevStep}
+                disabled={currentStep === 1}
+                className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed group border border-neutral-800 hover:border-neutral-700 shadow-xl"
               >
-                <Sparkles className="w-4 h-4" />
-                Show Projects
+                <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                Back
               </button>
-            )}
-          </div>
+
+              <div className="flex gap-4">
+                 {currentStep < totalSteps ? (
+                   <button
+                     onClick={nextStep}
+                     disabled={!canProceed()}
+                     className="flex items-center gap-3 px-12 py-4 rounded-2xl bg-[#044071] hover:bg-[#055a99] text-white font-black text-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl shadow-[#044071]/40 group"
+                   >
+                     Continue
+                     <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                   </button>
+                 ) : (
+                   <button
+                     onClick={handleComplete}
+                     disabled={!canProceed()}
+                     className="flex items-center gap-3 px-12 py-4 rounded-2xl bg-gradient-to-r from-[#F24C20] to-orange-600 hover:from-orange-600 hover:to-[#F24C20] text-white font-black text-xl transition-all shadow-2xl shadow-[#F24C20]/40 group"
+                   >
+                     <Sparkles className="w-6 h-6 animate-pulse" />
+                     Show Results
+                   </button>
+                 )}
+              </div>
+           </div>
         </div>
       </div>
     </div>

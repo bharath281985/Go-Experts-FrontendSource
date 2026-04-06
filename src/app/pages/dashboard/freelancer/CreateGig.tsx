@@ -11,7 +11,9 @@ import {
   IndianRupee,
   Layout,
   Type,
-  FileText
+  FileText,
+  Search,
+  ShieldAlert
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/app/utils/api';
@@ -20,6 +22,7 @@ import { toast } from 'sonner';
 export default function CreateGig() {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -37,12 +40,18 @@ export default function CreateGig() {
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const res = await api.get('/cms/categories');
-        if (res.data.success) {
-          setCategories(res.data.categories || res.data.data || []);
+        const [catRes, userRes] = await Promise.all([
+           api.get('/cms/categories'),
+           api.get('/auth/me')
+        ]);
+        if (catRes.data.success) {
+          setCategories(catRes.data.categories || catRes.data.data || []);
+        }
+        if (userRes.data.success) {
+          setIsVerified(userRes.data.user.kyc_details?.is_verified || false);
         }
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch data:', err);
       }
     };
     fetchCats();
@@ -106,6 +115,28 @@ export default function CreateGig() {
       setLoading(false);
     }
   };
+
+  if (isVerified === false) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center space-y-6">
+        <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center">
+          <ShieldAlert className="w-10 h-10 text-orange-500" />
+        </div>
+        <div>
+          <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>KYC Verification Required</h2>
+          <p className={`mt-2 max-w-md ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            To maintain a safe community, we require all freelancers to complete their KYC verification before creating gigs.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate('/dashboard/settings')}
+          className="px-8 py-3 bg-[#F24C20] text-white rounded-xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-transform"
+        >
+          Complete Verification Now
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

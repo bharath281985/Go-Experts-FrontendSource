@@ -33,6 +33,9 @@ export default function StartupIdeaPublicDetailPage() {
   const { isDarkMode } = useTheme();
   const [idea, setIdea] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [user, setUser] = useState<any>(JSON.parse(localStorage.getItem('user') || '{}'));
 
   useEffect(() => {
     fetchIdeaDetails();
@@ -50,6 +53,94 @@ export default function StartupIdeaPublicDetailPage() {
       navigate('/explore-ideas');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUnlock = async () => {
+     if (!user || !localStorage.getItem('token')) {
+        toast.error('Please login to unlock concept roadmaps');
+        navigate('/login');
+        return;
+     }
+
+     try {
+        setIsUnlocking(true);
+        const res = await api.post(`/startup-ideas/${id}/unlock`);
+        if (res.data.success) {
+           toast.success(res.data.message);
+           fetchIdeaDetails(); // Reload with full info
+        }
+     } catch (err: any) {
+        const msg = err.response?.data?.message || 'Access denied';
+        if (msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('limit')) {
+            toast.error('Unlock limit exceeded. Please upgrade your subscription plan.');
+            navigate('/dashboard/plans'); // Take them to plans
+        } else {
+            toast.error(msg);
+        }
+     } finally {
+        setIsUnlocking(false);
+     }
+  };
+
+  const handleRequestDeck = async () => {
+    if (!idea.isUnlocked) {
+        toast.error('Please unlock the roadmap first to request the deck.');
+        return;
+    }
+    
+    if (!idea.creator?._id) {
+        toast.error('Founder details are incomplete. Please contact support.');
+        return;
+    }
+
+    setSubmitting(true);
+    try {
+        // Find if there's a deck in attachments
+        const deck = idea.attachments?.find((a: string) => a.toLowerCase().includes('deck') || a.toLowerCase().includes('pitch'));
+        if (deck) {
+            window.open(`${import.meta.env.VITE_API_URL}${deck}`, '_blank');
+            toast.success('Concept deck opened in a new tab');
+        } else {
+            // Send inquiry message to founder
+            await api.post(`/messages`, {
+                receiverId: idea.creator._id,
+                content: `An investor is interested in your concept "${idea.title}" and has requested the Pitch Deck. Please upload it and share.`
+            });
+            toast.success('Interest registered. The founder has been notified to share the latest pitch deck.');
+        }
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Unable to process request at this time');
+    } finally {
+        setSubmitting(false);
+    }
+  };
+
+  const handleScheduleMeet = async () => {
+    if (!idea.isUnlocked) {
+        toast.error('You must unlock creator contact details to schedule a meeting.');
+        return;
+    }
+
+    if (!idea.creator?._id) {
+        toast.error('Founder details are incomplete. Please try again later.');
+        return;
+    }
+    
+    setSubmitting(true);
+    try {
+        await api.post('/meetings', {
+            creator_id: idea.creator._id,
+            idea_id: id,
+            meeting_date: new Date(Date.now() + 86400000 * 3).toISOString(), // Suggest 3 days from now
+            mode: 'Google Meet',
+            agenda: `Investment Discussion regarding startup concept: ${idea.title}`
+        });
+        toast.success(`Meeting request sent to ${idea.creator?.full_name}! Check your dashboard for updates.`);
+    } catch (err: any) {
+        toast.error(err?.response?.data?.message || 'Failed to send meeting request');
+    } finally {
+        setSubmitting(false);
     }
   };
 
@@ -104,14 +195,15 @@ export default function StartupIdeaPublicDetailPage() {
                 {!idea.isUnlocked ? (
                     <div className="p-6 rounded-3xl bg-orange-500/10 border border-orange-500/20 mb-8 max-w-xl">
                         <div className="flex items-center gap-3 text-orange-500 font-bold mb-2">
-                            <Lock className="w-5 h-5" /> Gated Content 
+                            <Lock className="w-5 h-5" /> Detailed Roadmap Locked 
                         </div>
-                        <p className="text-sm text-slate-400 mb-4">Detailed analytics, market strategy, and founder contact info are hidden. Explore the full roadmap for 20 points.</p>
+                        <p className="text-sm text-slate-400 mb-6">Execution roadmap, problem/solution matrix, and founder contact info are gated. Gain full intelligence using 1 credit point.</p>
                         <button 
-                            onClick={() => navigate('/explore-ideas')}
-                            className="px-6 py-2 bg-orange-500 text-white rounded-xl font-bold text-sm"
+                            onClick={handleUnlock}
+                            disabled={isUnlocking}
+                            className={`px-8 py-3 bg-orange-500 text-white rounded-xl font-bold text-sm shadow-xl shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50`}
                         >
-                            Unlock via Marketplace
+                            {isUnlocking ? 'Authorizing...' : 'Unlock Full Access (1 Credit)'}
                         </button>
                     </div>
                 ) : (
@@ -254,10 +346,17 @@ export default function StartupIdeaPublicDetailPage() {
                   Interested in the expansion of this approved concept? Connect with the founder team to explore funding, strategic partnerships, or operational collaboration.
                 </p>
                 <div className="space-y-4">
-                  <button className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] transition-transform">
-                    Request Concept Deck
+                  <button 
+                    onClick={handleRequestDeck}
+                    disabled={submitting}
+                    className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] disabled:opacity-50 transition-transform"
+                  >
+                    {submitting ? 'Requesting...' : 'Request Concept Deck'}
                   </button>
-                  <button className={`w-full py-4 rounded-2xl border font-bold transition-all hover:scale-[1.02] ${
+                  <button 
+                    onClick={handleScheduleMeet}
+                    disabled={submitting}
+                    className={`w-full py-4 rounded-2xl border font-bold transition-all hover:scale-[1.02] disabled:opacity-50 ${
                       isDarkMode 
                       ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' 
                       : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'

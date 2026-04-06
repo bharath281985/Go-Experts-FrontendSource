@@ -5,6 +5,7 @@ import { FileText, Plus, Clock, Users, DollarSign, CheckCircle, XCircle, AlertCi
 import RadialProgress from '@/app/components/dashboard/charts/RadialProgress';
 import { Link } from 'react-router-dom';
 import api from '@/app/utils/api';
+import { toast } from 'sonner';
 
 export default function MyProjects() {
   const { isDarkMode } = useTheme();
@@ -18,7 +19,7 @@ export default function MyProjects() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await api.get('/projects/my');
+        const res = await api.get(`/projects/my?role=${userType}`);
         if (res.data.success) {
           setProjects(res.data.data);
         }
@@ -29,24 +30,73 @@ export default function MyProjects() {
       }
     };
     fetchProjects();
-  }, []);
+  }, [userType]);
+
+  const handleAcceptAward = async (projectId: string) => {
+    try {
+      setLoading(true);
+      const res = await api.put(`/projects/${projectId}/accept`);
+      if (res.data.success) {
+        toast.success('Project award accepted! You can now start working.');
+        // Refresh projects
+        const updated = await api.get(`/projects/my?role=${userType}`);
+        if (updated.data.success) setProjects(updated.data.data);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to accept award');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteProject = async (projectId: string) => {
+    try {
+      setLoading(true);
+      const res = await api.put(`/projects/${projectId}/complete`);
+      if (res.data.success) {
+        toast.success('Project marked as completed!');
+        // Refresh projects
+        const updated = await api.get(`/projects/my?role=${userType}`);
+        if (updated.data.success) setProjects(updated.data.data);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to complete project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getProjectStatus = (project: any) => {
+    if (project.status === 'completed') return 'completed';
+    if (isFreelancer) {
+      const pStatus = project.proposal_status || 'pending';
+      if (pStatus === 'accepted') return 'ongoing';
+      if (pStatus === 'rejected' || pStatus === 'expired') return 'cancelled';
+      return 'pending'; 
+    }
+    if (project.status === 'closed' || project.hired_freelancer_id) {
+        return 'ongoing'; // For dashboard tab filtering, 'hired' projects are 'ongoing'
+    }
+    return project.status === 'live' ? 'live' : project.status;
+  };
 
   const filteredProjects = projects.filter(project => {
     if (activeTab === 'all') return true;
-    const currentStatus = isFreelancer ? (project.proposal_status || project.status) : project.status;
-    const normalizedStatus = currentStatus === 'live' ? 'ongoing' : currentStatus;
-    return normalizedStatus === activeTab;
+    const status = getProjectStatus(project);
+    return status === activeTab;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ongoing':
-      case 'live':
-      case 'pending': return 'text-blue-500 bg-blue-500/10';
-      case 'completed':
+      case 'live': return 'text-blue-500 bg-blue-500/10';
+      case 'hired':
       case 'accepted': return 'text-green-500 bg-green-500/10';
+      case 'pending': return 'text-orange-500 bg-orange-500/10';
+      case 'completed': return 'text-green-500 bg-green-500/10 shadow-lg shadow-green-500/20';
       case 'cancelled':
-      case 'rejected': return 'text-red-500 bg-red-500/10';
+      case 'rejected':
+      case 'expired': return 'text-red-500 bg-red-500/10';
       default: return 'text-neutral-500 bg-neutral-500/10';
     }
   };
@@ -58,6 +108,16 @@ export default function MyProjects() {
       </div>
     );
   }
+
+  // Calculate Stats
+  const stats = {
+    total: projects.length,
+    ongoing: projects.filter(p => getProjectStatus(p) === 'ongoing').length,
+    completed: projects.filter(p => getProjectStatus(p) === 'completed').length,
+    bidValue: isFreelancer 
+      ? projects.reduce((sum, p) => sum + (p.my_bid || 0), 0)
+      : projects.reduce((sum, p) => sum + (p.paid || 0), 0)
+  };
 
   return (
     <div className="space-y-6">
@@ -110,7 +170,7 @@ export default function MyProjects() {
             </span>
           </div>
           <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            {projects.length}
+            {stats.total}
           </div>
         </motion.div>
 
@@ -130,7 +190,7 @@ export default function MyProjects() {
             </span>
           </div>
           <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            {projects.filter(p => p.status === 'ongoing').length}
+            {stats.ongoing}
           </div>
         </motion.div>
 
@@ -150,7 +210,7 @@ export default function MyProjects() {
             </span>
           </div>
           <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            {projects.filter(p => p.status === 'completed').length}
+            {stats.completed}
           </div>
         </motion.div>
 
@@ -170,9 +230,7 @@ export default function MyProjects() {
             </span>
           </div>
           <div className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            ₹{isFreelancer 
-              ? projects.reduce((sum, p) => sum + (p.my_bid || 0), 0).toLocaleString()
-              : projects.reduce((sum, p) => sum + (p.paid || 0), 0).toLocaleString()}
+            ₹{stats.bidValue.toLocaleString()}
           </div>
         </motion.div>
       </div>
@@ -239,9 +297,17 @@ export default function MyProjects() {
                             {project.category}
                           </span>
                         )}
-                        <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${getStatusColor(currentStatus)}`}>
-                          {isFreelancer ? `Proposal: ${currentStatus}` : normalizedStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                           <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5 ${getStatusColor(currentStatus)}`}>
+                             {!isFreelancer && currentStatus === 'live' && (
+                               <span className="relative flex h-2 w-2">
+                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                               </span>
+                             )}
+                             {isFreelancer ? `Proposal: ${currentStatus}` : currentStatus}
+                           </span>
+                        </div>
                       </div>
                     </div>
                     <div className="text-right">
@@ -281,10 +347,10 @@ export default function MyProjects() {
                         </div>
                         <div className="p-3 rounded-xl bg-neutral-800/20 border border-neutral-800/30">
                           <div className={`text-xs ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
-                            Hired
+                            Project Status
                           </div>
-                          <div className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                            {project.hired ? 'Yes' : 'No'}
+                          <div className={`text-lg font-bold ${project.hired_freelancer_id ? 'text-green-500' : isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                            {project.hired_freelancer_id ? 'HIRED' : project.status?.toUpperCase() || 'LIVE'}
                           </div>
                         </div>
                       </>
@@ -316,11 +382,28 @@ export default function MyProjects() {
                         }`}>
                         <MessageSquare className="w-5 h-5" />
                       </button>
+                      {isFreelancer && project.proposal_status === 'awarded' && (
+                        <button
+                          onClick={() => handleAcceptAward(project._id)}
+                          className="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-600/20"
+                        >
+                          Accept Award
+                        </button>
+                      )}
+                      {((isFreelancer && project.proposal_status === 'accepted') || (!isFreelancer && project.hired_freelancer_id)) && project.status !== 'completed' && (
+                        <button
+                          onClick={() => handleCompleteProject(project._id)}
+                          className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-600/20 flex items-center gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Mark as Completed
+                        </button>
+                      )}
                       <Link 
                         to={`/dashboard/projects/${project._id}`}
                         className="px-6 py-2.5 bg-gradient-to-r from-[#F24C20] to-orange-600 hover:shadow-lg hover:shadow-[#F24C20]/20 text-white rounded-xl font-bold transition-all transform hover:-translate-y-0.5"
                       >
-                        Manage Project
+                        {isFreelancer ? 'View Details' : 'Manage Project'}
                       </Link>
                     </div>
                   </div>

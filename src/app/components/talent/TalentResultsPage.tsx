@@ -16,23 +16,89 @@ interface TalentResultsPageProps {
   answers: QuestionaryAnswers;
 }
 
+const roleOptions = [
+  { value: 'ui-ux', label: 'UI/UX Designer' },
+  { value: 'fullstack', label: 'Full Stack Developer' },
+  { value: 'mobile', label: 'Mobile App Developer' },
+];
+
+const workTypeOptions = [
+  { value: 'one-time', label: 'One-time project' },
+  { value: 'part-time', label: 'Part-time' },
+];
+
 export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
   const [talents, setTalents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savedTalents, setSavedTalents] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+  
+  // Local state for filters
+  const [filters, setFilters] = useState<QuestionaryAnswers>({
+    ...answers,
+    skills: answers.skills || [],
+    preferences: answers.preferences || []
+  });
+  const [searchTerm, setSearchTerm] = useState(answers.searchTerm || '');
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    if (userStr && token) {
+      setIsLoggedIn(true);
+      fetchUserSubscription();
+    }
+    fetchLookups();
+  }, []);
 
   useEffect(() => {
     fetchFreelancers();
-  }, [answers]);
+  }, [filters, searchTerm]);
+
+  const fetchLookups = async () => {
+    try {
+      const [catsRes, skillsRes] = await Promise.all([
+        api.get('/cms/categories'),
+        api.get('/cms/skills')
+      ]);
+      setAvailableCategories(catsRes.data.data || catsRes.data.categories || []);
+      setAvailableSkills(skillsRes.data.data || []);
+    } catch (err) {
+      console.error('Failed to fetch filter lookups:', err);
+    }
+  };
+
+  const fetchUserSubscription = async () => {
+    try {
+      const res = await api.get('/subscription/my-status');
+      if (res.data.success && res.data.subscription) {
+        setSubscriptionPlan(res.data.subscription.plan_id?.name || 'Free');
+      }
+    } catch (err) {
+      console.error('Error fetching subscription:', err);
+    }
+  };
 
   const fetchFreelancers = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/users/freelancers');
+      const params = new URLSearchParams();
+      if (filters.role) params.append('role', filters.role);
+      if (filters.skills && filters.skills.length > 0) {
+        filters.skills.forEach((s: string) => params.append('skills', s));
+      }
+      if (searchTerm) params.append('search', searchTerm);
+
+      const userStr = localStorage.getItem('user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      const currentUserId = currentUser?._id;
+
+      const res = await api.get(`/users/freelancers?${params.toString()}`);
       if (res.data.success) {
-        // Simple match calculation
-        const processed = res.data.data.map((t: any) => ({
+        const filtered = res.data.data.filter((t: any) => t._id !== currentUserId);
+        const processed = filtered.map((t: any) => ({
           ...t,
           id: t._id,
           matchScore: 85 + Math.floor(Math.random() * 15),
@@ -49,16 +115,71 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
     }
   };
 
-  const toggleSave = (id: string) => {
-    setSavedTalents(prev =>
-      prev.includes(id) ? prev.filter(tid => tid !== id) : [...prev, id]
-    );
+  const clearAllFilters = () => {
+    setFilters({
+      role: '',
+      workType: '',
+      budget: '',
+      experience: '',
+      location: '',
+      availability: '',
+      skills: [],
+      preferences: [],
+      searchTerm: ''
+    });
+    setSearchTerm('');
   };
 
-  const filteredTalents = talents.filter(t =>
-    t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.role?.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => b.matchScore - a.matchScore);
+  const toggleSkill = (skill: string) => {
+    setFilters(prev => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter(s => s !== skill)
+        : [...prev.skills, skill]
+    }));
+  };
+
+  const filteredTalents = talents.sort((a, b) => b.matchScore - a.matchScore);
+
+  const featuredTalent = filteredTalents[0];
+  const otherTalents = filteredTalents.slice(1);
+
+  const renderTalentCard = (talent: any, index: number) => (
+    <motion.div
+      key={talent.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="relative p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-[#F24C20]/50 transition-all group flex flex-col h-full"
+    >
+      <div className="flex-1">
+        <div className="flex items-start gap-4 mb-4">
+          <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-800 flex-shrink-0">
+            <img
+              src={talent.profile_image || `https://ui-avatars.com/api/?name=${talent.full_name}`}
+              alt={talent.full_name}
+              className="w-full h-full object-cover group-hover:scale-110 transition-all"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-white mb-1 truncate">{talent.full_name}</h4>
+            <p className="text-sm text-neutral-400 capitalize truncate">{talent.role}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="font-semibold text-white">{talent.rating}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between pt-4 border-t border-neutral-800 mt-auto">
+        <div className="text-xl font-bold text-[#F24C20]">₹{talent.hourly_rate || '1000'}/hr</div>
+        <Link to={`/talent/${talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
+          Profile
+        </Link>
+      </div>
+    </motion.div>
+  );
 
   if (loading) {
     return (
@@ -69,15 +190,11 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
     );
   }
 
-  const featuredTalent = filteredTalents[0];
-  const otherTalents = filteredTalents.slice(1);
-
   return (
     <div className="min-h-screen bg-neutral-950">
       <Header />
 
       <main className="pt-20">
-        {/* Summary Banner */}
         <section className="relative py-12 bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
@@ -86,80 +203,102 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
               className="text-center"
             >
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Zap className="w-8 h-8 text-[#F24C20]" />
+                <TrendingUp className="w-8 h-8 text-[#F24C20]" />
                 <h1 className="text-4xl font-bold text-white">
-                  We found <span className="text-[#F24C20]">{filteredTalents.length}</span> verified experts
+                  We found <span className="text-[#F24C20]">{filteredTalents.length}</span> world-class experts
                 </h1>
               </div>
-              <p className="text-xl text-neutral-400 mb-6">
-                Based on your preferences, here are the best matches
-              </p>
-
-              {/* Selected filters chips */}
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {answers.role && (
-                  <motion.div
-                    className="px-4 py-2 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/30 text-[#F24C20] text-sm font-medium"
-                  >
-                    Role: {roleOptions.find(r => r.value === answers.role)?.label || answers.role}
-                  </motion.div>
-                )}
-                {answers.workType && (
-                  <motion.div
-                    className="px-4 py-2 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/30 text-[#F24C20] text-sm font-medium"
-                  >
-                    {workTypeOptions.find(w => w.value === answers.workType)?.label}
-                  </motion.div>
-                )}
-              </div>
+              <p className="text-xl text-neutral-400">Ready to transform your vision into reality</p>
             </motion.div>
           </div>
         </section>
 
-        {/* Main Content */}
         <section className="py-12">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex gap-8">
-              {/* Left Sidebar - Filters */}
-              <motion.aside
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="w-80 flex-shrink-0 space-y-6 sticky top-24 h-fit"
-              >
-                {/* Search */}
-                <div className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800">
-                  <div className="flex items-center gap-2 mb-4">
-                    <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
-                    <h3 className="font-bold text-white">Refine Search</h3>
+              <aside className="w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
+                <div className="p-6 rounded-3xl bg-neutral-900/50 border border-neutral-800 backdrop-blur-xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
+                      <h3 className="font-black text-white uppercase tracking-tighter">Refine Search</h3>
+                    </div>
+                    <button 
+                      onClick={clearAllFilters}
+                      className="text-[10px] font-black text-[#F24C20] uppercase tracking-widest hover:underline"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Search by name or role..."
-                      className="w-full pl-10 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
-                    />
+
+                  <div className="space-y-8">
+                    {/* Search */}
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Keywords</label>
+                      <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-[#F24C20] transition-colors" />
+                        <input
+                          type="text"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          placeholder="Name, role, or skill..."
+                          className="w-full pl-12 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-2xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#F24C20] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Roles/Categories */}
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Specialization</label>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => setFilters(prev => ({ ...prev, role: '' }))}
+                          className={`flex items-center justify-between p-3 rounded-xl border text-sm font-bold transition-all ${
+                            !filters.role ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                          }`}
+                        >
+                          All Roles
+                          {!filters.role && <CheckCircle className="w-4 h-4" />}
+                        </button>
+                        {availableCategories.slice(0, 8).map(cat => (
+                          <button
+                            key={cat._id}
+                            onClick={() => setFilters(prev => ({ ...prev, role: cat.name }))}
+                            className={`flex items-center justify-between p-3 rounded-xl border text-sm font-bold transition-all ${
+                              filters.role === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                            }`}
+                          >
+                            {cat.name}
+                            {filters.role === cat.name && <CheckCircle className="w-4 h-4" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Skills */}
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Required Skills</label>
+                      <div className="flex flex-wrap gap-2">
+                        {availableSkills.slice(0, 15).map(skill => {
+                          const isSelected = filters.skills.includes(skill.name);
+                          return (
+                            <button
+                              key={skill._id}
+                              onClick={() => toggleSkill(skill.name)}
+                              className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all ${
+                                isSelected ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-neutral-800 text-neutral-500 hover:border-neutral-700 hover:text-neutral-400'
+                              }`}
+                            >
+                              {skill.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </aside>
 
-                <div className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-neutral-700 text-[#F24C20] focus:ring-[#F24C20]" />
-                    <span className="text-white font-medium">Verified only</span>
-                  </label>
-                </div>
-
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="w-full py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
-                >
-                  Clear All Filters
-                </button>
-              </motion.aside>
-
-              {/* Right Content - Talent Grid */}
               <div className="flex-1 space-y-8">
                 {featuredTalent && (
                   <motion.div
@@ -171,7 +310,6 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                       <Award className="w-4 h-4" />
                       Best Match {featuredTalent.matchScore}%
                     </div>
-
                     <div className="relative flex gap-8">
                       <div className="relative flex-shrink-0">
                         <div className="relative w-48 h-48 rounded-2xl overflow-hidden bg-neutral-800">
@@ -185,49 +323,22 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                           <CheckCircle className="w-5 h-5 text-white" />
                         </div>
                       </div>
-
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="text-3xl font-bold text-white mb-1">
-                              {featuredTalent.full_name}
-                            </h3>
+                            <h3 className="text-3xl font-bold text-white mb-1">{featuredTalent.full_name}</h3>
                             <p className="text-xl text-neutral-400 capitalize">{featuredTalent.role}</p>
                           </div>
-                          <button
-                            onClick={() => toggleSave(featuredTalent.id)}
-                            className="p-3 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
-                          >
-                            <Heart
-                              className={`w-5 h-5 ${savedTalents.includes(featuredTalent.id) ? 'fill-[#F24C20] text-[#F24C20]' : 'text-neutral-400'}`}
-                            />
-                          </button>
                         </div>
-
                         <div className="flex items-center gap-6 mb-4">
                           <div className="flex items-center gap-2">
                             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                             <span className="font-bold text-white text-lg">{featuredTalent.rating}</span>
-                            <span className="text-neutral-400">({featuredTalent.reviewsCount} reviews)</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-neutral-400">
-                            <MapPin className="w-4 h-4" />
-                            Remote
-                          </div>
+                           </div>
                         </div>
-
                         <div className="flex items-center justify-between mt-8">
-                          <div className="text-3xl font-bold text-[#F24C20]">
-                            ₹{featuredTalent.hourly_rate || '1200'}/hr
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Link
-                              to={`/talent/${featuredTalent.id}`}
-                              className="px-6 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors"
-                            >
-                              View Profile
-                            </Link>
-                          </div>
+                          <div className="text-3xl font-bold text-[#F24C20]">₹{featuredTalent.hourly_rate || '1200'}/hr</div>
+                          <Link to={`/talent/${featuredTalent.id}`} className="px-6 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors">View Profile</Link>
                         </div>
                       </div>
                     </div>
@@ -235,37 +346,37 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {otherTalents.map((talent, index) => (
-                    <motion.div
-                      key={talent.id}
-                      className="relative p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-[#F24C20]/50 transition-all group"
-                    >
-                      <div className="flex items-start gap-4 mb-4">
-                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-800">
-                          <img
-                            src={talent.profile_image || `https://ui-avatars.com/api/?name=${talent.full_name}`}
-                            alt={talent.full_name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-all"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-white mb-1 truncate">{talent.full_name}</h4>
-                          <p className="text-sm text-neutral-400 capitalize truncate">{talent.role}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-semibold text-white">{talent.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-                        <div className="text-xl font-bold text-[#F24C20]">₹{talent.hourly_rate || '1000'}/hr</div>
-                        <Link to={`/talent/${talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
-                          Profile
-                        </Link>
-                      </div>
-                    </motion.div>
-                  ))}
+                  {(isLoggedIn && (subscriptionPlan !== 'Free' && subscriptionPlan !== null)) 
+                    ? otherTalents.map((talent, index) => renderTalentCard(talent, index))
+                    : otherTalents.slice(0, 10).map((talent, index) => renderTalentCard(talent, index))
+                  }
                 </div>
+
+                {((!isLoggedIn && otherTalents.length > 10) || (isLoggedIn && subscriptionPlan === 'Free' && otherTalents.length > 10)) && (
+                   <motion.div 
+                     initial={{ opacity: 0, y: 30 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     className="mt-12 p-12 rounded-[2.5rem] bg-gradient-to-br from-[#F24C20] to-orange-600 text-center relative overflow-hidden"
+                   >
+                     <div className="relative z-10">
+                       <Award className="w-16 h-16 text-white mx-auto mb-6 opacity-80" />
+                       <h3 className="text-4xl font-black text-white mb-4 italic tracking-tighter">
+                         {isLoggedIn ? 'Upgrade Your Performance' : 'Unlock Your Potential'}
+                       </h3>
+                       <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto font-medium">
+                         {isLoggedIn 
+                            ? 'You have reached the limit of your Free plan. Upgrade to access our full network of elite experts.'
+                            : 'Join our exclusive community to discover thousands of world-class talents and start building today.'}
+                       </p>
+                       <Link 
+                         to={isLoggedIn ? "/plans" : "/signup"}
+                         className="inline-flex items-center gap-3 px-12 py-5 bg-white text-[#F24C20] rounded-2xl font-black text-xl shadow-2xl hover:scale-105 transition-all"
+                       >
+                         {isLoggedIn ? 'View Subscription Plans' : 'Sign Up to See More'}
+                       </Link>
+                     </div>
+                   </motion.div>
+                )}
 
                 {filteredTalents.length === 0 && (
                   <div className="text-center py-20 bg-neutral-900/50 border border-neutral-800 rounded-2xl text-neutral-400">
@@ -277,19 +388,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
           </div>
         </section>
       </main>
-
       <Footer />
     </div>
   );
 }
-
-const roleOptions = [
-  { value: 'ui-ux', label: 'UI/UX Designer' },
-  { value: 'fullstack', label: 'Full Stack Developer' },
-  { value: 'mobile', label: 'Mobile App Developer' },
-];
-
-const workTypeOptions = [
-  { value: 'one-time', label: 'One-time project' },
-  { value: 'part-time', label: 'Part-time' },
-];

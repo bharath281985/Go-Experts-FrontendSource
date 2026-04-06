@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import PremiumDashboardLayout from '@/app/components/dashboard/PremiumDashboardLayout';
 import RoleSwitcher from '@/app/components/dashboard/RoleSwitcher';
 import QuickActionMenu from '@/app/components/dashboard/QuickActionMenu';
+import api from '@/app/utils/api';
+import { toast } from 'sonner';
 
 // Client Pages
 import ClientDashboardHome from '@/app/pages/dashboard/client/ClientDashboardHome';
@@ -28,6 +30,8 @@ import Messages from '@/app/pages/dashboard/shared/Messages';
 import AccountBalance from '@/app/pages/dashboard/shared/AccountBalance';
 import SubscriptionCredits from '@/app/pages/dashboard/shared/SubscriptionCredits';
 import Settings from '@/app/pages/dashboard/shared/Settings';
+import ExploreStartupIdeas from './shared/ExploreStartupIdeas';
+import StartupIdeaDashboardDetail from './shared/StartupIdeaDashboardDetail';
 import ProjectDetails from '@/app/pages/ProjectDetails';
 // import GigDetails from '@/app/pages/GigDetails';
 import TalentProfile from '@/app/pages/TalentProfile';
@@ -38,14 +42,38 @@ export default function DashboardRouter() {
   const [userType, setUserType] = useState<'client' | 'freelancer'>('client');
   const navigate = useNavigate();
 
+  const [allowedRoles, setAllowedRoles] = useState<string[]>([]);
+
   useEffect(() => {
     const storedUserType = localStorage.getItem('userType') as 'client' | 'freelancer' | null;
     if (storedUserType) {
       setUserType(storedUserType);
     }
+    fetchUserRoles();
   }, []);
 
+  const fetchUserRoles = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      if (res.data.success) {
+        setAllowedRoles(res.data.user.roles || []);
+      }
+    } catch (err) {
+      console.error('Error fetching user roles:', err);
+    }
+  };
+
   const handleRoleSwitch = (role: 'client' | 'freelancer') => {
+    if (!allowedRoles.includes(role)) {
+      toast.error(`Access to ${role} dashboard requires a plan upgrade.`, {
+        action: {
+          label: 'View Plans',
+          onClick: () => navigate(`/dashboard/subscription?role=${role}`)
+        },
+        duration: 5000
+      });
+      return;
+    }
     setUserType(role);
     localStorage.setItem('userType', role);
     // Navigate to dashboard home when switching roles
@@ -65,19 +93,19 @@ export default function DashboardRouter() {
           />
 
           {/* Projects */}
-          <Route path="projects/explore" element={<ExploreProjects />} />
+          {/* <Route path="projects/explore" element={<ExploreProjects />} /> */}
           <Route path="projects/my-projects" element={<MyProjects />} />
-          
+
           {/* Create Project (Client Only) */}
-          <Route 
-            path="projects/create" 
-            element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />} 
+          <Route
+            path="projects/create"
+            element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />}
           />
 
           {/* Gigs */}
           {/* <Route path="gigs/orders" element={<GigOrders />} />
           <Route path="gigs/find" element={<FindGigs />} /> */}
-          
+
           {/* My Gigs (Freelancer Only) */}
           {/* <Route 
             path="gigs/my-gigs" 
@@ -95,13 +123,15 @@ export default function DashboardRouter() {
           />
 
           {/* Wallet & Withdraw (Freelancer Only) */}
-          <Route 
-            path="wallet" 
-            element={userType === 'freelancer' ? <WalletWithdraw /> : <Navigate to="/dashboard/balance" />} 
+          <Route
+            path="wallet"
+            element={userType === 'freelancer' ? <WalletWithdraw /> : <Navigate to="/dashboard/balance" />}
           />
 
           {/* Startup Ideas */}
           <Route path="startup-ideas" element={<StartupIdeas />} />
+          <Route path="explore-ideas" element={<ExploreStartupIdeas />} />
+          <Route path="startup-ideas/:id" element={<StartupIdeaDashboardDetail />} />
 
           {/* Shared Pages */}
 
@@ -124,12 +154,9 @@ export default function DashboardRouter() {
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
       </PremiumDashboardLayout>
-      
+
       {/* Quick Action Menu (Left Bottom) */}
       <QuickActionMenu userType={userType} />
-      
-      {/* Role Switcher for Demo (Right Bottom) */}
-      <RoleSwitcher currentRole={userType} onSwitch={handleRoleSwitch} />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import api from '@/app/utils/api';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 export default function FindClients() {
   const { isDarkMode } = useTheme();
@@ -101,7 +102,11 @@ export default function FindClients() {
                   <div className="flex items-center gap-2 mb-2 text-sm">
                      <Briefcase className={`w-4 h-4 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`} />
                      <span className={`font-medium ${isDarkMode ? 'text-neutral-200' : 'text-neutral-700'}`}>
-                       Project: {invite.project_id?.title || 'General Collaboration'}
+                       Project: {invite.project_id ? (
+                         <Link to={`/dashboard/projects/${invite.project_id._id}`} className="text-[#F24C20] hover:underline">
+                           {invite.project_id.title}
+                         </Link>
+                       ) : 'General Collaboration'}
                      </span>
                   </div>
                   <p className={`text-sm line-clamp-3 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>

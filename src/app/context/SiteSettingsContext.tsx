@@ -4,6 +4,8 @@ export interface SiteSettings {
     site_name: string;
     site_tagline: string;
     site_logo: string;
+    header_logo: string;
+    footer_logo: string;
     site_favicon: string;
     contact_email: string;
     contact_phone: string;
@@ -32,12 +34,15 @@ export interface SiteSettings {
     subscription_description: string;
     subscription_button_text: string;
     subscription_highlights: { label: string; enabled: boolean }[];
+    subscription_groups: { name: string; label: string; icon: string; description: string }[];
 }
 
 export const defaultSiteSettings: SiteSettings = {
     site_name: 'Go Experts',
     site_tagline: 'Find verified experts. Get work done faster.',
     site_logo: '',
+    header_logo: '',
+    footer_logo: '',
     site_favicon: '',
     contact_email: '',
     contact_phone: '',
@@ -66,6 +71,7 @@ export const defaultSiteSettings: SiteSettings = {
     subscription_description: '',
     subscription_button_text: '',
     subscription_highlights: [],
+    subscription_groups: [],
 };
 
 export const SiteSettingsContext = createContext<SiteSettings>(defaultSiteSettings);

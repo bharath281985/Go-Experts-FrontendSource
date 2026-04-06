@@ -244,6 +244,36 @@ export default function SubscriptionPlansPricingPage() {
   const comboPlanGroup = dynamicGroups.find((g: any) => g.name === "Combo Plan");
   const otherGroups = dynamicGroups.filter((g: any) => g.name !== "Combo Plan" && groupedPlans[g.name]);
 
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const userData = JSON.parse(user);
+        setUserRole(userData.role || (userData.roles ? userData.roles[0] : 'freelancer'));
+      } catch (e) {}
+    }
+  }, []);
+
+  // Filter groups based on user role
+  const filteredGroups = otherGroups.filter(group => {
+    if (!userRole) return true; // Show all to guests or if role not detected
+    
+    // Role-specific visibility mapping
+    const roleMap: any = {
+      'freelancer': ['Freelancer Plans'],
+      'client': ['Client Plans'],
+      'investor': ['Investor Plans'],
+      'startup_creator': ['Start-Up Idea Creator Plans', 'Startup Creator Plans']
+    };
+
+    const allowedGroups = roleMap[userRole] || [];
+    return allowedGroups.includes(group.name);
+  });
+
+  const sortedGroups = filteredGroups;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#05060a] flex items-center justify-center">
@@ -332,7 +362,7 @@ export default function SubscriptionPlansPricingPage() {
       </section>
 
       <div id="pricing-sections">
-        {otherGroups.map((group) => {
+        {sortedGroups.map((group) => {
           return (
             <section key={group.name} className="border-t border-white/5 py-24">
               <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

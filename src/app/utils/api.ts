@@ -30,23 +30,31 @@ api.interceptors.response.use(
 
         // Handle session expiration
         if (status === 401) {
+            // Check if we should skip the global redirect for this request
+            if (error.config?.skipAuthRedirect) {
+                return Promise.reject(error);
+            }
+
             // Don't toast for login attempts, only for protected routes
             if (!error.config.url?.includes('/auth/login')) {
-                toast.error('Session expired. Please sign in again.');
-                localStorage.clear();
+                // localStorage.clear(); // Removing this as it's too aggressive for guest checks
                 window.location.href = '/signin';
             }
         }
 
         // Show detailed validation errors if present
         if (responseData?.errors && Array.isArray(responseData.errors)) {
-            responseData.errors.forEach((err: any) => {
-                toast.error(`${err.path}: ${err.message}`);
-            });
+            if (!error.config?.skipToast) {
+                responseData.errors.forEach((err: any) => {
+                    toast.error(`${err.path}: ${err.message}`);
+                });
+            }
         } else {
             // Show general error message
-            const message = responseData?.message || error.message || 'An unexpected error occurred';
-            toast.error(message);
+            if (!error.config?.skipToast) {
+                const message = responseData?.message || error.message || 'An unexpected error occurred';
+                toast.error(message);
+            }
         }
 
         return Promise.reject(error);

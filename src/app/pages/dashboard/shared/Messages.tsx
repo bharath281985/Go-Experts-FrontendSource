@@ -1,11 +1,11 @@
 import { motion } from 'motion/react';
 import { useTheme } from '@/app/components/ThemeProvider';
-import { 
-  MessageSquare, 
-  Search, 
-  Send, 
-  Paperclip, 
-  Smile, 
+import {
+  MessageSquare,
+  Search,
+  Send,
+  Paperclip,
+  Smile,
   MoreVertical,
   Phone,
   Video,
@@ -39,8 +39,13 @@ interface Message {
   status?: 'sent' | 'delivered' | 'read';
 }
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function Messages() {
   const { isDarkMode } = useTheme();
+  const [searchParams] = useSearchParams();
+  const queryUser = searchParams.get('user');
+  const queryIntent = searchParams.get('intent');
   const [selectedChat, setSelectedChat] = useState<string>('1');
   const [messageText, setMessageText] = useState('');
 
@@ -62,49 +67,83 @@ export default function Messages() {
 
     const userId = user._id || user.id;
     if (userId) {
-        newSocket.emit('register', userId);
+      newSocket.emit('register', userId);
+    }
+
+    if (queryUser) {
+      handleNewRecipient(queryUser);
     }
 
     return () => {
-        newSocket.close();
+      newSocket.close();
     };
-  }, []);
+  }, [queryUser]);
+
+  const handleNewRecipient = async (userId: string) => {
+    // Check if already in chats
+    const exists = chats.find(c => c.id === userId);
+    if (!exists) {
+      try {
+        const res = await api.get(`/auth/users/${userId}`); // Assuming this endpoint exists to get profiles
+        if (res.data.success) {
+          const u = res.data.user;
+          const tempChat: Chat = {
+            id: u._id,
+            name: u.full_name,
+            avatar: u.profile_image ? (u.profile_image.startsWith('http') ? u.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${u.profile_image}`) : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
+            lastMessage: '',
+            timestamp: '',
+            unread: 0,
+            online: false,
+            role: 'freelancer'
+          };
+          setChats(prev => [tempChat, ...prev]);
+        }
+      } catch (err) {
+        console.error('Error fetching recipient info:', err);
+      }
+    }
+    setSelectedChat(userId);
+    if (queryIntent === 'hire') {
+      setMessageText('Hi! I am interested in hiring you for a project. Could we discuss the details?');
+    }
+  };
 
   useEffect(() => {
     if (socket) {
-        const handleNewMessage = (msg: any) => {
-            fetchConversations();
-            if (msg.sender._id === selectedChat || msg.sender === selectedChat) {
-                fetchChatHistory();
-            }
-        };
-        const handleUserOnline = (userId: string) => {
-            setChats(prev => prev.map(c => c.id === userId ? { ...c, online: true } : c));
-        };
-        const handleUserOffline = (userId: string) => {
-            setChats(prev => prev.map(c => c.id === userId ? { ...c, online: false } : c));
-        };
+      const handleNewMessage = (msg: any) => {
+        fetchConversations();
+        if (msg.sender._id === selectedChat || msg.sender === selectedChat) {
+          fetchChatHistory();
+        }
+      };
+      const handleUserOnline = (userId: string) => {
+        setChats(prev => prev.map(c => c.id === userId ? { ...c, online: true } : c));
+      };
+      const handleUserOffline = (userId: string) => {
+        setChats(prev => prev.map(c => c.id === userId ? { ...c, online: false } : c));
+      };
 
-        const handleIncomingCall = (data: any) => {
-            setCallerInfo({
-                id: data.from,
-                name: data.name || 'Incoming Call',
-                signal: data.signal,
-                isReceiving: true
-            });
-            setIsVideoModalOpen(true);
-        };
+      const handleIncomingCall = (data: any) => {
+        setCallerInfo({
+          id: data.from,
+          name: data.name || 'Incoming Call',
+          signal: data.signal,
+          isReceiving: true
+        });
+        setIsVideoModalOpen(true);
+      };
 
-        socket.on('newMessage', handleNewMessage);
-        socket.on('userOnline', handleUserOnline);
-        socket.on('userOffline', handleUserOffline);
-        socket.on('callUser', handleIncomingCall);
-        return () => {
-            socket.off('newMessage', handleNewMessage);
-            socket.off('userOnline', handleUserOnline);
-            socket.off('userOffline', handleUserOffline);
-            socket.off('callUser', handleIncomingCall);
-        };
+      socket.on('newMessage', handleNewMessage);
+      socket.on('userOnline', handleUserOnline);
+      socket.on('userOffline', handleUserOffline);
+      socket.on('callUser', handleIncomingCall);
+      return () => {
+        socket.off('newMessage', handleNewMessage);
+        socket.off('userOnline', handleUserOnline);
+        socket.off('userOffline', handleUserOffline);
+        socket.off('callUser', handleIncomingCall);
+      };
     }
   }, [socket, selectedChat]);
 
@@ -144,16 +183,17 @@ export default function Messages() {
           sender: m.sender === currentUser._id || m.sender === currentUser.id ? 'me' : 'them',
           text: m.content,
           timestamp: format(new Date(m.createdAt), 'hh:mm a'),
+          chat: m.chatunread || 0,
           status: m.isRead ? 'read' : 'delivered'
         })));
         scrollToBottom();
       }
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const scrollToBottom = () => {
     setTimeout(() => {
-       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
@@ -165,15 +205,15 @@ export default function Messages() {
       setMessageText('');
       try {
         const res = await api.post('/messages', {
-           receiverId: selectedChat,
-           content: currentText
+          receiverId: selectedChat,
+          content: currentText
         });
         if (res.data.success) {
-           fetchChatHistory(); // refresh after sending
-           fetchConversations(); // refresh last message
+          fetchChatHistory(); // refresh after sending
+          fetchConversations(); // refresh last message
         }
       } catch (err) {
-         console.error(err);
+        console.error(err);
       }
     }
   };
@@ -181,10 +221,10 @@ export default function Messages() {
   const initiateVideoCall = () => {
     if (selectedChatData && currentUser) {
       setCallerInfo({
-         id: selectedChatData.id,
-         name: selectedChatData.name,
-         signal: null,
-         isReceiving: false
+        id: selectedChatData.id,
+        name: selectedChatData.name,
+        signal: null,
+        isReceiving: false
       });
       setIsVideoModalOpen(true);
     }
@@ -224,11 +264,10 @@ export default function Messages() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`rounded-2xl border backdrop-blur-sm overflow-hidden ${
-          isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-        }`}
+        className={`rounded-2xl border backdrop-blur-sm overflow-hidden ${isDarkMode
+          ? 'bg-neutral-900/50 border-neutral-800'
+          : 'bg-white/50 border-neutral-200'
+          }`}
         style={{ height: 'calc(100vh - 280px)' }}
       >
         <div className="flex h-full">
@@ -236,20 +275,17 @@ export default function Messages() {
           <div className={`w-80 border-r ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'} flex flex-col`}>
             {/* Search */}
             <div className="p-4 border-b border-neutral-800">
-              <div className={`relative rounded-xl overflow-hidden ${
-                isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
-              }`}>
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                  isDarkMode ? 'text-neutral-500' : 'text-neutral-400'
-                }`} />
+              <div className={`relative rounded-xl overflow-hidden ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
+                }`}>
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'
+                  }`} />
                 <input
                   type="text"
                   placeholder="Search messages..."
-                  className={`w-full pl-10 pr-4 py-2.5 bg-transparent text-sm outline-none ${
-                    isDarkMode
-                      ? 'text-white placeholder:text-neutral-500'
-                      : 'text-neutral-900 placeholder:text-neutral-400'
-                  }`}
+                  className={`w-full pl-10 pr-4 py-2.5 bg-transparent text-sm outline-none ${isDarkMode
+                    ? 'text-white placeholder:text-neutral-500'
+                    : 'text-neutral-900 placeholder:text-neutral-400'
+                    }`}
                 />
               </div>
             </div>
@@ -261,15 +297,14 @@ export default function Messages() {
                   key={chat.id}
                   onClick={() => setSelectedChat(chat.id)}
                   whileHover={{ x: 4 }}
-                  className={`w-full p-4 flex items-start gap-3 border-b transition-colors ${
-                    selectedChat === chat.id
-                      ? isDarkMode
-                        ? 'bg-[#F24C20]/10 border-[#F24C20]/30'
-                        : 'bg-[#F24C20]/10 border-[#F24C20]/30'
-                      : isDarkMode
+                  className={`w-full p-4 flex items-start gap-3 border-b transition-colors ${selectedChat === chat.id
+                    ? isDarkMode
+                      ? 'bg-[#F24C20]/10 border-[#F24C20]/30'
+                      : 'bg-[#F24C20]/10 border-[#F24C20]/30'
+                    : isDarkMode
                       ? 'border-neutral-800 hover:bg-neutral-800/50'
                       : 'border-neutral-200 hover:bg-neutral-50'
-                  }`}
+                    }`}
                 >
                   <div className="relative">
                     <img
@@ -332,25 +367,22 @@ export default function Messages() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? 'hover:bg-neutral-800 text-neutral-400'
-                      : 'hover:bg-neutral-100 text-neutral-600'
-                  }`}>
+                  <button className={`p-2 rounded-lg transition-colors ${isDarkMode
+                    ? 'hover:bg-neutral-800 text-neutral-400'
+                    : 'hover:bg-neutral-100 text-neutral-600'
+                    }`}>
                     <Phone className="w-5 h-5" />
                   </button>
-                  <button onClick={initiateVideoCall} className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? 'hover:bg-neutral-800 text-neutral-400'
-                      : 'hover:bg-neutral-100 text-neutral-600'
-                  }`}>
+                  <button onClick={initiateVideoCall} className={`p-2 rounded-lg transition-colors ${isDarkMode
+                    ? 'hover:bg-neutral-800 text-neutral-400'
+                    : 'hover:bg-neutral-100 text-neutral-600'
+                    }`}>
                     <Video className="w-5 h-5" />
                   </button>
-                  <button className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? 'hover:bg-neutral-800 text-neutral-400'
-                      : 'hover:bg-neutral-100 text-neutral-600'
-                  }`}>
+                  <button className={`p-2 rounded-lg transition-colors ${isDarkMode
+                    ? 'hover:bg-neutral-800 text-neutral-400'
+                    : 'hover:bg-neutral-100 text-neutral-600'
+                    }`}>
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
@@ -365,19 +397,17 @@ export default function Messages() {
                     animate={{ opacity: 1, y: 0 }}
                     className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-md px-4 py-3 rounded-2xl ${
-                      message.sender === 'me'
-                        ? 'bg-[#F24C20] text-white rounded-br-sm'
-                        : isDarkMode
+                    <div className={`max-w-md px-4 py-3 rounded-2xl ${message.sender === 'me'
+                      ? 'bg-[#F24C20] text-white rounded-br-sm'
+                      : isDarkMode
                         ? 'bg-neutral-800 text-white rounded-bl-sm'
                         : 'bg-neutral-100 text-neutral-900 rounded-bl-sm'
-                    }`}>
-                      <p className="text-sm">{message.text}</p>
-                      <span className={`text-xs mt-1 block ${
-                        message.sender === 'me' 
-                          ? 'text-white/70' 
-                          : isDarkMode ? 'text-neutral-400' : 'text-neutral-500'
                       }`}>
+                      <p className="text-sm">{message.text}</p>
+                      <span className={`text-xs mt-1 block ${message.sender === 'me'
+                        ? 'text-white/70'
+                        : isDarkMode ? 'text-neutral-400' : 'text-neutral-500'
+                        }`}>
                         {message.timestamp}
                       </span>
                     </div>
@@ -388,14 +418,12 @@ export default function Messages() {
 
               {/* Message Input */}
               <div className={`p-4 border-t ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}>
-                <div className={`flex items-end gap-3 p-3 rounded-xl ${
-                  isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
-                }`}>
-                  <button className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? 'hover:bg-neutral-700 text-neutral-400'
-                      : 'hover:bg-neutral-200 text-neutral-600'
+                <div className={`flex items-end gap-3 p-3 rounded-xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
                   }`}>
+                  <button className={`p-2 rounded-lg transition-colors ${isDarkMode
+                    ? 'hover:bg-neutral-700 text-neutral-400'
+                    : 'hover:bg-neutral-200 text-neutral-600'
+                    }`}>
                     <Paperclip className="w-5 h-5" />
                   </button>
                   <textarea
@@ -403,11 +431,10 @@ export default function Messages() {
                     onChange={(e) => setMessageText(e.target.value)}
                     placeholder="Type your message..."
                     rows={1}
-                    className={`flex-1 bg-transparent outline-none resize-none ${
-                      isDarkMode
-                        ? 'text-white placeholder:text-neutral-500'
-                        : 'text-neutral-900 placeholder:text-neutral-400'
-                    }`}
+                    className={`flex-1 bg-transparent outline-none resize-none ${isDarkMode
+                      ? 'text-white placeholder:text-neutral-500'
+                      : 'text-neutral-900 placeholder:text-neutral-400'
+                      }`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -415,23 +442,21 @@ export default function Messages() {
                       }
                     }}
                   />
-                  <button className={`p-2 rounded-lg transition-colors ${
-                    isDarkMode
-                      ? 'hover:bg-neutral-700 text-neutral-400'
-                      : 'hover:bg-neutral-200 text-neutral-600'
-                  }`}>
+                  <button className={`p-2 rounded-lg transition-colors ${isDarkMode
+                    ? 'hover:bg-neutral-700 text-neutral-400'
+                    : 'hover:bg-neutral-200 text-neutral-600'
+                    }`}>
                     <Smile className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleSendMessage}
                     disabled={!messageText.trim()}
-                    className={`p-2 rounded-lg transition-colors ${
-                      messageText.trim()
-                        ? 'bg-[#F24C20] text-white hover:bg-[#F24C20]/90'
-                        : isDarkMode
+                    className={`p-2 rounded-lg transition-colors ${messageText.trim()
+                      ? 'bg-[#F24C20] text-white hover:bg-[#F24C20]/90'
+                      : isDarkMode
                         ? 'bg-neutral-700 text-neutral-500'
                         : 'bg-neutral-200 text-neutral-400'
-                    }`}
+                      }`}
                   >
                     <Send className="w-5 h-5" />
                   </button>

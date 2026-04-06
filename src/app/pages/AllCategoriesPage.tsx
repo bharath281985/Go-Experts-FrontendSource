@@ -1,16 +1,70 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Search, TrendingUp, Sparkles, Clock, ChevronRight, Home } from 'lucide-react';
-import Navbar from '@/app/components/Navbar';
+import { Search, TrendingUp, Sparkles, Clock, ChevronRight, Home, Loader2 } from 'lucide-react';
+import Navbar from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
-import { categories } from '@/data/categories';
+import api from '@/app/utils/api';
 
 type FilterType = 'all' | 'popular' | 'trending' | 'new';
 
 export default function AllCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const res = await api.get('/cms/categories');
+        const categoryList = res.data.categories || res.data.data;
+        if (res.data.success && Array.isArray(categoryList)) {
+          const colors = [
+            'from-purple-500 to-pink-500',
+            'from-blue-500 to-cyan-500',
+            'from-green-500 to-emerald-500',
+            'from-orange-500 to-red-500',
+            'from-yellow-500 to-orange-500',
+            'from-red-500 to-pink-500',
+            'from-indigo-500 to-purple-500',
+            'from-cyan-500 to-blue-500'
+          ];
+
+          const mapped = categoryList
+            .filter((c: any) => c.is_active && !c.parent)
+            .map((cat: any, i: number) => ({
+              id: cat._id,
+              name: cat.name,
+              slug: cat.slug || cat.name.toLowerCase().replace(/ /g, '-'),
+              description: cat.description || `Hire experienced ${cat.name} experts on Go Experts.`,
+              image: cat.image ? `${api.defaults.baseURL?.replace('/api', '')}${cat.image}` : 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800',
+              color: colors[i % colors.length],
+              icon: Sparkles,
+              talentCount: cat.talent_count || 0,
+              gigCount: cat.gig_count || 0,
+              popular: cat.is_popular || false,
+              trending: cat.is_trending || false,
+              new: cat.is_new || false
+            }));
+          setCategories(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin" />
+      </div>
+    );
+  }
 
   const filteredCategories = categories.filter(category => {
     const matchesSearch = category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -168,12 +222,9 @@ export default function AllCategoriesPage() {
               Showing <span className="text-[#F24C20] font-semibold">{filteredCategories.length}</span> categories
             </p>
           </motion.div>
-
           {/* Bento-style Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCategories.map((category, index) => {
-              const Icon = category.icon;
-              
               return (
                 <motion.div
                   key={category.id}
@@ -182,7 +233,7 @@ export default function AllCategoriesPage() {
                   transition={{ delay: index * 0.05 }}
                   className="group relative"
                 >
-                  <Link to={`/categories/${category.slug}`}>
+                  <Link to={`/projects?category=${encodeURIComponent(category.name)}`}>
                     <div className="relative h-full overflow-hidden rounded-2xl bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 hover:border-[#F24C20]/50 transition-all duration-300">
                       {/* Image Section */}
                       <div className="relative h-48 overflow-hidden">
@@ -217,16 +268,6 @@ export default function AllCategoriesPage() {
                           )}
                         </div>
 
-                        {/* Icon */}
-                        <div className="absolute bottom-4 left-4">
-                          <motion.div
-                            className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${category.color} shadow-lg`}
-                            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            <Icon className="w-6 h-6 text-white" />
-                          </motion.div>
-                        </div>
                       </div>
 
                       {/* Content Section */}
@@ -252,7 +293,7 @@ export default function AllCategoriesPage() {
 
                         {/* CTA */}
                         <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
-                          <span className="text-sm font-medium text-[#F24C20]">View Category</span>
+                          <span className="text-sm font-medium text-[#F24C20]">View Projects</span>
                           <motion.div
                             initial={{ x: 0 }}
                             whileHover={{ x: 5 }}

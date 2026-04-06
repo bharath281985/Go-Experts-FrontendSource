@@ -1,10 +1,13 @@
 import { motion } from 'motion/react';
 import { Briefcase, Code, Laptop, MessageCircle, MapPin, ArrowRight } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
 export default function HeroSection() {
+  const navigate = useNavigate();
   const [searchType, setSearchType] = useState<'sellers' | 'buyers'>('sellers');
+  const [searchTerm, setSearchTerm] = useState('');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +83,18 @@ export default function HeroSection() {
     };
     fetchSkills();
   }, []);
+
+  const handleSearch = (e?: React.FormEvent, overrideTerm?: string) => {
+    if (e) e.preventDefault();
+    const finalTerm = (overrideTerm || searchTerm).trim();
+    if (!finalTerm && !overrideTerm) return;
+
+    if (searchType === 'sellers') {
+      navigate(`/talent?search=${encodeURIComponent(finalTerm)}`);
+    } else {
+      navigate(`/projects?search=${encodeURIComponent(finalTerm)}`);
+    }
+  };
 
   return (
     <section
@@ -239,10 +254,14 @@ export default function HeroSection() {
             {/* Glow Effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-[#F24C20]/50 to-orange-600/50 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
 
-            <div className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-3xl border border-neutral-800">
+            <form 
+              onSubmit={handleSearch}
+              className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-3xl border border-neutral-800"
+            >
               {/* Type Selector */}
               <div className="flex gap-2 p-1.5 bg-black/40 rounded-2xl">
                 <button
+                  type="button"
                   onClick={() => setSearchType('sellers')}
                   className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'sellers'
                     ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
@@ -252,6 +271,7 @@ export default function HeroSection() {
                   Find Talent
                 </button>
                 <button
+                  type="button"
                   onClick={() => setSearchType('buyers')}
                   className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'buyers'
                     ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
@@ -266,6 +286,8 @@ export default function HeroSection() {
               <div className="flex-1 flex items-center px-6">
                 <input
                   type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={
                     searchType === 'sellers'
                       ? 'Search for experts, skills, or services...'
@@ -279,12 +301,13 @@ export default function HeroSection() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                type="submit"
                 className="px-8 py-3 bg-[#044071] hover:bg-[#055a99] text-white rounded-2xl font-semibold transition-all duration-300 flex items-center gap-2 group"
               >
                 <span>Search</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
-            </div>
+            </form>
           </div>
 
           {/* Popular Tags */}
@@ -299,6 +322,8 @@ export default function HeroSection() {
               (tag, i) => (
                 <motion.button
                   key={tag}
+                  type="button"
+                  onClick={() => handleSearch(undefined, tag)}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 2 + i * 0.1 }}

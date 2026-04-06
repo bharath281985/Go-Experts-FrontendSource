@@ -6,15 +6,18 @@ import {
   Search, Rocket, Target, Users, ArrowRight, TrendingUp, Filter, 
   ShieldCheck, Mail, Lock, Coins, AlertTriangle, X, CheckCircle 
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '@/app/utils/api';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { toast } from 'sonner';
 
 export default function ExploreIdeasPage() {
   const [ideas, setIdeas] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get('category') || 'All');
   const [unlockingIdea, setUnlockingIdea] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { isDarkMode } = useTheme();
@@ -25,7 +28,26 @@ export default function ExploreIdeasPage() {
 
   useEffect(() => {
     fetchApprovedIdeas();
+    fetchCategories();
   }, []);
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/startup-categories');
+      if (res.data.success) {
+        setCategories(res.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
 
   const fetchApprovedIdeas = async () => {
     try {
@@ -78,10 +100,15 @@ export default function ExploreIdeasPage() {
     }
   };
 
-  const filteredIdeas = ideas.filter(idea => 
-    idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    idea.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredIdeas = ideas.filter(idea => {
+    const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         idea.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'All' || 
+                           idea.category?.trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
+                           
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#05060a] text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -118,29 +145,48 @@ export default function ExploreIdeasPage() {
           </div>
 
           {/* Search & Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-12">
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-[#F24C20] transition-colors" />
+          <div className="max-w-4xl mx-auto mb-16">
+            <div className="relative group mb-8">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500 group-focus-within:text-[#F24C20] transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search innovative concepts..."
+                placeholder="Search innovative concepts, tech stacks, or market gaps..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-12 pr-6 py-4 rounded-2xl border transition-all outline-none ${
+                className={`w-full pl-16 pr-8 py-5 rounded-[2rem] border transition-all outline-none text-lg ${
                     isDarkMode 
-                    ? 'bg-white/5 border-white/10 focus:border-[#F24C20]/50 text-white' 
-                    : 'bg-white border-gray-200 focus:border-[#F24C20] text-gray-900 shadow-sm'
+                    ? 'bg-white/5 border-white/10 focus:border-[#F24C20]/50 text-white shadow-2xl' 
+                    : 'bg-white border-gray-200 focus:border-[#F24C20] text-gray-900 shadow-xl'
                 }`}
               />
             </div>
-            <button className={`flex items-center gap-2 px-8 py-4 rounded-2xl border font-bold transition-all ${
-                isDarkMode 
-                ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-                : 'bg-white border-gray-200 hover:border-gray-300 text-gray-700 shadow-sm'
-            }`}>
-              <Filter className="w-5 h-5" />
-              Categories
-            </button>
+            
+            {/* Category Tabs */}
+            <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide no-scrollbar">
+              <button
+                onClick={() => setSelectedCategory('All')}
+                className={`px-6 py-3 rounded-full font-bold whitespace-nowrap border transition-all ${
+                  selectedCategory === 'All'
+                    ? 'bg-[#F24C20] text-white border-[#F24C20] shadow-lg shadow-[#F24C20]/20'
+                    : isDarkMode ? 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10' : 'bg-white text-slate-600 border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                All Concepts
+              </button>
+              {categories.map((cat: any) => (
+                <button
+                  key={cat._id}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`px-6 py-3 rounded-full font-bold whitespace-nowrap border transition-all ${
+                    selectedCategory === cat.name
+                      ? 'bg-[#F24C20] text-white border-[#F24C20] shadow-lg shadow-[#F24C20]/20'
+                      : isDarkMode ? 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10' : 'bg-white text-slate-600 border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Ideas Grid */}
