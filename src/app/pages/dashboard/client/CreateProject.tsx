@@ -146,7 +146,7 @@ export default function CreateProject() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (res.data.success) {
-        toast.success('Project published successfully! Pending admin approval.');
+        toast.success('Project published successfully! It is now live for freelancers to see.');
         navigate('/dashboard/projects/my-projects');
       }
     } catch (error: any) {

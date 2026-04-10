@@ -16,6 +16,7 @@ export default function TalentSection() {
     { id: '2', full_name: 'David Chen', role: 'UI/UX Designer', rating: '4.8', reviews: 89, location: 'Austin, TX', skills: ['Figma', 'UI Design', 'Design Systems'], hourly_rate: '2000', verified: true, profile_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150' },
     { id: '3', full_name: 'Michel Williams', role: 'DevOps Engineer', rating: '5.0', reviews: 56, location: 'London, UK', skills: ['Docker', 'AWS', 'Kubernetes'], hourly_rate: '2500', verified: true, profile_image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150&h=150' },
     { id: '4', full_name: 'Aisha Patel', role: 'Product Manager', rating: '4.7', reviews: 112, location: 'Mumbai, India', skills: ['Agile', 'Scrum', 'Backlog Management'], hourly_rate: '1800', verified: true, profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=150&h=150' },
+    { id: '6', full_name: 'Sirigiri Naresh', role: 'WordPress Developer', rating: '4.9', reviews: 156, location: 'Hyderabad, India', skills: ['WordPress', 'PHP', 'SEO'], hourly_rate: '1200', verified: true, profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150&h=150' },
   ];
 
   useEffect(() => {

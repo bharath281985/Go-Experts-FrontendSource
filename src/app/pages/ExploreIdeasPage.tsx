@@ -199,7 +199,8 @@ export default function ExploreIdeasPage() {
           ) : filteredIdeas.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredIdeas.map((idea, idx) => {
-                const isUnlocked = idea.contacts?.includes(user._id);
+                const isOwner = idea.creator?._id === user._id || idea.creator === user._id;
+                const isUnlocked = isOwner || idea.contacts?.includes(user._id);
                 return (
                   <motion.div
                     key={idea._id}
@@ -249,7 +250,7 @@ export default function ExploreIdeasPage() {
                             : 'bg-[#F24C20] hover:bg-orange-600 text-white shadow-[#F24C20]/20'
                         }`}
                       >
-                        {isUnlocked ? 'Concept Unlocked' : 'View Deep Dive'}
+                        {isUnlocked ? (isOwner ? 'View Analytics' : 'Concept Unlocked') : 'View Deep Dive'}
                         {isUnlocked ? <CheckCircle className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                       </button>
                     </div>

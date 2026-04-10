@@ -648,9 +648,6 @@ export default function Settings() {
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.pan_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
-                              <button onClick={() => handleRemoveFile('pan_card')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             </div>
                           </div>
                         ) : (
@@ -679,9 +676,6 @@ export default function Settings() {
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.aadhar_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
-                              <button onClick={() => handleRemoveFile('aadhar_card')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             </div>
                           </div>
                         ) : (
@@ -720,23 +714,24 @@ export default function Settings() {
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file}`, '_blank')} className="text-[10px] text-blue-500 hover:underline">View</button>
-                              <button onClick={() => handleRemoveFile('educational', idx)} className="text-red-500 p-0.5"><X className="w-3 h-3" /></button>
                             </div>
                           </div>
                         ))}
 
-                        <div className={`relative p-4 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-neutral-700 hover:border-neutral-600' : 'border-neutral-200 hover:border-neutral-300'} transition-colors`}>
-                          <div className="flex flex-col items-center py-2 text-center">
-                            <Plus className="w-6 h-6 text-neutral-500 mb-2" />
-                            <input
-                              type="file"
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                              accept=".pdf,image/*"
-                              onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])}
-                            />
-                            <p className="text-xs text-neutral-500">Upload degree or diploma</p>
+                        {!formData.kyc_details.is_verified && (
+                          <div className={`relative p-4 rounded-xl border-2 border-dashed ${isDarkMode ? 'border-neutral-700 hover:border-neutral-600' : 'border-neutral-200 hover:border-neutral-300'} transition-colors`}>
+                            <div className="flex flex-col items-center py-2 text-center">
+                              <Plus className="w-6 h-6 text-neutral-500 mb-2" />
+                              <input
+                                type="file"
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                accept=".pdf,image/*"
+                                onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])}
+                              />
+                              <p className="text-xs text-neutral-500">Upload degree or diploma</p>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -751,9 +746,6 @@ export default function Settings() {
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.documents.experience_letter}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
-                              <button onClick={() => handleRemoveFile('experience_letter')} className="p-1 text-red-500 hover:bg-red-500/10 rounded">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             </div>
                           </div>
                         ) : (

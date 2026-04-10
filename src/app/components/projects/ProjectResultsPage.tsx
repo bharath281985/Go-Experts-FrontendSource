@@ -106,7 +106,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
       // In real app, we'd pass filters to backend. For now, matching wizard results logic.
       const res = await api.get('/projects');
       if (res.data.success) {
-        let filtered = res.data.data.filter((p: any) => p.client_id?._id !== currentUserId && p.client_id !== currentUserId);
+        let filtered = res.data.data; // Show all projects including current user's for verification
         
         // Client-side filtering as fallback/enhancement
         if (filters.projectType) {
@@ -368,7 +368,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                             </div>
                             <Link to={`/projects/${project.id}`} className={`px-6 py-2 rounded-lg font-bold transition-all shadow-lg ${
                               project.isApplied 
-                              ? 'bg-neutral-800 hover:bg-neutral-700 text-white shadow-none' 
+                              ? 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 shadow-none' 
                               : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/20'
                             }`}>
                               {project.isApplied ? 'View Application' : 'View Details'}

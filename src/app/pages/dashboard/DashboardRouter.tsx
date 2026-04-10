@@ -93,7 +93,8 @@ export default function DashboardRouter() {
           />
 
           {/* Projects */}
-          {/* <Route path="projects/explore" element={<ExploreProjects />} /> */}
+          <Route path="projects" element={<Navigate to="/dashboard/projects/my-projects" replace />} />
+          <Route path="projects/explore" element={<Navigate to="/dashboard/projects/my-projects" replace />} />
           <Route path="projects/my-projects" element={<MyProjects />} />
 
           {/* Create Project (Client Only) */}

@@ -132,6 +132,7 @@ export default function StartupIdeaDashboardDetail() {
 
   if (!idea) return null;
 
+  const isOwner = idea.creator?._id === user._id || idea.creator === user._id;
   const isUnlocked = idea.isUnlocked;
 
   return (
@@ -283,27 +284,37 @@ export default function StartupIdeaDashboardDetail() {
                       </div>
                       <div className="flex items-center justify-between py-3 border-b border-neutral-800">
                          <span className="text-neutral-500 uppercase text-[10px] font-bold tracking-widest">Phone</span>
-                         <span className="font-bold text-emerald-500">Gated - Request Meet</span>
+                         <span className="font-bold text-emerald-500">
+                            {isOwner || isUnlocked ? (idea.creator?.phone || 'N/A') : 'Gated - Request Meet'}
+                         </span>
                       </div>
                   </div>
 
-                  <div className="space-y-3">
-                      <button 
-                        onClick={handleSendInquiry}
-                        disabled={submitting}
-                        className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-black shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-xs disabled:opacity-50"
-                      >
-                         {submitting ? 'Sending...' : 'Send Direct Inquiry'}
-                      </button>
-                      <button 
-                        onClick={handleRequestVideoPitch}
-                        disabled={submitting}
-                        className={`w-full py-4 rounded-2xl border font-black uppercase tracking-widest text-xs hover:bg-neutral-800 transition-all disabled:opacity-50 ${
-                         isDarkMode ? 'border-neutral-800 text-neutral-400' : 'border-neutral-200 text-neutral-600'
-                      }`}>
-                         {submitting ? 'Requesting...' : 'Request Video Pitch'}
-                      </button>
-                  </div>
+                  {!isOwner && (
+                    <div className="space-y-3">
+                        <button 
+                          onClick={handleSendInquiry}
+                          disabled={submitting}
+                          className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-black shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest text-xs disabled:opacity-50"
+                        >
+                           {submitting ? 'Sending...' : 'Send Direct Inquiry'}
+                        </button>
+                        <button 
+                          onClick={handleRequestVideoPitch}
+                          disabled={submitting}
+                          className={`w-full py-4 rounded-2xl border font-black uppercase tracking-widest text-xs hover:bg-neutral-800 transition-all disabled:opacity-50 ${
+                           isDarkMode ? 'border-neutral-800 text-neutral-400' : 'border-neutral-200 text-neutral-600'
+                        }`}>
+                           {submitting ? 'Requesting...' : 'Request Video Pitch'}
+                        </button>
+                    </div>
+                  )}
+
+                  {isOwner && (
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                        <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest">You own this concept</p>
+                    </div>
+                  )}
 
                   <div className="mt-8 p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10">
                       <div className="flex items-center gap-2 text-blue-400 mb-2">

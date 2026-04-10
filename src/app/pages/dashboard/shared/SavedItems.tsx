@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { Bookmark, Briefcase, Users, Package, X, ExternalLink, Star, MapPin, DollarSign } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '@/app/utils/api';
 
 type TabType = 'projects' | 'talents' | 'gigs' | 'ideas';
@@ -51,6 +52,7 @@ interface SavedGig {
 
 export default function SavedItems() {
   const { isDarkMode } = useTheme();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('projects');
 
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
@@ -300,7 +302,10 @@ export default function SavedItems() {
                   <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
                     Posted by {project.postedBy}
                   </span>
-                  <button className="flex items-center gap-2 px-6 py-2 bg-[#044071] text-white rounded-lg font-medium hover:bg-[#044071]/90 transition-colors">
+                  <button 
+                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                    className="flex items-center gap-2 px-6 py-2 bg-[#044071] text-white rounded-lg font-medium hover:bg-[#044071]/90 transition-colors"
+                  >
                     View Details
                     <ExternalLink className="w-4 h-4" />
                   </button>
@@ -408,7 +413,10 @@ export default function SavedItems() {
                   <div className={`text-xl font-bold ${isDarkMode ? 'text-[#F24C20]' : 'text-[#F24C20]'}`}>
                     ₹{talent.hourlyRate}/hr
                   </div>
-                  <button className="px-6 py-2 bg-[#044071] text-white rounded-lg font-medium hover:bg-[#044071]/90 transition-colors">
+                  <button 
+                    onClick={() => navigate(`/dashboard/talent/${talent.id}`)}
+                    className="px-6 py-2 bg-[#044071] text-white rounded-lg font-medium hover:bg-[#044071]/90 transition-colors"
+                  >
                     View Profile
                   </button>
                 </div>
@@ -566,7 +574,7 @@ export default function SavedItems() {
                     Idea by {idea.creator}
                   </span>
                   <button 
-                    onClick={() => window.location.href = `/startup-ideas/${idea.id}`}
+                    onClick={() => navigate(`/dashboard/startup-ideas/${idea.id}`)}
                     className="flex items-center gap-2 px-6 py-2 bg-[#F24C20] text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
                   >
                     View Concept

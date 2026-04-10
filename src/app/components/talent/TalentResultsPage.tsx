@@ -42,6 +42,12 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
   const [searchTerm, setSearchTerm] = useState(answers.searchTerm || '');
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+  
+  const mockTalentsFallback = [
+    { _id: 'mock-1', full_name: 'Sarah Johnson', role: 'Full Stack Developer', rating: '4.9', reviews: 124, location: 'San Francisco, CA', skills: ['React', 'Node.js', 'PostgreSQL'], hourly_rate: '1500', verified: true },
+    { _id: 'mock-2', full_name: 'David Chen', role: 'UI/UX Designer', rating: '4.8', reviews: 89, location: 'Austin, TX', skills: ['Figma', 'UI Design'], hourly_rate: '2000', verified: true },
+    { _id: 'mock-6', full_name: 'Sirigiri Naresh', role: 'WordPress Developer', rating: '4.9', reviews: 156, location: 'Hyderabad, India', skills: ['WordPress', 'PHP', 'SEO'], hourly_rate: '1200', verified: true }
+  ];
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
@@ -97,14 +103,36 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
 
       const res = await api.get(`/users/freelancers?${params.toString()}`);
       if (res.data.success) {
-        const filtered = res.data.data.filter((t: any) => t._id !== currentUserId);
-        const processed = filtered.map((t: any) => ({
-          ...t,
-          id: t._id,
-          matchScore: 85 + Math.floor(Math.random() * 15),
-          reviewsCount: Math.floor(Math.random() * 200),
-          rating: (4.5 + Math.random() * 0.5).toFixed(1)
-        }));
+        const rawData = res.data.data.length > 0 ? res.data.data : mockTalentsFallback;
+        const filtered = rawData.filter((t: any) => t._id !== currentUserId);
+        const processed = filtered.map((t: any) => {
+          let score = 85; // Base score
+
+          // Calculate match based on filters dynamically
+          if (filters.skills && filters.skills.length > 0) {
+            const userSkills = t.skills?.map((s: any) => typeof s === 'object' ? s.name : s) || [];
+            const matchedSkills = filters.skills.filter(s => userSkills.includes(s));
+            const skillScore = (matchedSkills.length / filters.skills.length) * 10;
+            score += skillScore;
+          } else {
+            // If no active filters, derive 'match' from profile strength (rating + verified)
+            const ratingScore = (parseFloat(t.rating || '4.5') / 5) * 10;
+            score += ratingScore;
+            if (t.verified) score += 5;
+          }
+
+          // Cap the score at 99%
+          const matchScore = Math.min(Math.floor(score), 99);
+
+          return {
+            ...t,
+            id: t._id || t.id,
+            matchScore: matchScore,
+            reviewsCount: t.reviews || Math.floor(Math.random() * 200),
+            rating: t.rating || (4.5 + Math.random() * 0.5).toFixed(1),
+            profile_image: t.profile_image ? (t.profile_image.startsWith('http') ? t.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${t.profile_image}`) : null
+          };
+        });
         setTalents(processed);
       }
     } catch (error) {
@@ -156,7 +184,8 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
         <div className="flex items-start gap-4 mb-4">
           <div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-800 flex-shrink-0">
             <img
-              src={talent.profile_image || `https://ui-avatars.com/api/?name=${talent.full_name}`}
+              src={talent.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(talent.full_name || 'Expert')}&size=128&background=random&color=fff`}
+              onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(talent.full_name || 'Expert')}&size=128&background=random&color=fff`; }}
               alt={talent.full_name}
               className="w-full h-full object-cover group-hover:scale-110 transition-all"
             />
@@ -314,7 +343,8 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                       <div className="relative flex-shrink-0">
                         <div className="relative w-48 h-48 rounded-2xl overflow-hidden bg-neutral-800">
                           <img
-                            src={featuredTalent.profile_image || `https://ui-avatars.com/api/?name=${featuredTalent.full_name}`}
+                            src={featuredTalent.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredTalent.full_name || 'Expert')}&size=200&background=random&color=fff`}
+                            onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredTalent.full_name || 'Expert')}&size=200&background=random&color=fff`; }}
                             alt={featuredTalent.full_name}
                             className="w-full h-full object-cover"
                           />

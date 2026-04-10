@@ -154,6 +154,8 @@ export default function StartupIdeaPublicDetailPage() {
 
   if (!idea) return null;
 
+  const isOwner = idea.creator?._id === user._id || idea.creator === user._id;
+
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#05060a] text-white' : 'bg-gray-50 text-gray-900'}`}>
       <Header />
@@ -332,39 +334,55 @@ export default function StartupIdeaPublicDetailPage() {
                 </div>
               </SectionCard>
 
-              <div className={`p-8 rounded-[40px] border shadow-2xl relative overflow-hidden group ${
-                  isDarkMode 
-                  ? 'border-white/10 bg-[#0b0d14] shadow-black/40' 
-                  : 'border-gray-100 bg-white shadow-neutral-200/50'
-              }`}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#F24C20]/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
-                    <MessageCircle className="w-6 h-6 text-[#F24C20]" />
-                    Investor Access
-                </h2>
-                <p className="text-slate-400 text-sm leading-7 mb-8">
-                  Interested in the expansion of this approved concept? Connect with the founder team to explore funding, strategic partnerships, or operational collaboration.
-                </p>
-                <div className="space-y-4">
-                  <button 
-                    onClick={handleRequestDeck}
-                    disabled={submitting}
-                    className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] disabled:opacity-50 transition-transform"
-                  >
-                    {submitting ? 'Requesting...' : 'Request Concept Deck'}
-                  </button>
-                  <button 
-                    onClick={handleScheduleMeet}
-                    disabled={submitting}
-                    className={`w-full py-4 rounded-2xl border font-bold transition-all hover:scale-[1.02] disabled:opacity-50 ${
-                      isDarkMode 
-                      ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' 
-                      : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
-                  }`}>
-                    Schedule Founder Meet
-                  </button>
+              {!isOwner ? (
+                <div className={`p-8 rounded-[40px] border shadow-2xl relative overflow-hidden group ${
+                    isDarkMode 
+                    ? 'border-white/10 bg-[#0b0d14] shadow-black/40' 
+                    : 'border-gray-100 bg-white shadow-neutral-200/50'
+                }`}>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#F24C20]/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                  <h2 className="text-2xl font-black mb-6 flex items-center gap-3">
+                      <MessageCircle className="w-6 h-6 text-[#F24C20]" />
+                      Investor Access
+                  </h2>
+                  <p className="text-slate-400 text-sm leading-7 mb-8">
+                    Interested in the expansion of this approved concept? Connect with the founder team to explore funding, strategic partnerships, or operational collaboration.
+                  </p>
+                  <div className="space-y-4">
+                    <button 
+                      onClick={handleRequestDeck}
+                      disabled={submitting}
+                      className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] disabled:opacity-50 transition-transform"
+                    >
+                      {submitting ? 'Requesting...' : 'Request Concept Deck'}
+                    </button>
+                    <button 
+                      onClick={handleScheduleMeet}
+                      disabled={submitting}
+                      className={`w-full py-4 rounded-2xl border font-bold transition-all hover:scale-[1.02] disabled:opacity-50 ${
+                        isDarkMode 
+                        ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' 
+                        : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700'
+                    }`}>
+                      Schedule Founder Meet
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className={`p-8 rounded-[40px] border shadow-2xl relative overflow-hidden group ${
+                    isDarkMode 
+                    ? 'border-white/10 bg-emerald-500/5 shadow-black/40' 
+                    : 'border-emerald-100 bg-emerald-50 shadow-neutral-200/50'
+                }`}>
+                   <h2 className="text-2xl font-black mb-4 flex items-center gap-3 text-emerald-500">
+                      <ShieldCheck className="w-6 h-6" />
+                      Concept Owned
+                  </h2>
+                  <p className="text-slate-400 text-sm leading-7">
+                    You are viewing your own published concept. Investors will see contact options and pitch deck requests here.
+                  </p>
+                </div>
+              )}
 
               {idea.tags && idea.tags.length > 0 && (
                 <SectionCard title="Innovation Tags" darkMode={isDarkMode}>

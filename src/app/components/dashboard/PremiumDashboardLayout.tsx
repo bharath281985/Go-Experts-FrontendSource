@@ -107,7 +107,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'Manage Projects',
       icon: FolderKanban,
-      path: '/dashboard/projects',
+      path: '/dashboard/projects/my-projects',
       submenu: [
         { label: 'Create Project', path: '/dashboard/projects/create' },
         // { label: 'Explore All Projects', path: '/dashboard/projects/explore' },
@@ -126,14 +126,9 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'Startup Ideas',
       icon: Briefcase,
-      path: '/dashboard/startup-ideas',
-      submenu: [
-        { label: 'My Submissions', path: '/dashboard/startup-ideas' },
-        { label: 'Saved Ideas', path: '/dashboard/saved?tab=ideas' },
-        { label: 'Explore Portal', path: '/dashboard/explore-ideas' }
-      ]
+      path: '/dashboard/startup-ideas'
     },
-    { label: 'Find Talent', icon: Users, path: '/dashboard/talent' },
+    // { label: 'Find Talent', icon: Users, path: '/dashboard/talent' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: 2 },
     // { label: 'Invoices', icon: FileText, path: '/dashboard/invoices' },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
@@ -149,9 +144,9 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'Manage Projects',
       icon: FolderKanban,
-      path: '/dashboard/projects',
+      path: '/dashboard/projects/my-projects',
       submenu: [
-        { label: 'Explore All Projects', path: '/dashboard/projects/explore' },
+        // { label: 'Explore All Projects', path: '/dashboard/projects/explore' },
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
       ]
     },
@@ -168,12 +163,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'Startup Ideas',
       icon: Briefcase,
-      path: '/dashboard/startup-ideas',
-      submenu: [
-        { label: 'My Submissions', path: '/dashboard/startup-ideas' },
-        { label: 'Saved Ideas', path: '/dashboard/saved?tab=ideas' },
-        { label: 'Explore Portal', path: '/dashboard/explore-ideas' }
-      ]
+      path: '/dashboard/startup-ideas'
     },
     // { label: 'Find Clients', icon: Users, path: '/dashboard/clients' },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes' },
@@ -209,12 +199,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     {
       label: 'My Portals',
       icon: Briefcase,
-      path: '/dashboard-startup/ideas',
-      submenu: [
-        { label: 'My Submissions', path: '/dashboard-startup/ideas' },
-        { label: 'Saved Items', path: '/dashboard/saved?tab=ideas' },
-        { label: 'Explore Portal', path: '/dashboard-startup/explore-ideas' }
-      ]
+      path: '/dashboard-startup/ideas'
     },
     { label: 'Analytics', icon: Search, path: '/dashboard-startup/analytics' },
     { label: 'NDA Requests', icon: FileText, path: '/dashboard-startup/nda' },

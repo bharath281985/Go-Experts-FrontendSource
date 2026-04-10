@@ -133,7 +133,7 @@ export default function TalentProfile() {
         {/* Back Button */}
         <div className="absolute top-8 left-6 z-20">
           <button
-            onClick={() => navigate('/dashboard/talent')}
+            onClick={() => navigate('/talent')}
             className="flex items-center gap-2 px-4 py-2 bg-black/30 backdrop-blur-md rounded-xl border border-white/10 text-white font-bold hover:bg-black/50 transition-all group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />

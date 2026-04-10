@@ -123,8 +123,7 @@ export default function Header() {
         );
       } else if (userRole === 'freelancer') {
         links.push(
-          { path: '/projects', label: 'Go Projects' },
-          { path: '/dashboard/proposals', label: 'My Proposals' }
+          { path: '/projects', label: 'Go Projects' }
         );
       } else if (userRole === 'client') {
         links.push(

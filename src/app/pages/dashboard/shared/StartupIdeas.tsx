@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Briefcase, 
@@ -20,17 +21,21 @@ import {
   Eye,
   ExternalLink,
   UploadCloud,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 import api from '@/app/utils/api';
 import { toast } from 'sonner';
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 
 export default function StartupIdeas() {
+  const navigate = useNavigate();
   const settings = useSiteSettings();
+  const [showUpgradePopup, setShowUpgradePopup] = useState(false);
   const [showSubmissionFlow, setShowSubmissionFlow] = useState(false);
   const [ideas, setIdeas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [recommendedPlan, setRecommendedPlan] = useState<any>(null);
   const [ndaAccepted, setNdaAccepted] = useState(false);
   const [categories, setCategories] = useState<string[]>([
     "Startup Idea",
@@ -66,12 +71,33 @@ export default function StartupIdeas() {
 
   useEffect(() => {
     fetchIdeas();
+    fetchRecommendedPlan();
   }, [selectedCategory]);
+
+  const fetchRecommendedPlan = async () => {
+    try {
+      const res = await api.get('/subscription-plans');
+      if (res.data.success) {
+        const activePlans = res.data.data.filter((p: any) => p.status === 'enabled');
+        const startupPlans = activePlans.filter((p: any) => 
+            p.startup_idea_post_limit > 0 || 
+            (p.group && p.group.includes('Start-Up Idea Creator Plans'))
+        );
+        if (startupPlans.length > 0) {
+          // You could sort by price and pick the most affordable, or any featured one
+          const featured = startupPlans.find((p: any) => p.featured);
+          setRecommendedPlan(featured || startupPlans[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching plans:', err);
+    }
+  };
 
   const fetchIdeas = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/startup-ideas', {
+      const res = await api.get('/startup-ideas/my-ideas', {
         params: {
           category: selectedCategory === 'All' ? undefined : selectedCategory,
           search: searchQuery || undefined
@@ -175,6 +201,27 @@ export default function StartupIdeas() {
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to unlock contact');
+    }
+  };
+
+// Add this function inside the component to check limits
+  const handleStartSubmission = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/subscription/my-status');
+      if (res.data.success && res.data.subscription) {
+        if (res.data.subscription.remaining_startup_posts > 0) {
+          setShowSubmissionFlow(true);
+        } else {
+          setShowUpgradePopup(true);
+        }
+      } else {
+         toast.error('Active subscription required to submit startup ideas.');
+      }
+    } catch (err: any) {
+      toast.error('Failed to verify subscription status.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -508,13 +555,10 @@ export default function StartupIdeas() {
             </p>
             <div className="flex flex-wrap gap-4">
                 <button 
-                    onClick={() => setShowSubmissionFlow(true)}
+                    onClick={handleStartSubmission}
                     className="px-10 py-4 bg-[#F24C20] rounded-2xl font-bold hover:scale-105 transition-all shadow-xl shadow-[#F24C20]/20"
                 >
                     Submit Your Idea
-                </button>
-                <button className="px-10 py-4 bg-white/10 rounded-2xl font-bold backdrop-blur-md hover:bg-white/20 transition-all">
-                    Explore Ecosystem
                 </button>
             </div>
         </div>
@@ -588,12 +632,12 @@ export default function StartupIdeas() {
                             <div className="text-xs text-neutral-400">
                                 Investment: <span className="text-neutral-900 dark:text-white font-bold">{idea.fundingAmount || 'NDA'}</span>
                             </div>
-                            <button 
-                                onClick={() => handleUnlockContact(idea._id)}
+                            <Link 
+                                to={`/dashboard/startup-ideas/${idea._id}`}
                                 className="px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-bold hover:bg-[#F24C20] dark:hover:bg-[#F24C20] dark:hover:text-white transition-all flex items-center gap-2"
                             >
-                                Unlock Contact
-                            </button>
+                                View Analytics
+                            </Link>
                         </div>
                     </div>
                 </motion.div>
@@ -608,6 +652,75 @@ export default function StartupIdeas() {
               <p className="text-neutral-500">Be the first to submit a revolutionary startup concept!</p>
           </div>
       )}
+
+      {/* Upgrade Plan Popup */}
+      <AnimatePresence>
+        {showUpgradePopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-neutral-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-neutral-200 dark:border-neutral-800 relative"
+            >
+              <button 
+                onClick={() => setShowUpgradePopup(false)}
+                className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white bg-neutral-100 dark:bg-neutral-800 rounded-full transition-colors flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-2xl flex items-center justify-center mb-6">
+                <Rocket className="w-8 h-8 text-[#F24C20]" />
+              </div>
+              
+              <h3 className="text-2xl font-bold mb-2">Limit Reached</h3>
+              <p className="text-neutral-500 mb-6 font-medium">
+                You have reached your limit for submitting startup ideas. Upgrade your plan to unlock more submissions and connect with premium investors.
+              </p>
+              
+              <div className="bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-800/50 rounded-2xl p-5 border border-neutral-200 dark:border-neutral-700 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Recommended</span>
+                  {recommendedPlan?.badge ? (
+                      <span className="px-2.5 py-1 bg-[#F24C20] text-white text-[10px] font-bold rounded-lg tracking-wider uppercase">{recommendedPlan.badge}</span>
+                  ) : recommendedPlan?.featured ? (
+                      <span className="px-2.5 py-1 bg-[#F24C20] text-white text-[10px] font-bold rounded-lg tracking-wider uppercase">Most Popular</span>
+                  ) : null}
+                </div>
+                <h4 className="text-lg font-bold mb-1">{recommendedPlan ? recommendedPlan.name : 'Premium Plan'}</h4>
+                <p className="text-sm text-neutral-500 mb-4">{recommendedPlan?.description || 'Unlimited startup idea submissions, prioritized matching, and featured placements.'}</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-neutral-900 dark:text-white">
+                      {recommendedPlan ? `₹${(recommendedPlan.price || 0).toLocaleString()}` : '$49'}
+                  </span>
+                  <span className="text-sm text-neutral-500">
+                    /{recommendedPlan ? (recommendedPlan.billing_cycle === 'monthly' ? 'month' : (recommendedPlan.billing_cycle === 'yearly' ? 'year' : 'one-time')) : 'month'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                <button 
+                  onClick={() => {
+                    setShowUpgradePopup(false);
+                    navigate('/dashboard/subscription');
+                  }}
+                  className="w-full py-4 bg-[#F24C20] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#F24C20]/20 transition-all flex items-center justify-center gap-2"
+                >
+                  View Subscription Plans <ArrowRight className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setShowUpgradePopup(false)}
+                  className="w-full py-4 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white rounded-xl font-bold hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all"
+                >
+                  Maybe Later
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

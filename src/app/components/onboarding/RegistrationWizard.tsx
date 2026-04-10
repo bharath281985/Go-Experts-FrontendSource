@@ -169,10 +169,16 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
 
         if (skillsRes.data.success) {
            const processedSkills = (skillsRes.data.data || skillsRes.data.skills || [])
+            .filter((s: any) => s.is_active !== false)
             .map((s: any) => ({
               label: s.name,
               value: s._id || s.name,
-              categoryId: s.category // Capture categorical association
+              // category is populated as { _id, name } from backend — extract _id as string
+              categoryId: s.category?._id
+                ? String(s.category._id)
+                : s.category
+                  ? String(s.category)
+                  : null
             }));
            setAllSkills(processedSkills);
         }
@@ -197,12 +203,16 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
           return { ...step, options: relevantCats };
         }
         if (step.field === 'skills') {
-          // Only show skills belonging to the selected categories
-          const filteredSkills = allSkills.filter(skill => 
-             data.categories.includes(skill.categoryId)
+          // Filter skills whose categoryId matches any of the selected category IDs (compare as strings)
+          const selectedCatIds = data.categories.map(String);
+          const filteredSkills = allSkills.filter(skill =>
+            skill.categoryId && selectedCatIds.includes(String(skill.categoryId))
           );
-          // If no categories selected or no matches, show a subset or all (fallback)
-          const finalSkills = filteredSkills.length > 0 ? filteredSkills : allSkills.slice(0, 20);
+          // Show filtered skills when categories are selected and matches exist; otherwise show all
+          const finalSkills =
+            selectedCatIds.length > 0 && filteredSkills.length > 0
+              ? filteredSkills
+              : allSkills;
           return { ...step, options: finalSkills };
         }
         return step;

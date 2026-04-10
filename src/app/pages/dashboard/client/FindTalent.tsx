@@ -19,6 +19,12 @@ export default function FindTalent() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [categorySearch, setCategorySearch] = useState('');
+  
+  const mockTalents = [
+    { _id: 'mock-1', full_name: 'Sarah Johnson', bio: 'Expert Full Stack Developer with 8 years of experience in React and Node.js.', categories: [], skills: ['React', 'Node.js', 'PostgreSQL'], hourly_rate: '1500', kyc_details: { is_verified: true } },
+    { _id: 'mock-2', full_name: 'David Chen', bio: 'Creative UI/UX Designer specialized in Figma and Design Systems.', categories: [], skills: ['Figma', 'UI Design'], hourly_rate: '2000', kyc_details: { is_verified: true } },
+    { _id: 'mock-6', full_name: 'Sirigiri Naresh', bio: 'Professional WordPress Developer with expertise in custom themes and SEO optimization.', categories: [], skills: ['WordPress', 'PHP', 'SEO'], hourly_rate: '1200', kyc_details: { is_verified: true } }
+  ];
 
   useEffect(() => {
     fetchInitialData();
@@ -33,7 +39,9 @@ export default function FindTalent() {
       ]);
 
       if (talentsRes.data.success) {
-        setTalents(talentsRes.data.data);
+        const apiTalents = talentsRes.data.data;
+        // Merge with mock data if API is empty or for demo purposes
+        setTalents(apiTalents.length > 0 ? apiTalents : mockTalents);
       }
       if (catsRes.data.success) {
         setCategories(catsRes.data.data.filter((c: any) => c.is_active));

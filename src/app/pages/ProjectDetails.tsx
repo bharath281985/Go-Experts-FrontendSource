@@ -19,7 +19,12 @@ import {
   AlertCircle,
   Lock,
   Briefcase,
-  Users
+  Users,
+  Award,
+  ThumbsUp,
+  RotateCcw,
+  Sparkles,
+  Mail
 } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { useState, useEffect } from 'react';
@@ -53,6 +58,11 @@ export default function ProjectDetails() {
   const [proposals, setProposals] = useState<any[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [awardingProposalId, setAwardingProposalId] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -65,7 +75,7 @@ export default function ProjectDetails() {
 
   useEffect(() => {
     if (project && currentUser) {
-      const isOwner = (project.client_id?._id || project.client_id) === (currentUser?._id || currentUser?.id);
+      const isOwner = String(project.client_id?._id || project.client_id) === String(currentUser?._id || currentUser?.id);
       if (isOwner) {
         fetchProposals(project._id);
       }
@@ -214,6 +224,7 @@ export default function ProjectDetails() {
       if (res.data.success) {
         toast.success('Interest expressed successfully!');
         setShowApplyModal(false);
+        fetchProjectDetails(); // Refresh to show "Applied" status
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to submit proposal');
@@ -234,7 +245,7 @@ export default function ProjectDetails() {
       <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-20 text-center">
         <AlertCircle className="w-16 h-16 text-neutral-800 mb-6" />
         <h2 className="text-2xl font-bold text-white mb-2">{error || 'Project not found'}</h2>
-        <Link to="/projects" className="text-[#F24C20] hover:underline">Back to Projects</Link>
+        <Link to="/dashboard/projects/my-projects" className="text-[#F24C20] hover:underline">Back to Projects</Link>
       </div>
     );
   }
@@ -257,14 +268,46 @@ export default function ProjectDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-neutral-400">
-              <Link to="/projects" className="hover:text-[#F24C20]">Projects</Link>
-              <span>/</span>
-              <Link to={`/projects?category=${project.category}`} className="hover:text-[#F24C20]">{project.category}</Link>
-              <span>/</span>
-              <span className="text-white">Project Details</span>
+            {/* Breadcrumb + Back Button */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-[#F24C20] hover:text-[#F24C20] text-neutral-400 text-sm transition-all group"
+              >
+                <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                Back
+              </button>
+              <div className="flex items-center gap-2 text-sm text-neutral-400">
+                <button onClick={() => navigate(-1)} className="hover:text-[#F24C20] transition-colors">Projects</button>
+                <span>/</span>
+                <span className="text-neutral-500">{project.category}</span>
+                <span>/</span>
+                <span className="text-white">Project Details</span>
+              </div>
             </div>
+
+            {/* Project Completed Banner */}
+            {project.status === 'completed' && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/30"
+              >
+                <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-green-500/30">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-green-400">Project Successfully Completed</div>
+                  <div className="text-xs text-neutral-400 mt-0.5">
+                    Completed on {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
+                  </div>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-green-400" />
+                  <span className="text-xs font-semibold text-green-400">Delivered</span>
+                </div>
+              </motion.div>
+            )}
 
             {/* Header Section */}
             <div>
@@ -324,10 +367,16 @@ export default function ProjectDetails() {
             {isOwner && (
               <div className="mb-12 border-b border-neutral-800 pb-12">
                 <div className="flex items-center justify-between mb-8">
-                   <div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Review Proposals</h2>
-                        <p className="text-neutral-400">View and award your project to the best freelancer.</p>
-                   </div>
+                    <div>
+                         <h2 className="text-2xl font-bold text-white mb-2">
+                           {project.status === 'live' ? 'Review Proposals' : 'Project Selection'}
+                         </h2>
+                         <p className="text-neutral-400">
+                           {project.status === 'live' 
+                             ? 'View and award your project to the best freelancer.' 
+                             : 'You have selected a freelancer for this project.'}
+                         </p>
+                    </div>
                    <div className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-xl">
                         <Users className="w-5 h-5 text-[#F24C20]" />
                         <span className="font-bold text-white">{proposals.length}</span>
@@ -383,7 +432,7 @@ export default function ProjectDetails() {
                             <div className="flex flex-col items-end gap-2 text-right">
                                <div className="text-2xl font-bold text-white">₹{prop.bid_amount.toLocaleString()}</div>
                                <div className="flex gap-2">
-                                  {project.status !== 'closed' && (
+                                  {project.status === 'live' && prop.status !== 'accepted' && (
                                      <button
                                         onClick={() => handleAwardProject(project._id, prop._id)}
                                         disabled={awardingProposalId !== null}
@@ -556,112 +605,207 @@ export default function ProjectDetails() {
 
           {/* Right Column - Sticky Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-6">
-              {/* Apply Card */}
-              <div className={`p-6 bg-neutral-900/50 border-2 rounded-2xl shadow-xl relative overflow-hidden transition-all duration-300 ${project.status === 'closed' ? 'border-neutral-700 grayscale' : 'border-[#F24C20] shadow-[#F24C20]/10'
-                }`}>
+            <div className="sticky top-24 space-y-5">
 
-                {/* Expired Overlay/Badge */}
-                {project.status === 'closed' && (
-                  <div className="absolute top-4 -right-8 bg-neutral-700 text-white px-10 py-1 rotate-45 font-bold text-xs shadow-lg border border-white/10 z-10">
-                    EXPIRED
-                  </div>
-                )}
+              {/* ─── COMPLETED PROJECT SIDEBAR ─── */}
+              {project.status === 'completed' ? (
+                <>
+                  {/* Completion Summary Card */}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-500/8 to-neutral-900/80 overflow-hidden"
+                  >
+                    <div className="px-6 py-4 border-b border-green-500/20 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                        <Award className="w-4 h-4 text-green-400" />
+                      </div>
+                      <span className="font-bold text-white text-sm">Project Summary</span>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-400">Final Budget</span>
+                        <span className="font-bold text-white">{project.budget_range}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-400">Posted</span>
+                        <span className="text-sm font-medium text-neutral-300">
+                          {new Date(project.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-400">Completed</span>
+                        <span className="text-sm font-medium text-green-400">
+                          {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-neutral-400">Proposals</span>
+                        <span className="text-sm font-medium text-neutral-300">{project.proposals || 0} received</span>
+                      </div>
+                      <div className="pt-3 border-t border-green-500/20 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <span className="text-xs text-green-400 font-semibold">All deliverables accepted</span>
+                      </div>
+                    </div>
+                  </motion.div>
 
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold text-white mb-2">
-                    {project.budget_range}
-                  </div>
-                  <div className="text-sm text-neutral-400">Fixed Price</div>
-                </div>
-
-                <div className="space-y-3 mb-6">
-                  {!isOwner && userRole === 'freelancer' && (
-                    <>
-                      <button
-                        disabled={project.status === 'closed'}
-                        onClick={() => {
-                          if (userVerified === false) {
-                            toast.error('KYC verification required to apply for projects. Please complete your profile in Settings.', {
-                              action: {
-                                label: 'Settings',
-                                onClick: () => navigate('/dashboard/settings')
-                              }
-                            });
-                            return;
-                          }
-                          setShowApplyModal(true);
-                        }}
-                        className={`w-full py-3 rounded-lg font-medium transition-all duration-300 shadow-lg ${project.status === 'closed'
-                          ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none'
-                          : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/30'
-                          }`}
-                      >
-                        {project.status === 'closed' ? 'Project Closed' : 'Apply Now'}
-                      </button>
-                      <button
-                        onClick={handleToggleSave}
-                        disabled={favoriteLoading}
-                        className={`w-full py-3 rounded-lg font-medium transition-all duration-300 border-2 ${saved
-                          ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]'
-                          : 'bg-neutral-900 border-neutral-700 text-white hover:border-[#F24C20]'
-                          }`}
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          {favoriteLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
-                          )}
-                          {saved ? 'Saved' : 'Save Project'}
+                  {/* Hired Freelancer Card */}
+                  {project.hired_freelancer_id && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      transition={{ delay: 0.1 }}
+                      className="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/60"
+                    >
+                      <div className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-4">Work Delivered By</div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="relative">
+                          <ImageWithFallback
+                            src={project.hired_freelancer_id?.profile_image
+                              ? (project.hired_freelancer_id.profile_image.startsWith('http') ? project.hired_freelancer_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${project.hired_freelancer_id.profile_image}`)
+                              : `https://ui-avatars.com/api/?name=${project.hired_freelancer_id?.full_name}&background=F24C20&color=fff`}
+                            alt={project.hired_freelancer_id?.full_name || 'Freelancer'}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-green-500/40"
+                          />
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-neutral-900">
+                            <CheckCircle className="w-3 h-3 text-white" />
+                          </div>
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-white truncate">{project.hired_freelancer_id?.full_name || 'Freelancer'}</div>
+                          <div className="text-xs text-neutral-400 mt-0.5">{project.hired_freelancer_id?.location || 'Remote'}</div>
+                          <div className="flex items-center gap-1 mt-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`w-3 h-3 ${s <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-neutral-600'}`} />
+                            ))}
+                            <span className="text-xs text-neutral-400 ml-1">4.0</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => navigate(`/dashboard/messages?user=${project.hired_freelancer_id?._id || project.hired_freelancer_id}`)}
+                          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-semibold transition-all border border-neutral-700"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          Message
+                        </button>
+                        <button
+                          onClick={() => navigate(`/dashboard/projects/create`)}
+                          className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#F24C20] hover:bg-orange-600 text-white text-sm font-semibold transition-all shadow-lg shadow-[#F24C20]/20"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          Hire Again
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Leave a Review */}
+                  {isOwner && !reviewSubmitted && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      transition={{ delay: 0.2 }}
+                      className="p-5 rounded-2xl border border-neutral-800 bg-neutral-900/60"
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <ThumbsUp className="w-4 h-4 text-[#F24C20]" />
+                        <span className="font-bold text-white text-sm">Leave a Review</span>
+                      </div>
+                      <p className="text-xs text-neutral-400 mb-4">How was your experience working with this freelancer?</p>
+                      <div className="flex items-center gap-1.5 mb-4">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button 
+                            key={star}
+                            onMouseEnter={() => setReviewHover(star)}
+                            onMouseLeave={() => setReviewHover(0)}
+                            onClick={() => setReviewRating(star)}
+                            className="transition-transform hover:scale-110"
+                          >
+                            <Star className={`w-7 h-7 transition-colors ${
+                              star <= (reviewHover || reviewRating) ? 'text-yellow-400 fill-yellow-400' : 'text-neutral-700'
+                            }`} />
+                          </button>
+                        ))}
+                        {reviewRating > 0 && (
+                          <span className="ml-2 text-sm font-semibold text-neutral-300">
+                            {['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'][reviewRating]}
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={reviewText}
+                        onChange={e => setReviewText(e.target.value)}
+                        placeholder="Share your experience... (optional)"
+                        className="w-full px-3 py-2.5 bg-neutral-950 border border-neutral-800 rounded-xl text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-[#F24C20] transition-colors resize-none mb-3"
+                      />
+                      <button
+                        disabled={reviewRating === 0 || reviewSubmitting}
+                        onClick={async () => {
+                          if (reviewRating === 0) return;
+                          setReviewSubmitting(true);
+                          try {
+                            await api.post(`/projects/${project._id}/review`, { rating: reviewRating, comment: reviewText });
+                            toast.success('Review submitted! Thank you.');
+                            setReviewSubmitted(true);
+                          } catch {
+                            toast.error('Failed to submit review. Please try again.');
+                          } finally {
+                            setReviewSubmitting(false);
+                          }
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-[#F24C20] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold transition-all flex items-center justify-center gap-2"
+                      >
+                        {reviewSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4" />}
+                        Submit Review
                       </button>
-                    </>
+                    </motion.div>
                   )}
 
-                  {isOwner && project.status !== 'closed' && (
-                    <button
-                      onClick={() => navigate(`/dashboard/projects/edit/${project._id}`)}
-                      className="w-full py-3 bg-[#F24C20] hover:bg-orange-600 text-white rounded-lg font-bold transition-all shadow-lg shadow-[#F24C20]/20 flex items-center justify-center gap-2"
+                  {reviewSubmitted && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }} 
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-5 rounded-2xl border border-green-500/30 bg-green-500/5 text-center"
                     >
-                      <FileText className="w-5 h-5" />
-                      Edit Project
-                    </button>
+                      <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                      <div className="font-bold text-white text-sm mb-1">Review Submitted!</div>
+                      <div className="text-xs text-neutral-400">Thank you for your feedback</div>
+                    </motion.div>
                   )}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowShareModal(!showShareModal)}
-                      className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border-2 border-neutral-700 rounded-lg font-medium text-white transition-all duration-300 flex items-center justify-center gap-2"
+                  {/* Share */}
+                  <div 
+                    className="relative group/share"
+                    onMouseEnter={() => setShowShareModal(true)}
+                    onMouseLeave={() => setShowShareModal(false)}
+                  >
+                    <button 
+                      className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl font-medium text-neutral-300 hover:text-white transition-all flex items-center justify-center gap-2 text-sm"
                     >
-                      <Share2 className="w-4 h-4" />
-                      Share
+                      <Share2 className="w-4 h-4" /> Share Project
                     </button>
-
                     <AnimatePresence>
                       {showShareModal && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                        <motion.div 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }} 
+                          animate={{ opacity: 1, y: 0, scale: 1 }} 
                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute bottom-full mb-4 left-0 right-0 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 ring-1 ring-white/10"
+                          className="absolute bottom-full mb-3 left-0 right-0 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 overflow-hidden ring-1 ring-white/10"
                         >
                           <div className="flex flex-col gap-1">
-                            <button
-                              onClick={() => handleShare('whatsapp')}
-                              className="flex items-center justify-between gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors group"
-                            >
-                              <span className="text-sm font-medium text-neutral-300 group-hover:text-white">Share on WhatsApp</span>
-                              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                                <MessageCircle className="w-4 h-4 text-green-500" />
+                            <button onClick={() => handleShare('whatsapp')} className="flex items-center justify-between gap-3 w-full p-3 hover:bg-emerald-500/10 rounded-lg transition-all group">
+                              <span className="text-sm text-neutral-300 group-hover:text-emerald-400">Share on WhatsApp</span>
+                              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:text-white" />
                               </div>
                             </button>
-                            <button
-                              onClick={() => handleShare('email')}
-                              className="flex items-center justify-between gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors group"
-                            >
-                              <span className="text-sm font-medium text-neutral-300 group-hover:text-white">Share via Email</span>
-                              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                                <FileText className="w-4 h-4 text-blue-500" />
+                            <button onClick={() => handleShare('email')} className="flex items-center justify-between gap-3 w-full p-3 hover:bg-[#F24C20]/10 rounded-lg transition-all group">
+                              <span className="text-sm text-neutral-300 group-hover:text-[#F24C20]">Share via Email</span>
+                              <div className="w-8 h-8 rounded-lg bg-[#F24C20]/10 flex items-center justify-center group-hover:bg-[#F24C20] group-hover:text-white transition-all">
+                                <Mail className="w-4 h-4 text-[#F24C20] group-hover:text-white" />
                               </div>
                             </button>
                           </div>
@@ -669,134 +813,194 @@ export default function ProjectDetails() {
                       )}
                     </AnimatePresence>
                   </div>
-                </div>
-              </div>
-
-               {/* Client Profile Card */}
-              {!isOwner && (
-                <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl relative overflow-hidden">
-                  <h3 className="font-bold mb-4 text-white">About the Client</h3>
-
-                  {project.client_id ? (
-                    <>
-                      <div className="flex items-center gap-3 mb-4">
-                        <ImageWithFallback
-                          src={project.client_id?.profile_image ? (project.client_id.profile_image.startsWith('http') ? project.client_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${project.client_id.profile_image}`) : `https://ui-avatars.com/api/?name=${project.client_id?.full_name}`}
-                          alt={project.client_id?.full_name}
-                          className="w-14 h-14 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Link 
-                              to={`/dashboard/projects/explore?search=${project.client_id?.full_name}`} 
-                              className="font-bold text-white hover:text-[#F24C20] transition-colors"
-                            >
-                              {project.client_id?.full_name}
-                            </Link>
-                            {project.client_id?.kyc_details?.is_verified && (
-                              <CheckCircle className="w-4 h-4 text-blue-500" />
-                            )}
-                          </div>
-                          <div className="text-sm text-neutral-400">{project.location || 'Remote'}</div>
-                        </div>
+                </>
+              ) : (
+                <>
+                  {/* ─── ACTIVE / OPEN PROJECT SIDEBAR ─── */}
+                  <div className={`p-6 bg-neutral-900/50 border-2 rounded-2xl shadow-xl relative overflow-hidden transition-all duration-300 ${
+                    project.status === 'closed' ? 'border-neutral-700 grayscale' : 'border-[#F24C20] shadow-[#F24C20]/10'
+                  }`}>
+                    {project.status === 'closed' && (
+                      <div className="absolute top-4 -right-8 bg-neutral-700 text-white px-10 py-1 rotate-45 font-bold text-xs shadow-lg border border-white/10 z-10">
+                        EXPIRED
                       </div>
+                    )}
 
-                      <div className="space-y-3 mb-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-neutral-400">Rating</span>
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium text-white">4.8</span>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="text-center mb-6">
+                      <div className="text-3xl font-bold text-white mb-2">{project.budget_range}</div>
+                      <div className="text-sm text-neutral-400">Fixed Price</div>
+                    </div>
 
-                      {!canSeeFullDetails && (
-                        <div className="text-center py-2 border-t border-neutral-800 mt-4">
-                           <button
-                            onClick={() => setShowUnlockModal(true)}
-                            className="text-[#F24C20] text-xs font-bold hover:underline flex items-center justify-center gap-1 mx-auto"
+                    <div className="space-y-3 mb-6">
+                      {!isOwner && userRole === 'freelancer' && (
+                        <>
+                          <button
+                            disabled={project.status === 'closed' || project.isApplied}
+                            onClick={() => {
+                              if (userVerified === false) {
+                                toast.error('KYC verification required to apply for projects. Please complete your profile in Settings.', {
+                                  action: { label: 'Settings', onClick: () => navigate('/dashboard/settings') }
+                                });
+                                return;
+                              }
+                              setShowApplyModal(true);
+                            }}
+                            className={`w-full py-3 rounded-lg font-medium transition-all duration-300 shadow-lg ${
+                              project.status === 'closed' 
+                                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
+                                : project.isApplied
+                                  ? 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 cursor-default shadow-none'
+                                  : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/30'
+                            }`}
                           >
-                            <Lock className="w-3 h-3" /> Unlock for Contact Info
+                            {project.status === 'closed' ? 'Project Closed' : project.isApplied ? 'Applied' : 'Apply Now'}
                           </button>
-                        </div>
+                          {!project.isApplied && (
+                            <button
+                              onClick={handleToggleSave}
+                              disabled={favoriteLoading}
+                              className={`w-full py-3 rounded-lg font-medium transition-all duration-300 border-2 ${
+                                saved ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : 'bg-neutral-900 border-neutral-700 text-white hover:border-[#F24C20]'
+                              }`}
+                            >
+                              <div className="flex items-center justify-center gap-2">
+                                {favoriteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />}
+                                {saved ? 'Saved' : 'Save Project'}
+                              </div>
+                            </button>
+                          )}
+                        </>
                       )}
 
-                      <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg mb-4">
-                        <Shield className="w-4 h-4 text-green-400" />
-                        <span className="text-sm text-green-400 font-medium">Payment Verified</span>
-                      </div>
-
-                      <div className="text-xs text-neutral-500">
-                        Member since {new Date(project.client_id?.created_at || project.client_id?.createdAt || project.createdAt).toLocaleDateString()}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-6">
-                      <div className="w-16 h-16 bg-neutral-800 rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <Lock className="w-6 h-6 text-neutral-600" />
-                      </div>
-                      <p className="text-sm text-neutral-500 mb-4 px-4">Client identity is hidden. Unlock the project to see profile and ratings.</p>
-                      <button
-                        onClick={() => setShowUnlockModal(true)}
-                        className="text-[#F24C20] font-bold text-sm hover:underline"
+                      {isOwner && project.status !== 'closed' && (
+                        <button
+                          onClick={() => navigate(`/dashboard/projects/edit/${project._id}`)}
+                          className="w-full py-3 bg-[#F24C20] hover:bg-orange-600 text-white rounded-lg font-bold transition-all shadow-lg shadow-[#F24C20]/20 flex items-center justify-center gap-2"
+                        >
+                          <FileText className="w-5 h-5" />
+                          Edit Project
+                        </button>
+                      )}
+                      
+                      <div className="relative">
+                      <div 
+                        className="relative group/share"
+                        onMouseEnter={() => setShowShareModal(true)}
+                        onMouseLeave={() => setShowShareModal(false)}
                       >
-                        Unlock Now
-                      </button>
+                        <button
+                          className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border-2 border-neutral-700 rounded-lg font-medium text-white transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                          <Share2 className="w-4 h-4" /> Share
+                        </button>
+                        <AnimatePresence>
+                          {showShareModal && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              className="absolute bottom-full mb-2 left-0 right-0 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 ring-1 ring-white/10"
+                            >
+                              <div className="flex flex-col gap-1">
+                                <button onClick={() => handleShare('whatsapp')} className="flex items-center justify-between gap-3 p-3 hover:bg-emerald-500/10 rounded-lg transition-all group">
+                                  <span className="text-sm font-medium text-neutral-300 group-hover:text-emerald-400">Share on WhatsApp</span>
+                                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                                    <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:text-white" />
+                                  </div>
+                                </button>
+                                <button onClick={() => handleShare('email')} className="flex items-center justify-between gap-3 p-3 hover:bg-[#F24C20]/10 rounded-lg transition-all group">
+                                  <span className="text-sm font-medium text-neutral-300 group-hover:text-[#F24C20]">Share via Email</span>
+                                  <div className="w-8 h-8 rounded-lg bg-[#F24C20]/10 flex items-center justify-center group-hover:bg-[#F24C20] group-hover:text-white transition-all">
+                                    <Mail className="w-4 h-4 text-[#F24C20] group-hover:text-white" />
+                                  </div>
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Client Profile Card */}
+                  {!isOwner && (
+                    <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl relative overflow-hidden">
+                      <h3 className="font-bold mb-4 text-white">About the Client</h3>
+                      {project.client_id ? (
+                        <>
+                          <div className="flex items-center gap-3 mb-4">
+                            <ImageWithFallback
+                              src={project.client_id?.profile_image ? (project.client_id.profile_image.startsWith('http') ? project.client_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${project.client_id.profile_image}`) : `https://ui-avatars.com/api/?name=${project.client_id?.full_name}`}
+                              alt={project.client_id?.full_name}
+                              className="w-14 h-14 rounded-full object-cover"
+                            />
+                            <div>
+                              <Link to={`/dashboard/projects/explore?search=${project.client_id?.full_name}`} className="font-bold text-white hover:text-[#F24C20] transition-colors">
+                                {project.client_id?.full_name}
+                              </Link>
+                              {project.client_id?.kyc_details?.is_verified && <CheckCircle className="w-4 h-4 text-blue-500 ml-1 inline" />}
+                              <div className="text-sm text-neutral-400">{project.location || 'Remote'}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm mb-4">
+                            <span className="text text-neutral-400">Rating</span>
+                            <div className="flex items-center gap-1 font-medium text-white">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> 4.8
+                            </div>
+                          </div>
+                          {!canSeeFullDetails && (
+                            <div className="text-center py-2 border-t border-neutral-800 mt-4">
+                              <button onClick={() => setShowUnlockModal(true)} className="text-[#F24C20] text-xs font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
+                                <Lock className="w-3 h-3" /> Unlock for Contact Info
+                              </button>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg mb-4 text-green-400 text-sm font-medium">
+                            <Shield className="w-4 h-4" /> Payment Verified
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            Member since {new Date(project.client_id?.createdAt || project.createdAt).toLocaleDateString()}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-6">
+                          <div className="w-16 h-16 bg-neutral-800 rounded-full mx-auto mb-4 flex items-center justify-center"><Lock className="w-6 h-6 text-neutral-600" /></div>
+                          <p className="text-sm text-neutral-500 mb-4 px-4">Client identity is hidden. Unlock the project to see profile and ratings.</p>
+                          <button onClick={() => setShowUnlockModal(true)} className="text-[#F24C20] font-bold text-sm hover:underline">Unlock Now</button>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+
+                  {/* Project Activity */}
+                  <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-2xl">
+                    <h3 className="font-bold mb-4 text-white">Project Activity</h3>
+                    <div className="flex items-center justify-between text-sm text-neutral-400">
+                      <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Proposals</div>
+                      <span className="font-bold text-white">
+                        {project.proposals <= 5 ? 'Less than 5' : project.proposals <= 10 ? '5-10' : project.proposals <= 20 ? '10-20' : '20+'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quick Questions */}
+                  <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
+                    <h3 className="font-bold mb-4 text-white">Quick Questions</h3>
+                    <div className="space-y-3">
+                      <details className="group">
+                        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">Is this fixed or hourly?</summary>
+                        <p className="mt-2 text-sm text-neutral-400">This is a {project.budget_range ? 'Fixed/Negotiable' : 'N/A'} project.</p>
+                      </details>
+                      <details className="group">
+                        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">Can I submit a sample?</summary>
+                        <p className="mt-2 text-sm text-neutral-400">Yes, you can include relevant portfolio samples in your proposal.</p>
+                      </details>
+                    </div>
+                  </div>
+                </>
               )}
 
-              {/* Project Stats */}
-              <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-2xl">
-                <h3 className="font-bold mb-4 text-white">Project Activity</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-neutral-400">
-                      <FileText className="w-4 h-4" />
-                      Proposals
-                    </div>
-                    <span className="font-bold text-white">
-                      {project.proposals <= 5 ? 'Less than 5' :
-                        project.proposals <= 10 ? '5-10' :
-                          project.proposals <= 20 ? '10-20' :
-                            project.proposals <= 50 ? '20-50' : '50+'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Questions */}
-              <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
-                <h3 className="font-bold mb-4 text-white">Quick Questions</h3>
-                <div className="space-y-3">
-                  <details className="group">
-                    <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">
-                      Is this fixed or hourly?
-                    </summary>
-                    <p className="mt-2 text-sm text-neutral-400">
-                      This is a {project.budget_range ? 'Fixed/Negotiable' : 'N/A'} project.
-                    </p>
-                  </details>
-                  <details className="group">
-                    <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">
-                      Can I submit a sample?
-                    </summary>
-                    <p className="mt-2 text-sm text-neutral-400">
-                      Yes, you can include relevant portfolio samples in your proposal.
-                    </p>
-                  </details>
-                  <details className="group">
-                    <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">
-                      What's the selection process?
-                    </summary>
-                    <p className="mt-2 text-sm text-neutral-400">
-                      Client reviews proposals, shortlists candidates, and conducts interviews before hiring.
-                    </p>
-                  </details>
-                </div>
-              </div>
             </div>
           </div>
         </div>
