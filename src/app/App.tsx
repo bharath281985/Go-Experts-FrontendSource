@@ -30,6 +30,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import InvestorDashboard from './pages/dashboard/investor/InvestorDashboard';
 import StartupCreatorDashboard from './pages/dashboard/startup/StartupCreatorDashboard';
 import SubscriptionPlansPricingPage from './pages/SubscriptionPlansPricingPage';
+import FreelancerLandingPage from './pages/FreelancerLandingPage';
 import { Toaster } from 'sonner';
 import SiteSettingsProvider from './components/SiteSettingsLoader';
 
@@ -59,6 +60,7 @@ export default function App() {
             <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/talent" element={<TalentPage />} />
             <Route path="/talent/:id" element={<TalentProfilePage />} />
+            <Route path="/f/:id" element={<FreelancerLandingPage />} />
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />

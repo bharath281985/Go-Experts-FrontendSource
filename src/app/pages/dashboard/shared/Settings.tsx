@@ -24,22 +24,36 @@ import {
   ExternalLink,
   Trash,
   CheckCircle,
-  Users
+  Users,
+  Layout,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Instagram,
+  Github,
+  Youtube,
+  Dribbble,
+  Share2
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 import { toast } from 'sonner';
 
-type TabType = 'profile' | 'portfolio' | 'verification' | 'security' | 'privacy';
+type TabType = 'profile' | 'portfolio' | 'resume' | 'verification' | 'security' | 'privacy' | 'landing';
 
 export default function Settings() {
   const { isDarkMode } = useTheme();
+  const monthInputClassName = `w-full px-4 py-2 rounded-xl border text-sm ${isDarkMode
+    ? 'bg-neutral-700 border-neutral-500 text-white [color-scheme:dark]'
+    : 'bg-neutral-100 border-neutral-300 text-neutral-900 [color-scheme:light]'
+    } outline-none focus:border-[#F24C20] disabled:opacity-60 disabled:cursor-not-allowed`;
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<{ url: string; title: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -67,7 +81,25 @@ export default function Settings() {
     },
     work_images: [] as string[],
     roles: [] as string[],
-    kyc_status: 'unverified'
+    kyc_status: 'unverified',
+    experience_details: [] as any[],
+    education_details: [] as any[],
+    languages: [] as string[],
+    completed_projects: 0,
+    happy_customers: 0,
+    review_score: 0,
+    role_title: '',
+    social_links: {
+      facebook: '',
+      twitter: '',
+      linkedin: '',
+      instagram: '',
+      github: '',
+      behance: '',
+      dribbble: '',
+      youtube: ''
+    },
+    landing_page_image: ''
   });
 
   const [dbSkills, setDbSkills] = useState<any[]>([]);
@@ -77,6 +109,9 @@ export default function Settings() {
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   const [catSearchQuery, setCatSearchQuery] = useState('');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
+
+  const getDocumentUrl = (path: string) => `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${path}`;
+  const isPdfDocument = (url: string) => url.toLowerCase().includes('.pdf');
 
   /* passwordData removed as we now use email reset links */
 
@@ -152,13 +187,61 @@ export default function Settings() {
           documents: user.documents || { educational: [], experience_letter: '' },
           work_images: user.work_images || [],
           roles: user.roles || [],
-          kyc_status: user.kyc_status || 'unverified'
+          kyc_status: user.kyc_status || 'unverified',
+          experience_details: user.experience_details || [],
+          education_details: user.education_details || [],
+          languages: user.languages || [],
+          completed_projects: user.completed_projects || 0,
+          happy_customers: user.happy_customers || 0,
+          review_score: user.review_score || 0,
+          role_title: user.role_title || '',
+          social_links: user.social_links || {
+             facebook: '', twitter: '', linkedin: '', instagram: '',
+             github: '', behance: '', dribbble: '', youtube: ''
+          },
+          landing_page_image: user.landing_page_image || ''
         });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    const formDataUpload = new FormData();
+    formDataUpload.append('profile', file);
+
+    setIsSaving(true);
+    try {
+      const response = await api.put('/auth/update-profile', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (response.data.success) {
+        setFormData(prev => ({ ...prev, profile_image: response.data.user.profile_image }));
+        toast.success('Profile photo updated!');
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...storedUser, profile_image: response.data.user.profile_image }));
+        await fetchProfile();
+      }
+    } catch (error) {
+      toast.error('Error uploading photo');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -179,12 +262,22 @@ export default function Settings() {
     }
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLandingImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('Image size should be less than 8MB');
+      return;
+    }
+
     const formDataUpload = new FormData();
-    formDataUpload.append('profile', file);
+    formDataUpload.append('landing_image', file);
 
     setIsSaving(true);
     try {
@@ -192,13 +285,20 @@ export default function Settings() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (response.data.success) {
-        setFormData(prev => ({ ...prev, profile_image: response.data.user.profile_image }));
-        toast.success('Profile photo updated!');
+        // Use the returned user data directly
+        const updatedUser = response.data.user;
+        setFormData(prev => ({ ...prev, landing_page_image: updatedUser.landing_page_image }));
+        toast.success('Landing page image updated!');
+        
+        // Update local storage
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-        localStorage.setItem('user', JSON.stringify({ ...storedUser, profile_image: response.data.user.profile_image }));
+        localStorage.setItem('user', JSON.stringify({ ...storedUser, ...updatedUser }));
+        
+        // Refresh full profile in background
+        await fetchProfile();
       }
     } catch (error) {
-      toast.error('Error uploading photo');
+      toast.error('Error uploading landing image');
     } finally {
       setIsSaving(false);
     }
@@ -245,6 +345,39 @@ export default function Settings() {
     newPortfolio[pIndex].links.push('');
     setFormData({ ...formData, portfolio: newPortfolio });
   };
+
+  const handleAddExperience = () => {
+    setFormData({
+      ...formData,
+      experience_details: [
+        ...formData.experience_details,
+        { year_range: '', title: '', company: '', description: '' }
+      ]
+    });
+  };
+
+  const handleRemoveExperience = (index: number) => {
+    const newExp = [...formData.experience_details];
+    newExp.splice(index, 1);
+    setFormData({ ...formData, experience_details: newExp });
+  };
+
+  const handleAddEducation = () => {
+    setFormData({
+      ...formData,
+      education_details: [
+        ...formData.education_details,
+        { year_range: '', title: '', institution: '', description: '' }
+      ]
+    });
+  };
+
+  const handleRemoveEducation = (index: number) => {
+    const newEdu = [...formData.education_details];
+    newEdu.splice(index, 1);
+    setFormData({ ...formData, education_details: newEdu });
+  };
+
 
   // Replace your handleFileUpload function with this:
   const handleFileUpload = async (field: 'pan_card' | 'aadhar_card' | 'educational' | 'experience_letter' | 'work_images', file: File) => {
@@ -403,7 +536,9 @@ export default function Settings() {
 
   const tabs: { id: TabType; label: string; icon: any }[] = [
     { id: 'profile', label: 'Profile Settings', icon: User },
+    { id: 'landing', label: 'Landing Page', icon: Layout },
     { id: 'portfolio', label: 'My Portfolio', icon: Briefcase },
+    { id: 'resume', label: 'Experience & Education', icon: FileText },
     { id: 'verification', label: 'Verification (KYC)', icon: ShieldCheck },
     { id: 'security', label: 'Security', icon: Lock },
     { id: 'privacy', label: 'Delete Account', icon: Trash2 },
@@ -591,6 +726,260 @@ export default function Settings() {
             </div>
           )}
 
+          {activeTab === 'resume' && (
+            <div className="space-y-12">
+              {/* Experience Section */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Work Experience</h2>
+                    <p className="text-sm text-neutral-500 mt-1">Add your professional career history for your landing page timeline.</p>
+                  </div>
+                  <button
+                    onClick={handleAddExperience}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Experience
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {formData.experience_details?.map((exp, idx) => (
+                    <div key={idx} className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-[#F24C20]">Position #{idx + 1}</h3>
+                        <button onClick={() => handleRemoveExperience(idx)} className="text-red-500 hover:text-red-700 p-1">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                               <label className="block text-xs font-bold mb-1 uppercase opacity-50">From (Month & Year)</label>
+                               <input 
+                                 type="month" 
+                                 onChange={(e) => {
+                                   const newExp = [...formData.experience_details];
+                                   const current = newExp[idx].year_range || " - ";
+                                   const [start, end] = current.split(" - ");
+                                   const newDate = e.target.value ? format(new Date(e.target.value), "MMM yyyy") : "";
+                                   newExp[idx].year_range = `${newDate} - ${end || "Present"}`;
+                                   setFormData({ ...formData, experience_details: newExp });
+                                 }}
+                                 className={monthInputClassName}
+                               />
+                            </div>
+                            <div>
+                               <label className="block text-xs font-bold mb-1 uppercase opacity-50">To (Month & Year)</label>
+                               <div className="flex flex-col gap-2">
+                                 <input 
+                                   type="month" 
+                                   disabled={exp.year_range?.endsWith("Present")}
+                                   onChange={(e) => {
+                                     const newExp = [...formData.experience_details];
+                                     const current = newExp[idx].year_range || " - ";
+                                     const [start, end] = current.split(" - ");
+                                     const newDate = e.target.value ? format(new Date(e.target.value), "MMM yyyy") : "Present";
+                                     newExp[idx].year_range = `${start || ""} - ${newDate}`;
+                                     setFormData({ ...formData, experience_details: newExp });
+                                   }}
+                                   className={monthInputClassName}
+                                 />
+                                 <label className="flex items-center gap-2 cursor-pointer">
+                                   <input 
+                                     type="checkbox"
+                                     checked={exp.year_range?.endsWith("Present")}
+                                     onChange={(e) => {
+                                       const newExp = [...formData.experience_details];
+                                       const current = newExp[idx].year_range || " - ";
+                                       const [start, end] = current.split(" - ");
+                                       newExp[idx].year_range = e.target.checked ? `${start || ""} - Present` : `${start || ""} - `;
+                                       setFormData({ ...formData, experience_details: newExp });
+                                     }}
+                                   />
+                                   <span className="text-[10px] uppercase font-bold opacity-70">Current Work</span>
+                                 </label>
+                               </div>
+                            </div>
+                            <div className="col-span-2">
+                               <p className="text-[10px] text-[#F24C20] font-mono">Current: {exp.year_range}</p>
+                            </div>
+                         </div>
+                         <div>
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Job Title</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. Senior Full Stack Developer"
+                              value={exp.title}
+                              onChange={(e) => {
+                                const newExp = [...formData.experience_details];
+                                newExp[idx].title = e.target.value;
+                                setFormData({ ...formData, experience_details: newExp });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                            />
+                         </div>
+                         <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Company Name</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. Google Inc."
+                              value={exp.company}
+                              onChange={(e) => {
+                                const newExp = [...formData.experience_details];
+                                newExp[idx].company = e.target.value;
+                                setFormData({ ...formData, experience_details: newExp });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                            />
+                         </div>
+                         <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Short Description</label>
+                            <textarea 
+                              rows={2}
+                              placeholder="Describe your role and impact..."
+                              value={exp.description}
+                              onChange={(e) => {
+                                const newExp = [...formData.experience_details];
+                                newExp[idx].description = e.target.value;
+                                setFormData({ ...formData, experience_details: newExp });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20] resize-none`}
+                            />
+                         </div>
+                      </div>
+                    </div>
+                  ))}
+                  {formData.experience_details?.length === 0 && (
+                    <p className="text-center py-8 text-neutral-500 italic">No experience details added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Education Section */}
+              <div className="space-y-6 pt-6 border-t border-neutral-800/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Education History</h2>
+                    <p className="text-sm text-neutral-500 mt-1">Add your academic background and certifications.</p>
+                  </div>
+                  <button
+                    onClick={handleAddEducation}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Education
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {formData.education_details?.map((edu, idx) => (
+                    <div key={idx} className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-[#F24C20]">Education #{idx + 1}</h3>
+                        <button onClick={() => handleRemoveEducation(idx)} className="text-red-500 hover:text-red-700 p-1">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                               <label className="block text-xs font-bold mb-1 uppercase opacity-50">From (Month & Year)</label>
+                               <input 
+                                 type="month" 
+                                 onChange={(e) => {
+                                   const newEdu = [...formData.education_details];
+                                   const current = newEdu[idx].year_range || " - ";
+                                   const [start, end] = current.split(" - ");
+                                   const newDate = e.target.value ? format(new Date(e.target.value), "MMM yyyy") : "";
+                                   newEdu[idx].year_range = `${newDate} - ${end || ""}`;
+                                   setFormData({ ...formData, education_details: newEdu });
+                                 }}
+                                 className={monthInputClassName}
+                               />
+                            </div>
+                            <div>
+                               <label className="block text-xs font-bold mb-1 uppercase opacity-50">To (Month & Year)</label>
+                               <input 
+                                 type="month" 
+                                 onChange={(e) => {
+                                   const newEdu = [...formData.education_details];
+                                   const current = newEdu[idx].year_range || " - ";
+                                   const [start, end] = current.split(" - ");
+                                   const newDate = e.target.value ? format(new Date(e.target.value), "MMM yyyy") : "";
+                                   newEdu[idx].year_range = `${start || ""} - ${newDate}`;
+                                   setFormData({ ...formData, education_details: newEdu });
+                                 }}
+                                 className={monthInputClassName}
+                               />
+                            </div>
+                            <div className="col-span-2">
+                               <p className="text-[10px] text-[#F24C20] font-mono">Current: {edu.year_range}</p>
+                            </div>
+                         </div>
+                         <div>
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Degree/Course</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. B.Tech in Computer Science"
+                              value={edu.title}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education_details];
+                                newEdu[idx].title = e.target.value;
+                                setFormData({ ...formData, education_details: newEdu });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                            />
+                         </div>
+                         <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Institution</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. Oxford University"
+                              value={edu.institution}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education_details];
+                                newEdu[idx].institution = e.target.value;
+                                setFormData({ ...formData, education_details: newEdu });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                            />
+                         </div>
+                         <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Short Description</label>
+                            <textarea 
+                              rows={2}
+                              placeholder="Specialization, GPA, or key achievements..."
+                              value={edu.description}
+                              onChange={(e) => {
+                                const newEdu = [...formData.education_details];
+                                newEdu[idx].description = e.target.value;
+                                setFormData({ ...formData, education_details: newEdu });
+                              }}
+                              className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20] resize-none`}
+                            />
+                         </div>
+                      </div>
+                    </div>
+                  ))}
+                  {formData.education_details?.length === 0 && (
+                    <p className="text-center py-8 text-neutral-500 italic">No education details added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <button
+                  onClick={handleUpdateProfile}
+                  disabled={isSaving}
+                  className="px-10 py-4 bg-[#044071] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#055a99] disabled:opacity-50 min-w-[200px]"
+                >
+                  {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Resume Details'}
+                </button>
+              </div>
+            </div>
+          )}
           {activeTab === 'verification' && (
             <div className="space-y-8">
               <div>
@@ -647,7 +1036,7 @@ export default function Settings() {
                               <span className="text-xs truncate max-w-[120px]">PAN card uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.pan_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-xs text-blue-500 hover:underline">View</button>
                             </div>
                           </div>
                         ) : (
@@ -675,7 +1064,7 @@ export default function Settings() {
                               <span className="text-xs truncate max-w-[120px]">Aadhar uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.kyc_details.aadhar_card}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-xs text-blue-500 hover:underline">View</button>
                             </div>
                           </div>
                         ) : (
@@ -713,7 +1102,7 @@ export default function Settings() {
                               <span className="text-[10px] truncate max-w-[150px]">Certificate {idx + 1}</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file}`, '_blank')} className="text-[10px] text-blue-500 hover:underline">View</button>
+                              <button onClick={() => setPreviewDocument({ url: getDocumentUrl(file), title: `Certificate ${idx + 1}` })} className="text-[10px] text-blue-500 hover:underline">View</button>
                             </div>
                           </div>
                         ))}
@@ -745,7 +1134,7 @@ export default function Settings() {
                               <span className="text-xs truncate max-w-[120px]">Exp Letter uploaded</span>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.documents.experience_letter}`, '_blank')} className="text-xs text-blue-500 hover:underline">View</button>
+                              <button onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-xs text-blue-500 hover:underline">View</button>
                             </div>
                           </div>
                         ) : (
@@ -791,7 +1180,7 @@ export default function Settings() {
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <img
-                      src={formData.profile_image ? (formData.profile_image.startsWith('http') ? formData.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${formData.profile_image.startsWith('/') ? '' : '/'}${formData.profile_image.replace(/\\/g, '/')}`) : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80"}
+                      src={getImgUrl(formData.profile_image) || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80"}
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover border-2 border-[#F24C20]/30"
                     />
@@ -867,6 +1256,10 @@ export default function Settings() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
+                    <label className="block text-sm font-medium mb-2">Professional Role / Title</label>
+                    <input type="text" placeholder="e.g. Senior Full Stack Developer" value={formData.role_title} onChange={e => setFormData({ ...formData, role_title: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700 text-white' : 'bg-white border-neutral-300 text-neutral-900'} outline-none focus:border-[#F24C20] transition-colors`} />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium mb-2">Full Name</label>
                     <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700 text-white' : 'bg-white border-neutral-300 text-neutral-900'} outline-none focus:border-[#F24C20] transition-colors`} />
                   </div>
@@ -936,7 +1329,62 @@ export default function Settings() {
                       </select>
                     </div>
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Languages (comma separated)</label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                      <input 
+                        type="text" 
+                        value={formData.languages?.join(', ')} 
+                        onChange={e => setFormData({ ...formData, languages: e.target.value.split(',').map(s => s.trim()) })} 
+                        placeholder="e.g. English, Hindi, German"
+                        className={`w-full pl-12 pr-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700 text-white' : 'bg-white border-neutral-300 text-neutral-900'} outline-none focus:border-[#F24C20] transition-colors`} 
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                {formData.roles.includes('freelancer') && (
+                  <div className={`p-6 rounded-2xl border mb-6 ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-[#F24C20]" />
+                      Dynamic Landing Page Stats
+                    </h3>
+                    <p className="text-xs text-neutral-500 mb-6 -mt-2">These numbers will display on your public /f/:username landing page.</p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                       <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Completed Projects</label>
+                          <input 
+                            type="number" 
+                            value={formData.completed_projects}
+                            onChange={(e) => setFormData({ ...formData, completed_projects: parseInt(e.target.value) || 0 })}
+                            className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                          />
+                       </div>
+                       <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Happy Customers</label>
+                          <input 
+                            type="number" 
+                            value={formData.happy_customers}
+                            onChange={(e) => setFormData({ ...formData, happy_customers: parseInt(e.target.value) || 0 })}
+                            className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                          />
+                       </div>
+                       <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Review Score (0-5)</label>
+                          <input 
+                            type="number" 
+                            step="0.1"
+                            max="5"
+                            value={formData.review_score}
+                            onChange={(e) => setFormData({ ...formData, review_score: parseFloat(e.target.value) || 0 })}
+                            className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`}
+                          />
+                       </div>
+                    </div>
+                  </div>
+                )}
 
                 {formData.roles.includes('freelancer') && (
                   <div>
@@ -1113,6 +1561,155 @@ export default function Settings() {
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Changes'}
                 </button>
               </form>
+            </div>
+          )}
+
+          <AnimatePresence>
+            {previewDocument && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+                onClick={() => setPreviewDocument(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                  className={`relative w-full max-w-5xl rounded-2xl border shadow-2xl ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className={`flex items-center justify-between border-b px-5 py-4 ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}>
+                    <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                      {previewDocument.title}
+                    </h3>
+                    <button
+                      onClick={() => setPreviewDocument(null)}
+                      className={`rounded-lg p-2 transition-colors ${isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900'}`}
+                      aria-label="Close preview"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="h-[75vh] p-4">
+                    {isPdfDocument(previewDocument.url) ? (
+                      <iframe
+                        src={previewDocument.url}
+                        title={previewDocument.title}
+                        className="h-full w-full rounded-xl"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center overflow-auto rounded-xl bg-black/10">
+                        <img
+                          src={previewDocument.url}
+                          alt={previewDocument.title}
+                          className="max-h-full max-w-full rounded-xl object-contain"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {activeTab === 'landing' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Landing Page Appearance</h2>
+                <p className="text-sm text-neutral-500 mt-1">Customize how your public portfolio looks to potential clients.</p>
+              </div>
+
+              {/* Landing Page Image */}
+              <div className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/20 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Layout className="w-5 h-5 text-[#F24C20]" />
+                  Header Cover Image
+                </h3>
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="w-full md:w-1/2 aspect-video rounded-2xl overflow-hidden bg-neutral-900 relative group">
+                    {formData.landing_page_image ? (
+                      <img 
+                        src={getImgUrl(formData.landing_page_image)} 
+                        className="w-full h-full object-cover" 
+                        alt="Landing Cover" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-neutral-500">
+                        <Upload className="w-8 h-8 mb-2 opacity-20" />
+                        <span className="text-xs uppercase tracking-widest font-bold">No Image Set</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <label className="cursor-pointer px-6 py-2 bg-[#F24C20] text-white rounded-full text-sm font-bold flex items-center gap-2">
+                          <Camera className="w-4 h-4" /> Pick a Cover
+                          <input type="file" className="hidden" onChange={handleLandingImageChange} accept="image/*" />
+                       </label>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-4">
+                    <p className="text-sm text-neutral-500 leading-relaxed">
+                      Choose a high-resolution image that represents your work style. This image will appear at the top of your public landing page.
+                      <br /><br />
+                      <strong>Recommended size:</strong> 1920x1080px (16:9)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Media Links */}
+              <div className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/20 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  <Share2 className="w-5 h-5 text-[#F24C20]" />
+                  Social Media Accounts
+                </h3>
+                <form onSubmit={handleUpdateProfile} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { key: 'linkedin', label: 'LinkedIn Profile', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
+                    { key: 'github', label: 'GitHub Profile', icon: Github, placeholder: 'https://github.com/username' },
+                    { key: 'behance', label: 'Behance Portfolio', icon: Share2, placeholder: 'https://behance.net/username' },
+                    { key: 'dribbble', label: 'Dribbble Profile', icon: Dribbble, placeholder: 'https://dribbble.com/username' },
+                    { key: 'twitter', label: 'Twitter (X) Profile', icon: Twitter, placeholder: 'https://twitter.com/username' },
+                    { key: 'facebook', label: 'Facebook Page', icon: Facebook, placeholder: 'https://facebook.com/username' },
+                    { key: 'instagram', label: 'Instagram Handle', icon: Instagram, placeholder: 'https://instagram.com/username' },
+                    { key: 'youtube', label: 'YouTube Channel', icon: Youtube, placeholder: 'https://youtube.com/c/yourchannel' },
+                  ].map((social) => (
+                    <div key={social.key}>
+                      <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">{social.label}</label>
+                      <div className="relative">
+                        <social.icon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                        <input
+                          type="url"
+                          value={(formData.social_links as any)[social.key] || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            social_links: {
+                              ...formData.social_links,
+                              [social.key]: e.target.value
+                            }
+                          })}
+                          placeholder={social.placeholder}
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border text-sm ${isDarkMode ? 'bg-neutral-900/50 border-neutral-700 text-white' : 'bg-white border-neutral-300 text-neutral-900'} outline-none focus:border-[#F24C20] transition-all`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="md:col-span-2 pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="px-10 py-4 bg-[#F24C20] text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-orange-600 transition-all shadow-lg shadow-[#F24C20]/20 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Social Links'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
 

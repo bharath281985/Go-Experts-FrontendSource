@@ -414,7 +414,7 @@ export default function SavedItems() {
                     ₹{talent.hourlyRate}/hr
                   </div>
                   <button 
-                    onClick={() => navigate(`/dashboard/talent/${talent.id}`)}
+                    onClick={() => navigate(`/f/${talent.id}`)}
                     className="px-6 py-2 bg-[#044071] text-white rounded-lg font-medium hover:bg-[#044071]/90 transition-colors"
                   >
                     View Profile

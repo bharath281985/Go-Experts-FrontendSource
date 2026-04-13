@@ -53,6 +53,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const [walletBalance, setWalletBalance] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const useHoverProfileMenu = userType === 'client' || userType === 'freelancer';
 
   useEffect(() => {
     fetchHeaderData();
@@ -396,9 +397,15 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
             </div>
 
             {/* Profile Menu */}
-            <div className="relative">
+            <div
+              className="relative"
+              onMouseEnter={useHoverProfileMenu ? () => setShowProfileMenu(true) : undefined}
+              onMouseLeave={useHoverProfileMenu ? () => setShowProfileMenu(false) : undefined}
+            >
               <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                onClick={useHoverProfileMenu ? undefined : () => setShowProfileMenu(!showProfileMenu)}
+                onFocus={useHoverProfileMenu ? () => setShowProfileMenu(true) : undefined}
+                onBlur={useHoverProfileMenu ? () => setShowProfileMenu(false) : undefined}
                 className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors ${isDarkMode
                   ? 'hover:bg-neutral-800'
                   : 'hover:bg-neutral-100'

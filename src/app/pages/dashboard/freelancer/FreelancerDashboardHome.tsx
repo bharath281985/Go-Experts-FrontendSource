@@ -14,8 +14,12 @@ import {
   ArrowRight,
   FileText,
   Briefcase,
-  Loader2
+  Loader2,
+  Share2,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
+import { toast } from 'sonner';
 import CountUp from '@/app/components/dashboard/CountUp';
 import DonutChart from '@/app/components/dashboard/charts/DonutChart';
 import LineChartComponent from '@/app/components/dashboard/charts/LineChartComponent';
@@ -116,13 +120,68 @@ export default function FreelancerDashboardHome() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4"
       >
-        <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-          Dashboard
-        </h1>
-        <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-          Track your earnings, orders, and performance
-        </p>
+        <div>
+          <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+            Dashboard
+          </h1>
+          <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            Track your earnings, orders, and performance
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div 
+            className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
+              isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'
+            }`}
+          >
+            <div className="hidden md:block">
+              <span className="text-xs text-neutral-500 block uppercase font-bold tracking-widest">Personal Landing Page</span>
+              <span className="text-sm font-bold truncate max-w-[150px] inline-block">
+                goexperts.com/f/{stats?.username || stats?._id || '...'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  const url = `${window.location.origin}/f/${stats?.username || stats?._id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Link copied to clipboard!');
+                }}
+                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-neutral-400 hover:text-[#F24C20]"
+                title="Copy Link"
+              >
+                <Copy className="w-5 h-5" />
+              </button>
+              <Link 
+                to={`/f/${stats?.username || stats?._id}`}
+                target="_blank"
+                className="p-2 hover:bg-white/5 rounded-lg transition-colors text-neutral-400 hover:text-[#F24C20]"
+                title="View Page"
+              >
+                <ExternalLink className="w-5 h-5" />
+              </Link>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              const url = `${window.location.origin}/f/${stats?.username || stats?._id}`;
+              if (navigator.share) {
+                navigator.share({
+                  title: 'My Freelancer Profile | Go Experts',
+                  text: 'Check out my professional portfolio on Go Experts!',
+                  url: url
+                }).catch(() => {});
+              }
+            }}
+            className="flex items-center gap-2 px-6 py-2.5 bg-[#F24C20] text-white rounded-xl font-bold hover:scale-105 transition-transform shadow-lg shadow-[#F24C20]/20"
+          >
+            <Share2 className="w-4 h-4" />
+            Share Profile
+          </button>
+        </div>
       </motion.div>
 
       {/* Earnings KPI Strip */}

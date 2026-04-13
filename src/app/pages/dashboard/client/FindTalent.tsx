@@ -254,7 +254,7 @@ export default function FindTalent() {
                     <span className="text-xl font-black text-[#F24C20]">₹{talent.hourly_rate || '1200'}<span className="text-xs text-neutral-500 font-bold">/hr</span></span>
                   </div>
                   <Link
-                    to={`/dashboard/talent/${talent._id}`}
+                    to={`/f/${talent.username || talent._id}`}
                     className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                       isDarkMode 
                         ? 'bg-neutral-800 text-white hover:bg-[#F24C20]' 

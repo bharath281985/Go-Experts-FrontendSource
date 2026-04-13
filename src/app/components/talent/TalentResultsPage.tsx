@@ -203,7 +203,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
       
       <div className="flex items-center justify-between pt-4 border-t border-neutral-800 mt-auto">
         <div className="text-xl font-bold text-[#F24C20]">₹{talent.hourly_rate || '1000'}/hr</div>
-        <Link to={`/talent/${talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
+        <Link to={`/f/${talent.username || talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
           Profile
         </Link>
       </div>
@@ -368,7 +368,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                         </div>
                         <div className="flex items-center justify-between mt-8">
                           <div className="text-3xl font-bold text-[#F24C20]">₹{featuredTalent.hourly_rate || '1200'}/hr</div>
-                          <Link to={`/talent/${featuredTalent.id}`} className="px-6 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors">View Profile</Link>
+                          <Link to={`/f/${featuredTalent.username || featuredTalent.id}`} className="px-6 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors">View Profile</Link>
                         </div>
                       </div>
                     </div>

@@ -2,7 +2,7 @@ import { motion, useInView } from 'motion/react';
 import { useRef, useState, useEffect } from 'react';
 import { Star, MapPin, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 
 export default function TalentSection() {
@@ -38,9 +38,7 @@ export default function TalentSection() {
             location: t.location || 'Remote',
             skills: t.skills || ['Expertise', 'Quality'],
             role: t.role || 'Expert Professional',
-            profile_image: t.profile_image 
-              ? (t.profile_image.startsWith('http') ? t.profile_image : `https://backendapis.goexperts.in${t.profile_image}`)
-              : null,
+            profile_image: getImgUrl(t.profile_image) || null,
             hourly_rate: t.hourly_rate || '1200'
           }));
           setTalents(processed);
@@ -121,15 +119,15 @@ export default function TalentSection() {
               className={`relative group h-full ${loading ? 'animate-pulse pointer-events-none' : ''}`}
               style={{ perspective: '1000px' }}
             >
-              <Link to={`/talent/${talent.id}`} className="block h-full">
+              <Link to={`/f/${talent.username || talent.id}`} className="block h-full">
                 <motion.div
                   whileHover={!loading ? {
-                    y: -20,
-                    scale: 1.05,
-                    rotateY: 5,
+                    y: -12,
+                    scale: 1.02,
+                    rotateY: 3,
                   } : {}}
                   transition={{ duration: 0.4 }}
-                  className="relative p-8 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden h-full flex flex-col"
+                  className="relative min-h-[520px] p-6 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden h-full flex flex-col"
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Glow Effect */}
@@ -155,17 +153,17 @@ export default function TalentSection() {
                   {/* Content Container */}
                   <div className="relative text-center flex flex-col h-full">
                     {/* Top Content Area (Grows to push footer down) */}
-                    <div className="flex-1">
+                    <div className="flex flex-1 flex-col">
                       {/* Avatar */}
                       <motion.div
-                        className="relative inline-block mb-6"
+                        className="relative mx-auto inline-block mb-5"
                         whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
                         transition={{ duration: 0.5 }}
                       >
-                        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center shadow-2xl shadow-[#F24C20]/40 relative">
-                          <div className="w-full h-full rounded-full overflow-hidden">
+                        <div className="relative flex w-28 h-28 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 items-center justify-center shadow-2xl shadow-[#F24C20]/40 p-[3px]">
+                          <div className="w-full h-full rounded-full overflow-hidden bg-neutral-900">
                             <ImageWithFallback
-                              src={talent.profile_image ? (talent.profile_image.startsWith('http') ? talent.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${talent.profile_image}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(talent.full_name || talent.name)}&size=128&background=random&color=fff`}
+                              src={getImgUrl(talent.profile_image) || `https://ui-avatars.com/api/?name=${encodeURIComponent(talent.full_name || talent.name)}&size=128&background=random&color=fff`}
                               alt={talent.full_name || talent.name}
                               className="w-full h-full object-cover"
                             />
@@ -185,10 +183,10 @@ export default function TalentSection() {
 
                           {/* Pulse Ring */}
                           <motion.div
-                            className="absolute inset-0 rounded-full border-2 border-[#F24C20]"
+                            className="absolute inset-0 rounded-full border border-[#F24C20]/80"
                             animate={{
-                              scale: [1, 1.3, 1],
-                              opacity: [0.5, 0, 0.5],
+                              scale: [1, 1.12, 1],
+                              opacity: [0.45, 0, 0.45],
                             }}
                             transition={{
                               duration: 2,
@@ -200,7 +198,7 @@ export default function TalentSection() {
                       </motion.div>
 
                       {/* Name & Role */}
-                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#F24C20] transition-colors">
+                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#F24C20] transition-colors line-clamp-1">
                         {talent.full_name || talent.name}
                       </h3>
                       <p className="text-sm text-neutral-400 mb-4 capitalize line-clamp-1">{talent.role}</p>
@@ -213,20 +211,21 @@ export default function TalentSection() {
                       </div>
 
                       {/* Location */}
-                      <div className="flex items-center justify-center gap-2 text-sm text-neutral-400 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-sm text-neutral-400 mb-5 min-w-0">
                         <MapPin className="w-4 h-4 text-[#F24C20]" />
                         <span className="line-clamp-1">{talent.location}</span>
                       </div>
 
                       {/* Skills/Categories */}
-                      <div className="flex flex-wrap gap-2 justify-center mb-6">
+                      <div className="grid grid-cols-1 gap-2 content-start min-h-[120px] mb-6">
                         {talent.skills?.slice(0, 3).map((skill: any) => {
                           const skillName = typeof skill === 'object' ? skill.name : skill;
                           if (!skillName) return null;
                           return (
                             <span
                               key={typeof skill === 'object' ? skill._id : skill}
-                              className="px-3 py-1.5 rounded-lg bg-neutral-800/70 text-xs font-medium text-neutral-300 border border-neutral-700 whitespace-nowrap"
+                              className="mx-auto block max-w-full truncate px-3 py-2 rounded-xl bg-neutral-800/70 text-xs font-medium text-neutral-300 border border-neutral-700 text-center"
+                              title={skillName}
                             >
                               {skillName}
                             </span>
@@ -236,42 +235,19 @@ export default function TalentSection() {
                     </div>
 
                     {/* Footer Area - Price (Fixed at bottom) */}
-                    <div className="pt-6 border-t border-neutral-800/50 mt-auto">
+                    <div className="pt-6 border-t border-neutral-800/50 mt-auto flex items-end justify-between gap-4 text-left">
                       <div className="text-2xl font-black text-[#F24C20] mb-0.5 tracking-tight">₹{talent.hourly_rate || '1200'}/hr</div>
-                      <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-500">Starting rate</div>
+                      <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-500">Starting from</div>
                     </div>
-
-                    {/* Hover Arrow */}
                     <motion.div
-                      className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      initial={{ x: -10 }}
+                      className="opacity-80 group-hover:opacity-100 transition-opacity"
+                      initial={{ x: -6 }}
                       whileHover={{ x: 0 }}
                     >
-                      <div className="w-10 h-10 rounded-full bg-[#F24C20] flex items-center justify-center shadow-lg">
+                      <div className="w-11 h-11 rounded-full bg-[#F24C20] flex items-center justify-center shadow-lg shadow-[#F24C20]/30">
                         <ArrowRight className="w-5 h-5 text-white" />
                       </div>
                     </motion.div>
-
-                    {/* Floating Particles */}
-                    {[...Array(3)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute w-1.5 h-1.5 rounded-full bg-[#F24C20]"
-                        style={{
-                          top: `${30 + i * 20}%`,
-                          left: `${10 + i * 30}%`,
-                        }}
-                        animate={{
-                          y: [0, -15, 0],
-                          opacity: [0.3, 1, 0.3],
-                        }}
-                        transition={{
-                          duration: 2,
-                          delay: i * 0.4,
-                          repeat: Infinity,
-                        }}
-                      />
-                    ))}
                   </div>
                 </motion.div>
               </Link>

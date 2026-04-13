@@ -79,33 +79,45 @@ export default function Messages() {
     };
   }, [queryUser]);
 
-  const handleNewRecipient = async (userId: string) => {
-    // Check if already in chats
-    const exists = chats.find(c => c.id === userId);
-    if (!exists) {
-      try {
-        const res = await api.get(`/auth/users/${userId}`); // Assuming this endpoint exists to get profiles
+  const handleNewRecipient = async (identifier: string) => {
+    try {
+      // First try to find in existing chats (might be matched by username or ID)
+      const existingChat = chats.find(c => c.id === identifier);
+      
+      if (existingChat) {
+        setSelectedChat(existingChat.id);
+      } else {
+        const res = await api.get(`/auth/users/${identifier}`);
         if (res.data.success) {
           const u = res.data.user;
-          const tempChat: Chat = {
-            id: u._id,
-            name: u.full_name,
-            avatar: u.profile_image ? (u.profile_image.startsWith('http') ? u.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${u.profile_image}`) : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
-            lastMessage: '',
-            timestamp: '',
-            unread: 0,
-            online: false,
-            role: 'freelancer'
-          };
-          setChats(prev => [tempChat, ...prev]);
+          const realId = u._id;
+          
+          // Re-check with real ID
+          const chatWithRealId = chats.find(c => c.id === realId);
+          if (chatWithRealId) {
+            setSelectedChat(realId);
+          } else {
+            const tempChat: Chat = {
+              id: realId,
+              name: u.full_name,
+              avatar: u.profile_image ? (u.profile_image.startsWith('http') ? u.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${u.profile_image}`) : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
+              lastMessage: '',
+              timestamp: '',
+              unread: 0,
+              online: false,
+              role: 'freelancer'
+            };
+            setChats(prev => [tempChat, ...prev]);
+            setSelectedChat(realId);
+          }
         }
-      } catch (err) {
-        console.error('Error fetching recipient info:', err);
       }
-    }
-    setSelectedChat(userId);
-    if (queryIntent === 'hire') {
-      setMessageText('Hi! I am interested in hiring you for a project. Could we discuss the details?');
+
+      if (queryIntent === 'hire') {
+        setMessageText('Hi! I am interested in hiring you for a project. Could we discuss the details?');
+      }
+    } catch (err) {
+      console.error('Error fetching recipient info:', err);
     }
   };
 
