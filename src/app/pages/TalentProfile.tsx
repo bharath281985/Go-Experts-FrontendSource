@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import {
   Star,
@@ -36,21 +36,82 @@ export default function TalentProfile() {
   const [error, setError] = useState<string | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [myRating, setMyRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [avgRating, setAvgRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   useEffect(() => {
     fetchTalentDetails();
     checkIfUnlocked();
+    fetchCurrentUser();
   }, [id]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await api.get('/auth/me', { skipAuthRedirect: true, skipToast: true } as any);
+      if (res.data.success) setCurrentUser(res.data.user);
+    } catch {
+      // not logged in – ok
+    }
+  };
+
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const res = await api.get(`/reviews/${id}`);
+      if (res.data.success) {
+        setReviews(res.data.data);
+        setAvgRating(res.data.average);
+        setReviewCount(res.data.count);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (activeTab === 'reviews') fetchReviews();
+  }, [activeTab, fetchReviews]);
+
+  const handleSubmitReview = async () => {
+    if (!myRating) return toast.error('Please select a star rating');
+    if (!currentUser) return toast.error('Please sign in to leave a review');
+    setSubmittingReview(true);
+    try {
+      await api.post(`/reviews/${id}`, { rating: myRating, comment: reviewComment });
+      toast.success('Review submitted!');
+      setMyRating(0);
+      setReviewComment('');
+      fetchReviews();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const checkIfUnlocked = async () => {
     if (!id || id === 'undefined' || id.length < 12) return;
     try {
-      const res = await api.get(`/subscription/is-unlocked/${id}`, { skipAuthRedirect: true } as any);
+      const res = await api.get(`/subscription/is-unlocked/${id}`, { skipAuthRedirect: true, skipToast: true } as any);
       if (res.data.success && res.data.isUnlocked) {
         setIsUnlocked(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error checking unlock status:', err);
+      if (err.response?.status === 401) {
+        toast.error('Please register to review portfolio');
+        navigate('/signin');
+      }
     }
   };
 
@@ -64,7 +125,7 @@ export default function TalentProfile() {
         const data = res.data.data;
         setTalent({
           ...data,
-          rating: data.rating || 'New',
+          rating: data.review_score > 0 ? data.review_score : 'New',
           reviewCount: data.review_count || 0,
           totalOrders: data.total_orders || 0,
           responseTime: data.response_time || '1 hour',
@@ -399,8 +460,97 @@ export default function TalentProfile() {
           )}
 
           {activeTab === 'reviews' && (
-            <section className="space-y-6">
-              <p className="text-neutral-500 italic">No reviews yet for this expert.</p>
+            <section className="space-y-8">
+              {/* Rating Summary */}
+              <div className="flex items-center gap-8 p-6 bg-neutral-900/40 border border-white/5 rounded-3xl">
+                <div className="text-center">
+                  <div className="text-6xl font-black text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</div>
+                  <div className="flex justify-center gap-1 mt-2">
+                    {[1,2,3,4,5].map(s => (
+                      <Star key={s} className={`w-5 h-5 ${s <= Math.round(avgRating) ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-700'}`} />
+                    ))}
+                  </div>
+                  <div className="text-neutral-500 text-sm mt-1">{reviewCount} review{reviewCount !== 1 ? 's' : ''}</div>
+                </div>
+              </div>
+
+              {/* Submit Review Form (logged-in users only) */}
+              {currentUser && currentUser._id !== id && (
+                <div className="p-6 bg-neutral-900/40 border border-white/5 rounded-3xl space-y-4">
+                  <h4 className="text-white font-bold text-lg">Leave a Review</h4>
+                  {/* Star picker */}
+                  <div className="flex gap-2">
+                    {[1,2,3,4,5].map(s => (
+                      <button
+                        key={s}
+                        onMouseEnter={() => setHoverRating(s)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setMyRating(s)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star className={`w-8 h-8 transition-colors ${
+                          s <= (hoverRating || myRating) ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-600'
+                        }`} />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={reviewComment}
+                    onChange={e => setReviewComment(e.target.value)}
+                    placeholder="Share your experience (optional)..."
+                    className="w-full bg-neutral-800 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm resize-none focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all h-28"
+                  />
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview || !myRating}
+                    className="px-8 py-3 bg-[#F24C20] text-white rounded-2xl font-bold text-sm transition-all hover:bg-[#d9431b] disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {submittingReview ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              {reviewsLoading ? (
+                <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#F24C20]" /></div>
+              ) : reviews.length === 0 ? (
+                <div className="text-center py-12 bg-neutral-900/20 border border-white/5 rounded-3xl">
+                  <Star className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+                  <p className="text-neutral-500">No reviews yet. Be the first to review!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review: any) => (
+                    <div key={review._id} className="p-5 bg-neutral-900/40 border border-white/5 rounded-2xl">
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={review.reviewer_id?.profile_image
+                            ? review.reviewer_id.profile_image.startsWith('http')
+                              ? review.reviewer_id.profile_image
+                              : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${review.reviewer_id.profile_image}`
+                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(review.reviewer_id?.full_name || 'User')}&background=random&color=fff&size=48`
+                          }
+                          alt={review.reviewer_id?.full_name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-white/10 flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="font-bold text-white">{review.reviewer_id?.full_name || 'Anonymous'}</span>
+                            <span className="text-xs text-neutral-500">{new Date(review.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
+                          </div>
+                          <div className="flex gap-1 mt-1 mb-2">
+                            {[1,2,3,4,5].map(s => (
+                              <Star key={s} className={`w-4 h-4 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-700'}`} />
+                            ))}
+                          </div>
+                          {review.comment && <p className="text-neutral-400 text-sm leading-relaxed">{review.comment}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
         </div>

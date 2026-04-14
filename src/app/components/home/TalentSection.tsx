@@ -33,8 +33,8 @@ export default function TalentSection() {
           const processed = filtered.slice(0, 4).map((t: any) => ({
             ...t,
             id: t._id, // Map database _id to id for Links
-            rating: t.rating || (4.5 + Math.random() * 0.5).toFixed(1),
-            reviews: t.reviews || Math.floor(Math.random() * 200),
+            rating: t.review_score > 0 ? t.review_score : null,
+            reviews: t.review_count || 0,
             location: t.location || 'Remote',
             skills: t.skills || ['Expertise', 'Quality'],
             role: t.role || 'Expert Professional',
@@ -205,9 +205,9 @@ export default function TalentSection() {
 
                       {/* Rating */}
                       <div className="flex items-center justify-center gap-2 mb-4">
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <span className="font-bold text-white text-lg">{talent.rating}</span>
-                        <span className="text-sm text-neutral-500">({talent.reviews})</span>
+                        <Star className={`w-5 h-5 ${talent.rating ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-600'}`} />
+                        <span className="font-bold text-white text-lg">{talent.rating ?? 'New'}</span>
+                        {talent.reviews > 0 && <span className="text-sm text-neutral-500">({talent.reviews})</span>}
                       </div>
 
                       {/* Location */}

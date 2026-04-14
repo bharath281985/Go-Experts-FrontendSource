@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, 
@@ -113,20 +113,28 @@ export default function FreelancerLandingPage() {
         setTalent(talentData);
         
         // Fetch current user and unlock status
-        const meRes = await api.get('/auth/me');
-        if (meRes.data.success) {
-          const me = meRes.data.user;
-          setCurrentUser(me);
-          
-          // If viewing own profile, it's always unlocked
-          if (me._id === talentData._id) {
-            setIsUnlocked(true);
-          } else {
-            // Check if already unlocked
-            const unlockRes = await api.get(`/subscription/is-unlocked/${talentData._id}`);
-            if (unlockRes.data.success) {
-               setIsUnlocked(unlockRes.data.isUnlocked);
+        try {
+          const meRes = await api.get('/auth/me', { skipAuthRedirect: true, skipToast: true } as any);
+          if (meRes.data.success) {
+            const me = meRes.data.user;
+            setCurrentUser(me);
+            
+            // If viewing own profile, it's always unlocked
+            if (me._id === talentData._id) {
+              setIsUnlocked(true);
+            } else {
+              // Check if already unlocked
+              const unlockRes = await api.get(`/subscription/is-unlocked/${talentData._id}`, { skipAuthRedirect: true, skipToast: true } as any);
+              if (unlockRes.data.success) {
+                 setIsUnlocked(unlockRes.data.isUnlocked);
+              }
             }
+          }
+        } catch (innerErr: any) {
+          if (innerErr.response?.status === 401) {
+             toast.error('Please register to review portfolio');
+             navigate('/signin');
+             return;
           }
         }
       }
@@ -301,7 +309,7 @@ export default function FreelancerLandingPage() {
                                        className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center relative overflow-hidden transition-colors duration-300 group-hover:border-[#F24C20]"
                                        title={social.label}
                                      >
-                                        {/* Fluid Fill Top → Bottom */}
+                                        {/* Fluid Fill Top â†’ Bottom */}
                                         <div className="absolute top-0 left-0 w-full h-0 bg-[#F24C20] group-hover:h-full transition-all duration-300 ease-out z-0" />
                                         <social.icon className="w-5 h-5 text-white relative z-10 transition-transform duration-300 group-hover:scale-110" />
                                      </a>
@@ -326,7 +334,7 @@ export default function FreelancerLandingPage() {
                         </div>
                         <div className="flex items-center gap-2 px-4 py-1.5 bg-[#F24C20]/10 border border-[#F24C20]/20 rounded-full">
                           <IndianRupee className="w-3 h-3 text-[#F24C20]" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20]">Starting ₹{talent.hourly_rate || '1200'} / hr</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20]">Starting â‚¹{talent.hourly_rate || '1200'} / hr</span>
                         </div>
                       </div>
                    </div>
@@ -431,7 +439,7 @@ export default function FreelancerLandingPage() {
                          { label: 'Years Experience', value: talent.experience_level === 'senior' ? '10+' : (talent.experience_level === 'intermediate' ? '5+' : '2+') },
                          { label: 'Completed Projects', value: (talent.completed_projects || 10) + '+' },
                          { label: 'Happy Customers', value: (talent.happy_customers || 20) + '+' },
-                         { label: 'Review Score', value: talent.review_score || '4.9' },
+                          { label: 'Review Score', value: talent.review_score > 0 ? talent.review_score.toFixed(1) : '-' },
                        ].map((stat, i) => (
                          <div key={i} className="p-8 border border-white/10 rounded-3xl hover:border-[#F24C20]/30 transition-colors">
                             <div className="text-4xl lg:text-5xl font-black text-[#F24C20] mb-2">{stat.value}</div>
@@ -593,7 +601,7 @@ export default function FreelancerLandingPage() {
                             <div>
                                <div className="text-xs uppercase text-neutral-500 tracking-widest mb-1">Mail Me</div>
                                <div className="font-bold text-lg">
-                                   {isUnlocked ? (talent.email || 'Contact via Platform') : '••••••••@••••.com'}
+                                   {isUnlocked ? (talent.email || 'Contact via Platform') : 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢@â€¢â€¢â€¢â€¢.com'}
                                </div>
                             </div>
                          </div>
@@ -603,7 +611,7 @@ export default function FreelancerLandingPage() {
                             </div>
                             <div>
                                <div className="text-xs uppercase text-neutral-500 tracking-widest mb-1">Location</div>
-                               <div className="font-bold text-lg">{isUnlocked ? (talent.location || 'Remote, World') : '•••••••'}</div>
+                               <div className="font-bold text-lg">{isUnlocked ? (talent.location || 'Remote, World') : 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢'}</div>
                             </div>
                          </div>
                          <div className="flex items-center gap-5">
