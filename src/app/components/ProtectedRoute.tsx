@@ -7,18 +7,21 @@ import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    allowedRoles?: string[]; // Optional: list of roles allowed to access this route
 }
 
 /**
  * ProtectedRoute — Guards any route behind:
  *   1. Authentication (token + user in localStorage)
  *   2. Email verification (is_email_verified = true)
+ *   3. Role-based Authorization (if allowedRoles is provided)
  *
  * If not logged in → redirect to /signin
  * If logged in but email not verified → show "verify your email" screen
+ * If unauthorized role → redirect to their respective dashboard home
  * If all good → render children
  */
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     const location = useLocation();
     const [resending, setResending] = useState(false);
     const [resent, setResent] = useState(false);
@@ -26,7 +29,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
 
-    // Not logged in at all
+    // Not logged in at all — Guests can view everything else, but not this.
     if (!token || !userStr) {
         return <Navigate to="/signin" state={{ from: location }} replace />;
     }
@@ -36,6 +39,26 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         user = JSON.parse(userStr);
     } catch {
         return <Navigate to="/signin" replace />;
+    }
+
+    // Role-based restriction
+    if (allowedRoles && allowedRoles.length > 0) {
+        const userRoles = user?.roles || [user?.role];
+        const hasAccess = allowedRoles.some(role => userRoles.includes(role));
+
+        if (!hasAccess) {
+            // Redirect to their default dashboard based on their role
+            const primaryRole = user?.role || (user?.roles ? user.roles[0] : null);
+            let redirectPath = '/dashboard';
+            
+            if (primaryRole === 'investor') redirectPath = '/dashboard-investor';
+            else if (primaryRole === 'startup_creator') redirectPath = '/dashboard-startup';
+            else if (primaryRole === 'client') redirectPath = '/dashboard';
+            else if (primaryRole === 'freelancer') redirectPath = '/dashboard';
+
+            toast.error("You are not authorized to access this section.");
+            return <Navigate to={redirectPath} replace />;
+        }
     }
 
     // Logged in but email not verified

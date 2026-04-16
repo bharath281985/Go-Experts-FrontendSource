@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import {
   Star, MapPin, Clock, IndianRupee, Heart, Search, SlidersHorizontal,
   TrendingUp, Award, CheckCircle, User, Briefcase,
-  Loader2
+  Loader2, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/app/components/Header';
@@ -55,6 +55,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
     extraFilters: answers.extraFilters || []
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
 
@@ -106,7 +107,11 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
       // In real app, we'd pass filters to backend. For now, matching wizard results logic.
       const res = await api.get('/projects');
       if (res.data.success) {
-        let filtered = res.data.data; // Show all projects including current user's for verification
+        // Filter out projects posted by the current logged-in user
+        let filtered = res.data.data.filter((p: any) => {
+          const pClientId = p.client_id?._id || p.client_id;
+          return pClientId !== currentUserId;
+        });
         
         // Client-side filtering as fallback/enhancement
         if (filters.projectType) {
@@ -202,10 +207,26 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
           </div>
         </section>
 
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex gap-8">
-              <aside className="w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
+        <section className="py-8 lg:py-12">
+          <div className="max-w-7xl mx-auto px-4 lg:px-6">
+            <div className="flex flex-col lg:row gap-8">
+              {/* Mobile Filter Toggle */}
+              <div className="lg:hidden flex flex-col gap-4">
+                 <button 
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white font-bold shadow-xl active:scale-95 transition-all"
+                >
+                  <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
+                  Refine Your Search
+                </button>
+                <div className="text-neutral-400 text-sm font-medium">
+                  We found <span className="text-white font-bold">{filteredProjects.length}</span> matching projects
+                </div>
+              </div>
+
+              {/* Sidebar / Filters */}
+              <div className="flex flex-col lg:flex-row gap-8">
+              <aside className="hidden lg:block w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
                 <div className="p-6 rounded-3xl bg-neutral-900/50 border border-neutral-800 backdrop-blur-xl">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
@@ -309,7 +330,69 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                 </div>
               </aside>
 
+              {/* Mobile Filter Drawer */}
+              <div className={`lg:hidden fixed inset-0 z-[100] transition-all duration-300 ${isMobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileFiltersOpen(false)} />
+                <div className={`absolute bottom-0 left-0 right-0 max-h-[90vh] bg-neutral-900 rounded-t-[2.5rem] border-t border-neutral-800 p-6 overflow-y-auto transition-transform duration-300 ${isMobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold text-white">Filters</h3>
+                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 rounded-full bg-neutral-800 text-neutral-400"><XCircle className="w-6 h-6" /></button>
+                  </div>
+                  
+                  <div className="space-y-8 pb-8">
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Keywords</label>
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search titles or items..."
+                        className="w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-white text-sm focus:outline-none focus:border-[#F24C20] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Category</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setFilters(prev => ({ ...prev, projectType: '' }))}
+                          className={`p-3 rounded-xl border text-sm font-bold transition-all ${
+                            !filters.projectType ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                          }`}
+                        >
+                          All Categories
+                        </button>
+                        {availableCategories.slice(0, 8).map(cat => (
+                          <button
+                            key={cat._id}
+                            onClick={() => setFilters(prev => ({ ...prev, projectType: cat.name }))}
+                            className={`p-3 rounded-xl border text-sm font-bold transition-all ${
+                              filters.projectType === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                            }`}
+                          >
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-lg shadow-[#F24C20]/20"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex-1 space-y-6">
+                <div className="hidden lg:flex items-center justify-between mb-2">
+                  <div className="text-neutral-400 text-sm font-medium">
+                    We found <span className="text-white font-bold">{filteredProjects.length}</span> matching projects
+                  </div>
+                </div>
+
                 {displayProjects.map((project, index) => (
                   <motion.div
                     key={project.id}
@@ -319,57 +402,70 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                     whileHover={{ y: -4 }}
                     className="relative group"
                   >
-                    <div className="p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-[#F24C20]/50 transition-all overflow-hidden">
+                    <div className="p-5 md:p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-[#F24C20]/50 transition-all overflow-hidden group">
                       <div className="relative">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xl font-bold text-white group-hover:text-[#F24C20] transition-colors leading-tight">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                            <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#F24C20] transition-colors leading-tight">
                               {project.title}
                             </h3>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 shrink-0">
                               {project.isApplied && (
-                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-black uppercase rounded-lg border border-green-500/30 whitespace-nowrap shadow-lg shadow-green-500/10">
+                                <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-black uppercase rounded-lg border border-green-500/30 whitespace-nowrap">
                                   Applied
                                 </span>
                               )}
                               {project.isUnlocked && !project.isApplied && (
-                                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase rounded-lg border border-blue-500/30 whitespace-nowrap shadow-lg shadow-blue-500/10">
+                                <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] font-black uppercase rounded-lg border border-blue-500/30 whitespace-nowrap">
                                   Unlocked
                                 </span>
                               )}
                             </div>
                           </div>
-                          <p className="text-neutral-400 line-clamp-2 mb-3">
+                          
+                          <p className="text-neutral-400 text-sm line-clamp-2 md:line-clamp-none mb-6">
                             {project.description}
                           </p>
 
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                            <div className="flex items-center gap-2">
-                              <IndianRupee className="w-4 h-4 text-[#F24C20]" />
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-[#F24C20]/10 flex items-center justify-center shrink-0">
+                                <IndianRupee className="w-5 h-5 text-[#F24C20]" />
+                              </div>
                               <div>
-                                <div className="text-sm text-neutral-500 text-xs font-bold uppercase tracking-wider">Budget</div>
-                                <div className="font-bold text-white">₹{project.budget_range}</div>
+                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Budget</div>
+                                <div className="font-bold text-white text-sm md:text-base">₹{project.budget_range}</div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 text-neutral-400">
-                                <Clock className="w-4 h-4" />
-                                <span className="text-sm">Fixed Price</span>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-neutral-800/50 flex items-center justify-center shrink-0">
+                                <Clock className="w-5 h-5 text-neutral-400" />
+                              </div>
+                              <div>
+                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Type</div>
+                                <div className="font-bold text-white text-sm md:text-base">Fixed Price</div>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-4 border-t border-neutral-800">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-6 border-t border-neutral-800">
                             <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                                  {project.client_id?.full_name?.substring(0, 2).toUpperCase() || 'EX'}
-                                </div>
-                                <div className="font-medium text-white text-sm">{project.client_id?.full_name}</div>
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 flex items-center justify-center overflow-hidden">
+                                {project.client_id?.profile_image ? (
+                                  <img src={project.client_id.profile_image} className="w-full h-full object-cover" alt="" />
+                                ) : (
+                                  <span className="text-white text-xs font-bold">{project.client_id?.full_name?.substring(0, 2).toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-bold text-white truncate">{project.client_id?.full_name || 'Anonymous Client'}</div>
+                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Verified Client</div>
                               </div>
                             </div>
-                            <Link to={`/projects/${project.id}`} className={`px-6 py-2 rounded-lg font-bold transition-all shadow-lg ${
+                            <Link to={`/projects/${project.id}`} className={`w-full sm:w-auto px-8 py-3 rounded-xl font-bold transition-all text-center ${
                               project.isApplied 
-                              ? 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 shadow-none' 
-                              : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/20'
+                              ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-500/20' 
+                              : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-xl shadow-blue-900/10'
                             }`}>
                               {project.isApplied ? 'View Application' : 'View Details'}
                             </Link>
@@ -384,21 +480,21 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                    <motion.div 
                      initial={{ opacity: 0, y: 30 }}
                      whileInView={{ opacity: 1, y: 0 }}
-                     className="mt-12 p-12 rounded-[2.5rem] bg-gradient-to-br from-[#044071] to-[#012a4a] text-center relative overflow-hidden"
+                     className="mt-12 p-8 md:p-12 rounded-[2rem] bg-gradient-to-br from-[#044071] to-[#012a4a] text-center relative overflow-hidden"
                    >
                      <div className="relative z-10">
-                       <Briefcase className="w-16 h-16 text-white mx-auto mb-6 opacity-80" />
-                       <h3 className="text-4xl font-black text-white mb-4 italic tracking-tighter">
+                       <Briefcase className="w-12 h-12 md:w-16 md:h-16 text-white mx-auto mb-6 opacity-80" />
+                       <h3 className="text-2xl md:text-4xl font-black text-white mb-4 italic tracking-tighter">
                          {isLoggedIn ? 'Upgrade for More Opportunities' : 'Want to See More Projects?'}
                        </h3>
-                       <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto font-medium">
+                       <p className="text-lg md:text-xl text-white/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
                          {isLoggedIn 
                             ? 'You have reached the limit of your Free plan. Upgrade to view and apply for high-value projects.'
                             : 'Join our platform to access hundreds of active projects and start your freelance journey today.'}
                        </p>
                        <Link 
                          to={isLoggedIn ? "/plans" : "/signup"}
-                         className="inline-flex items-center gap-3 px-12 py-5 bg-[#F24C20] text-white rounded-2xl font-black text-xl shadow-2xl hover:scale-105 transition-all"
+                         className="inline-flex items-center gap-3 px-10 md:px-12 py-4 md:py-5 bg-[#F24C20] text-white rounded-2xl font-black text-lg md:text-xl shadow-2xl hover:scale-105 transition-all w-full sm:w-auto justify-center"
                        >
                          {isLoggedIn ? 'Upgrade My Plan' : 'Sign Up to Unlock More'}
                        </Link>
@@ -411,6 +507,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                     <p className="text-neutral-400">No projects found matching your search.</p>
                   </div>
                 )}
+              </div>
               </div>
             </div>
           </div>

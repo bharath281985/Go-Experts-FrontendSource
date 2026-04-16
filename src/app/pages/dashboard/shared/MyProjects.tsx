@@ -133,9 +133,9 @@ export default function MyProjects() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
             {isFreelancer ? 'My Proposals' : 'My Projects'}
           </h1>
           <p className={`mt-1 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
@@ -145,7 +145,7 @@ export default function MyProjects() {
         {!isFreelancer && (
           <Link
             to="/dashboard/projects/create"
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#F24C20] hover:bg-orange-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-[#F24C20]/20 hover:-translate-y-0.5"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F24C20] hover:bg-orange-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-[#F24C20]/20 hover:-translate-y-0.5"
           >
             <Plus className="w-4 h-4" />
             New Project
@@ -154,7 +154,7 @@ export default function MyProjects() {
       </motion.div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: isFreelancer ? 'Total Bids' : 'Total Posted', value: stats.total, icon: FileText, color: 'text-[#F24C20]', bg: 'bg-[#F24C20]/10' },
           { label: 'Ongoing', value: stats.ongoing, icon: Zap, color: 'text-blue-400', bg: 'bg-blue-500/10' },
@@ -162,27 +162,27 @@ export default function MyProjects() {
           { label: isFreelancer ? 'Active Value' : 'Total Spent', value: `₹${stats.spent.toLocaleString()}`, icon: IndianRupee, color: 'text-purple-400', bg: 'bg-purple-500/10' },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-            className={`p-5 rounded-2xl border backdrop-blur-sm ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white/50 border-neutral-200'}`}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-lg ${s.bg}`}><s.icon className={`w-4 h-4 ${s.color}`} /></div>
-              <span className={`text-xs font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{s.label}</span>
+            className={`p-4 md:p-5 rounded-2xl border backdrop-blur-sm ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white/50 border-neutral-200'}`}>
+            <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className={`p-1.5 md:p-2 rounded-lg ${s.bg}`}><s.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${s.color}`} /></div>
+              <span className={`text-[10px] md:text-xs font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{s.label}</span>
             </div>
-            <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{s.value}</div>
+            <div className={`text-lg md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{s.value}</div>
           </motion.div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className={`flex gap-1 p-1.5 rounded-xl ${isDarkMode ? 'bg-neutral-900/70 border border-neutral-800' : 'bg-neutral-100'}`}>
+      <div className={`flex gap-1 p-1.5 rounded-xl ${isDarkMode ? 'bg-neutral-900/70 border border-neutral-800' : 'bg-neutral-100'} overflow-x-auto custom-scrollbar`}>
         {(['all', 'ongoing', 'completed', 'cancelled'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`relative flex-1 px-4 py-2.5 rounded-lg font-medium text-sm capitalize transition-all ${activeTab === tab
+            className={`relative flex-1 min-w-[100px] md:min-w-0 px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm capitalize transition-all ${activeTab === tab
                 ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/20'
                 : isDarkMode ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-neutral-600 hover:text-neutral-900 hover:bg-white'
               }`}>
             {tab}
             {tabCounts[tab] > 0 && (
-              <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab ? 'bg-white/20 text-white' : 'bg-neutral-700 text-neutral-300'}`}>
+              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab ? 'bg-white/20 text-white' : 'bg-neutral-700 text-neutral-300'}`}>
                 {tabCounts[tab]}
               </span>
             )}
@@ -279,29 +279,31 @@ export default function MyProjects() {
 
                         {/* Hired Freelancer Info — shown for ongoing client projects */}
                         {!isFreelancer && isOngoing && hiredFreelancer && (
-                          <div className={`flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
-                            <div className="relative flex-shrink-0">
-                              <img
-                                src={hiredFreelancer.profile_image
-                                  ? (hiredFreelancer.profile_image.startsWith('http') ? hiredFreelancer.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${hiredFreelancer.profile_image}`)
-                                  : `https://ui-avatars.com/api/?name=${hiredFreelancer.full_name}&background=F24C20&color=fff`}
-                                alt={hiredFreelancer.full_name}
-                                className="w-9 h-9 rounded-full object-cover border-2 border-blue-400/50"
-                              />
-                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-neutral-900 rounded-full" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <Award className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                                <span className={`text-xs font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>Hired Freelancer</span>
-                              </div>
-                              <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-neutral-800'}`}>
-                                {hiredFreelancer.full_name || 'Anonymous'}
-                              </div>
+                          <div className={`flex flex-col sm:flex-row sm:items-center gap-3 mb-4 p-3 md:p-4 rounded-xl border ${isDarkMode ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-50 border-blue-100'}`}>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="relative flex-shrink-0">
+                                <img
+                                    src={hiredFreelancer.profile_image
+                                    ? (hiredFreelancer.profile_image.startsWith('http') ? hiredFreelancer.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${hiredFreelancer.profile_image}`)
+                                    : `https://ui-avatars.com/api/?name=${hiredFreelancer.full_name}&background=F24C20&color=fff`}
+                                    alt={hiredFreelancer.full_name}
+                                    className="w-9 h-9 rounded-full object-cover border-2 border-blue-400/50"
+                                />
+                                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-neutral-900 rounded-full" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                    <Award className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                                    <span className={`text-[10px] font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>Hired Freelancer</span>
+                                </div>
+                                <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-neutral-800'}`}>
+                                    {hiredFreelancer.full_name || 'Anonymous'}
+                                </div>
+                                </div>
                             </div>
                             <button
                               onClick={() => navigate(`/dashboard/messages?user=${hiredFreelancer._id || hiredFreelancer}`)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-semibold transition-colors border border-blue-500/20"
+                              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-semibold transition-colors border border-blue-500/20"
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
                               Message
@@ -311,14 +313,14 @@ export default function MyProjects() {
 
                         {/* Freelancer view: client info */}
                         {isFreelancer && project.client_id && (
-                          <div className={`flex items-center justify-between mb-3 px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-800/40 border-neutral-700/50' : 'bg-neutral-50 border-neutral-200'}`}>
+                          <div className={`flex flex-col sm:flex-row sm:items-center justify-between mb-3 p-3 rounded-xl border gap-3 ${isDarkMode ? 'bg-neutral-800/40 border-neutral-700/50' : 'bg-neutral-50 border-neutral-200'}`}>
                             <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
                               <Users className="w-3.5 h-3.5" />
                               <span>Client: <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-800'}`}>{project.client_id.full_name || 'Anonymous'}</span></span>
                             </div>
                             <button
                               onClick={() => navigate(`/dashboard/messages?user=${project.client_id?._id || project.client_id}`)}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F24C20]/10 hover:bg-[#F24C20]/20 text-[#F24C20] rounded-lg text-xs font-semibold transition-colors border border-[#F24C20]/20"
+                              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-[#F24C20]/10 hover:bg-[#F24C20]/20 text-[#F24C20] rounded-lg text-xs font-semibold transition-colors border border-[#F24C20]/20"
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
                               Message

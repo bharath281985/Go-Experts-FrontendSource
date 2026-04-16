@@ -263,26 +263,26 @@ export default function ProjectDetails() {
   const canSeeFullDetails = isUnlocked || isOwner || isHired;
 
   return (
-    <div className="min-h-screen bg-neutral-950 pt-36 pb-12">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-neutral-950 pt-24 lg:pt-36 pb-12">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             {/* Breadcrumb + Back Button */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-[#F24C20] hover:text-[#F24C20] text-neutral-400 text-sm transition-all group"
+                className="w-fit flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-[#F24C20] hover:text-[#F24C20] text-neutral-400 text-xs lg:text-sm transition-all group"
               >
                 <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Back
               </button>
-              <div className="flex items-center gap-2 text-sm text-neutral-400">
+              <div className="flex items-center gap-2 text-[10px] lg:text-sm text-neutral-400">
                 <button onClick={() => navigate(-1)} className="hover:text-[#F24C20] transition-colors">Projects</button>
                 <span>/</span>
-                <span className="text-neutral-500">{project.category}</span>
+                <span className="text-neutral-500 truncate max-w-[100px] lg:max-w-none">{project.category}</span>
                 <span>/</span>
-                <span className="text-white">Project Details</span>
+                <span className="text-white">Details</span>
               </div>
             </div>
 
@@ -291,20 +291,20 @@ export default function ProjectDetails() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/30"
+                className="flex items-center gap-3 lg:gap-4 p-4 rounded-2xl bg-gradient-to-r from-green-500/10 to-emerald-500/5 border border-green-500/30"
               >
                 <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-green-500/30">
                   <CheckCircle className="w-5 h-5 text-green-400" />
                 </div>
-                <div>
-                  <div className="text-sm font-bold text-green-400">Project Successfully Completed</div>
-                  <div className="text-xs text-neutral-400 mt-0.5">
-                    Completed on {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}
+                <div className="min-w-0">
+                  <div className="text-xs lg:text-sm font-bold text-green-400 truncate">Project Successfully Completed</div>
+                  <div className="text-[10px] lg:text-xs text-neutral-400 mt-0.5">
+                    {project.updatedAt ? new Date(project.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}
                   </div>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-green-400" />
-                  <span className="text-xs font-semibold text-green-400">Delivered</span>
+                  <Sparkles className="w-4 h-4 text-green-400 hidden sm:block" />
+                  <span className="text-[10px] lg:text-xs font-semibold text-green-400 whitespace-nowrap">Delivered</span>
                 </div>
               </motion.div>
             )}
@@ -312,24 +312,24 @@ export default function ProjectDetails() {
             {/* Header Section */}
             <div>
               <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="px-3 py-1 bg-[#F24C20]/10 text-[#F24C20] text-sm font-medium rounded-lg border border-[#F24C20]/30">
+                    <span className="px-3 py-1 bg-[#F24C20]/10 text-[#F24C20] text-[10px] lg:text-sm font-medium rounded-lg border border-[#F24C20]/30 whitespace-nowrap">
                       {project.category}
                     </span>
-                    <span className="text-sm text-neutral-400">{project.postedTime}</span>
+                    <span className="text-[10px] lg:text-sm text-neutral-400">{project.postedTime}</span>
                   </div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  <h1 className="text-2xl lg:text-4xl font-bold text-white mb-4 line-clamp-3">
                     {project.title}
                   </h1>
                   <div className="flex flex-wrap items-center gap-4 text-neutral-400">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">Remote</span>
+                      <MapPin className="w-4 h-4 text-[#F24C20]" />
+                      <span className="text-xs lg:text-sm">Remote</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm">Posted {new Date(project.createdAt).toLocaleDateString()}</span>
+                      <Clock className="w-4 h-4 text-[#F24C20]" />
+                      <span className="text-xs lg:text-sm">Posted {new Date(project.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -337,50 +337,36 @@ export default function ProjectDetails() {
             </div>
 
             {/* Budget Section */}
-            <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-2xl">
+            <div className="p-5 lg:p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm text-neutral-400 mb-1">Project Budget</div>
+                  <div className="text-xs text-neutral-400 mb-1">Project Budget</div>
                   <div className="flex items-center gap-2">
-                    {/* <IndianRupee className="w-5 h-5 text-[#F24C20]" /> */}
-                    <span className="text-2xl font-bold text-white">
+                    <span className="text-xl lg:text-2xl font-black text-white">
                       {project.budget_range}
                     </span>
                   </div>
-                  <div className="text-sm text-neutral-400 mt-1">Fixed Price</div>
+                  <div className="text-[10px] lg:text-sm text-neutral-400 mt-1 uppercase tracking-widest font-black opacity-50">Fixed Price</div>
                 </div>
               </div>
             </div>
 
-            {/* Project Description */}
-            <div className={`p-8 bg-neutral-900/50 border border-neutral-800 rounded-2xl relative overflow-hidden ${project.status === 'closed' ? 'grayscale opacity-80' : ''
-              }`}>
-
-              {/* Expired Ribbon for description */}
-              {project.status === 'closed' && (
-                <div className="absolute top-10 -right-12 bg-neutral-800 text-white border border-white/20 px-16 py-1 rotate-45 font-black text-sm shadow-2xl z-20 pointer-events-none">
-                  EXPIRED
-                </div>
-              )}
-
             {/* Client Management Interface for Proposals */}
             {isOwner && (
-              <div className="mb-12 border-b border-neutral-800 pb-12">
-                <div className="flex items-center justify-between mb-8">
+              <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                         <h2 className="text-2xl font-bold text-white mb-2">
-                           {project.status === 'live' ? 'Review Proposals' : 'Project Selection'}
-                         </h2>
-                         <p className="text-neutral-400">
+                         <h2 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Review Proposals</h2>
+                         <p className="text-xs lg:text-sm text-neutral-400 mt-1 font-medium">
                            {project.status === 'live' 
                              ? 'View and award your project to the best freelancer.' 
                              : 'You have selected a freelancer for this project.'}
                          </p>
                     </div>
-                   <div className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-xl">
-                        <Users className="w-5 h-5 text-[#F24C20]" />
-                        <span className="font-bold text-white">{proposals.length}</span>
-                        <span className="text-neutral-400">Applications</span>
+                   <div className="w-fit flex items-center gap-2 px-3 lg:px-4 py-1.5 lg:py-2 bg-black/20 border border-neutral-800 rounded-xl">
+                        <Users className="w-4 h-4 lg:w-5 lg:h-5 text-[#F24C20]" />
+                        <span className="font-black text-white text-xs lg:text-base">{proposals.length}</span>
+                        <span className="text-[10px] lg:text-xs text-neutral-500 uppercase font-black">Applications</span>
                    </div>
                 </div>
 
@@ -393,102 +379,116 @@ export default function ProjectDetails() {
                     {proposals.map((prop) => (
                       <div 
                         key={prop._id}
-                        className={`p-6 rounded-2xl border transition-all ${
+                        className={`p-4 lg:p-6 rounded-2xl border transition-all ${
                             prop.status === 'accepted' 
                             ? 'bg-green-500/10 border-green-500/30' 
-                            : 'bg-neutral-900/40 border-neutral-800'
+                            : 'bg-black/20 border-neutral-800 hover:border-neutral-700'
                         }`}
                       >
-                         <div className="flex flex-col lg:flex-row justify-between gap-6">
-                            <div className="flex gap-4">
-                               <ImageWithFallback
-                                  src={prop.freelancer_id?.profile_image ? (prop.freelancer_id.profile_image.startsWith('http') ? prop.freelancer_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${prop.freelancer_id.profile_image}`) : `https://ui-avatars.com/api/?name=${prop.freelancer_id?.full_name}`}
-                                  className="w-14 h-14 rounded-full object-cover border-2 border-neutral-800"
-                                  alt={prop.freelancer_id?.full_name}
-                               />
-                               <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                     <h4 className="font-bold text-white">{prop.freelancer_id?.full_name}</h4>
-                                     {prop.freelancer_id?.kyc_details?.is_verified && (
-                                       <CheckCircle className="w-4 h-4 text-blue-500" />
-                                     )}
-                                     {prop.status === 'accepted' && (
-                                       <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full uppercase">Hired</span>
-                                     )}
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-neutral-400">
-                                     <div className="flex items-center gap-1">
-                                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                        <span>4.9 (24)</span>
+                         <div className="flex flex-col gap-5">
+                            <div className="flex items-start justify-between gap-4">
+                               <div className="flex gap-3 lg:gap-4">
+                                  <ImageWithFallback
+                                     src={prop.freelancer_id?.profile_image ? (prop.freelancer_id.profile_image.startsWith('http') ? prop.freelancer_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${prop.freelancer_id.profile_image}`) : `https://ui-avatars.com/api/?name=${prop.freelancer_id?.full_name}`}
+                                     className="w-10 h-10 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-neutral-800"
+                                     alt={prop.freelancer_id?.full_name}
+                                  />
+                                  <div className="min-w-0">
+                                     <div className="flex items-center gap-1.5 mb-0.5">
+                                        <h4 className="font-black text-xs lg:text-base text-white truncate">{prop.freelancer_id?.full_name}</h4>
+                                        {prop.freelancer_id?.kyc_details?.is_verified && (
+                                          <CheckCircle className="w-3.5 h-3.5 text-blue-500" />
+                                        )}
                                      </div>
-                                     <div className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        <span>Delivery: {prop.delivery_time}</span>
+                                     <div className="flex flex-wrap items-center gap-2 lg:gap-3 text-[10px] lg:text-sm text-neutral-500 font-medium">
+                                        <div className="flex items-center gap-1">
+                                           <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                           <span>4.9</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                           <Clock className="w-3 h-3" />
+                                           <span>{prop.delivery_time}</span>
+                                        </div>
                                      </div>
                                   </div>
+                               </div>
+                               <div className="text-right shrink-0">
+                                  <div className="text-sm lg:text-xl font-black text-white">₹{prop.bid_amount.toLocaleString()}</div>
+                                  {prop.status === 'accepted' && (
+                                    <span className="text-[8px] lg:text-[10px] font-black bg-green-500 text-white px-2 py-0.5 rounded-full uppercase">Hired</span>
+                                  )}
                                </div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-2 text-right">
-                               <div className="text-2xl font-bold text-white">₹{prop.bid_amount.toLocaleString()}</div>
-                               <div className="flex gap-2">
-                                  {project.status === 'live' && prop.status !== 'accepted' && (
-                                     <button
-                                        onClick={() => handleAwardProject(project._id, prop._id)}
-                                        disabled={awardingProposalId !== null}
-                                        className="px-6 py-2 bg-[#F24C20] hover:bg-orange-600 text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2"
-                                     >
-                                        {awardingProposalId === prop._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <TrendingUp className="w-4 h-4" />}
-                                        Award Project
-                                     </button>
-                                  )}
-                                  <button 
-                                     onClick={() => navigate(`/dashboard/messages?user=${prop.freelancer_id?._id || prop.freelancer_id}`)}
-                                     className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg text-sm font-bold transition-all"
-                                  >
-                                     Message
-                                  </button>
-                               </div>
+                            <div className="p-3 lg:p-4 bg-black/40 rounded-xl border border-neutral-800">
+                               <p className="text-[11px] lg:text-sm text-neutral-400 italic leading-relaxed">"{prop.message}"</p>
                             </div>
-                         </div>
-                         <div className="mt-4 p-4 bg-black/30 rounded-xl border border-neutral-800">
-                            <h5 className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2">Proposal Message</h5>
-                            <p className="text-sm text-neutral-300 italic">"{prop.message}"</p>
+
+                            <div className="flex gap-2">
+                               {project.status === 'live' && prop.status !== 'accepted' && (
+                                  <button
+                                     onClick={() => handleAwardProject(project._id, prop._id)}
+                                     disabled={awardingProposalId !== null}
+                                     className="flex-1 py-2.5 bg-[#F24C20] hover:bg-orange-600 text-white rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-[#F24C20]/20 flex items-center justify-center gap-2"
+                                  >
+                                     {awardingProposalId === prop._id ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
+                                     Award Project
+                                  </button>
+                               )}
+                               <button 
+                                  onClick={() => navigate(`/dashboard/messages?user=${prop.freelancer_id?._id || prop.freelancer_id}`)}
+                                  className="flex-1 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-[10px] lg:text-xs font-black uppercase tracking-widest transition-all border border-neutral-700 flex items-center justify-center gap-2"
+                               >
+                                  <MessageCircle className="w-3 h-3" />
+                                  Message
+                                </button>
+                             </div>
                          </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-neutral-950 p-12 rounded-2xl border border-neutral-800 text-center border-dashed">
-                      <Users className="w-12 h-12 text-neutral-800 mx-auto mb-4" />
-                      <p className="text-neutral-500 font-medium">No proposals have been submitted for this project yet.</p>
+                  <div className="bg-neutral-950 p-8 lg:p-12 rounded-2xl border border-neutral-800 text-center border-dashed">
+                      <Users className="w-10 h-10 lg:w-12 lg:h-12 text-neutral-800 mx-auto mb-4" />
+                      <p className="text-xs lg:text-sm text-neutral-500 font-black uppercase tracking-widest opacity-60">No Proposals Yet</p>
                   </div>
                 )}
               </div>
             )}
 
-            <h2 className="text-2xl font-bold mb-4 text-white">Project Description</h2>
+            {/* Project Description */}
+            <div className={`p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl relative overflow-hidden ${project.status === 'closed' ? 'grayscale opacity-80' : ''}`}>
+              {/* Expired Ribbon */}
+              {project.status === 'closed' && (
+                <div className="absolute top-10 -right-12 bg-neutral-800 text-white border border-white/20 px-16 py-1 rotate-45 font-black text-[10px] lg:text-sm shadow-2xl z-20 pointer-events-none">
+                  EXPIRED
+                </div>
+              )}
+
+              <h2 className="text-xl lg:text-2xl font-black mb-4 text-white uppercase tracking-tight">Project Description</h2>
 
               {!canSeeFullDetails ? (
                 <div className="relative">
-                  <div className="prose max-w-none text-neutral-300 blur-md select-none">
+                  <div className="prose max-w-none text-neutral-300 blur-md select-none text-sm lg:text-base leading-relaxed">
                     {project.description.substring(0, 100)}...
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 rounded-xl">
-                    <Lock className="w-12 h-12 text-[#F24C20] mb-4" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 rounded-xl p-4 text-center">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-[#F24C20]/10 rounded-full flex items-center justify-center mb-4 border border-[#F24C20]/20">
+                      <Lock className="w-6 h-6 lg:w-8 lg:h-8 text-[#F24C20]" />
+                    </div>
                     <button
                       onClick={() => setShowUnlockModal(true)}
-                      className="px-8 py-3 bg-[#F24C20] text-white rounded-xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-transform"
+                      className="w-full sm:w-auto px-8 py-3 bg-[#F24C20] text-white rounded-xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all text-sm lg:text-base"
                     >
                       Unlock Project Details
                     </button>
-                    <p className="text-xs text-neutral-500 mt-4">1 Credit will be deducted</p>
+                    <p className="text-[10px] lg:text-xs text-neutral-500 mt-4 uppercase tracking-[0.2em] font-black">1 Credit will be deducted</p>
                   </div>
                 </div>
               ) : (
-                <div className="prose max-w-none text-neutral-300 whitespace-pre-line">
+                <div className="prose max-w-none text-neutral-300 whitespace-pre-line text-sm lg:text-base leading-relaxed">
                   {project.description}
                 </div>
               )}
@@ -496,41 +496,28 @@ export default function ProjectDetails() {
 
             {/* Project Attachments */}
             {canSeeFullDetails && project.attachments && project.attachments.length > 0 && (
-              <div className="p-8 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
-                <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-[#F24C20]" />
-                  Project Attachments
+              <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl">
+                <h2 className="text-xl lg:text-2xl font-black mb-6 text-white flex items-center gap-3">
+                  <FileText className="w-5 h-5 lg:w-6 lg:h-6 text-[#F24C20]" />
+                  Internal Documentation
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                   {project.attachments.map((file: string, index: number) => {
                     const fileName = file.split('/').pop() || `Attachment ${index + 1}`;
-                    const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(file);
-
                     return (
                       <a
                         key={index}
                         href={getImgUrl(file)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`group flex items-center gap-4 p-4 rounded-xl border transition-all ${isDarkMode
-                          ? 'bg-neutral-800/50 border-neutral-700 hover:border-[#F24C20]/50 hover:bg-neutral-800'
-                          : 'bg-white border-neutral-200 hover:border-[#F24C20]/50 hover:bg-neutral-50'
-                          }`}
+                        className="group flex items-center gap-3 p-3 lg:p-4 rounded-xl border border-neutral-800 bg-black/20 hover:border-[#F24C20]/50 transition-all overflow-hidden"
                       >
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${isDarkMode ? 'bg-neutral-900' : 'bg-neutral-100'
-                          }`}>
-                          <FileText className={`w-6 h-6 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`} />
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-neutral-800 flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-5 h-5 lg:w-6 lg:h-6 text-neutral-400 group-hover:text-[#F24C20] transition-colors" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                            {fileName}
-                          </div>
-                          <div className="text-xs text-neutral-500 uppercase font-medium">
-                            {file.split('.').pop()} Document
-                          </div>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Share2 className="w-4 h-4 text-white" />
+                          <div className="text-xs lg:text-sm font-bold text-white truncate">{fileName}</div>
+                          <div className="text-[10px] text-neutral-500 uppercase font-black">{file.split('.').pop()}</div>
                         </div>
                       </a>
                     );
@@ -540,19 +527,20 @@ export default function ProjectDetails() {
             )}
 
             {/* Skills Required */}
-            <div className="p-8 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
-              <h2 className="text-2xl font-bold mb-4 text-white">Skills Required</h2>
-              <div className="flex flex-wrap gap-2">
+            <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl">
+              <h2 className="text-xl lg:text-2xl font-black mb-4 text-white uppercase tracking-tight">Expertise Required</h2>
+              <div className="flex flex-wrap gap-2 lg:gap-3">
                 {project.skills_required?.map((skill: string) => (
                   <span
                     key={skill}
-                    className="px-4 py-2 bg-[#F24C20]/10 text-[#F24C20] rounded-lg font-medium border border-[#F24C20]/30 hover:bg-[#F24C20]/20 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 lg:px-4 lg:py-2 bg-neutral-800 text-neutral-300 text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-lg border border-neutral-700 hover:border-[#F24C20] hover:text-white transition-all cursor-default"
                   >
                     {skill}
                   </span>
                 ))}
               </div>
             </div>
+
 
 
             {/* More Projects from this Client */}
@@ -816,51 +804,59 @@ export default function ProjectDetails() {
                 </>
               ) : (
                 <>
-                  {/* ─── ACTIVE / OPEN PROJECT SIDEBAR ─── */}
-                  <div className={`p-6 bg-neutral-900/50 border-2 rounded-2xl shadow-xl relative overflow-hidden transition-all duration-300 ${
-                    project.status === 'closed' ? 'border-neutral-700 grayscale' : 'border-[#F24C20] shadow-[#F24C20]/10'
+                  <div className={`p-6 lg:p-8 bg-neutral-900 border-2 rounded-2xl shadow-xl relative overflow-hidden transition-all duration-300 ${
+                    project.status === 'closed' ? 'border-neutral-700 opacity-60' : 'border-[#F24C20] shadow-[#F24C20]/10'
                   }`}>
-                    {project.status === 'closed' && (
-                      <div className="absolute top-4 -right-8 bg-neutral-700 text-white px-10 py-1 rotate-45 font-bold text-xs shadow-lg border border-white/10 z-10">
+                  {project.status === 'closed' && (
+                      <div className="absolute top-4 -right-8 bg-neutral-700 text-white px-10 py-1 rotate-45 font-black text-[10px] shadow-lg border border-white/10 z-10">
                         EXPIRED
                       </div>
                     )}
 
                     <div className="text-center mb-6">
-                      <div className="text-3xl font-bold text-white mb-2">{project.budget_range}</div>
-                      <div className="text-sm text-neutral-400">Fixed Price</div>
+                      <div className="text-3xl lg:text-4xl font-black text-white mb-2">{project.budget_range}</div>
+                      <div className="text-[10px] lg:text-xs text-neutral-500 uppercase font-black tracking-[0.2em]">Fixed Compensation</div>
                     </div>
 
-                    <div className="space-y-3 mb-6">
+                    <div className="space-y-3">
                       {!isOwner && userRole === 'freelancer' && (
                         <>
-                          <button
-                            disabled={project.status === 'closed' || project.isApplied}
-                            onClick={() => {
-                              if (userVerified === false) {
-                                toast.error('KYC verification required to apply for projects. Please complete your profile in Settings.', {
-                                  action: { label: 'Settings', onClick: () => navigate('/dashboard/settings') }
-                                });
-                                return;
-                              }
-                              setShowApplyModal(true);
-                            }}
-                            className={`w-full py-3 rounded-lg font-medium transition-all duration-300 shadow-lg ${
-                              project.status === 'closed' 
-                                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
-                                : project.isApplied
-                                  ? 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 cursor-default shadow-none'
-                                  : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/30'
-                            }`}
-                          >
-                            {project.status === 'closed' ? 'Project Closed' : project.isApplied ? 'Applied' : 'Apply Now'}
-                          </button>
+                          {!canSeeFullDetails ? (
+                            <button
+                              onClick={() => setShowUnlockModal(true)}
+                              className="w-full py-4 rounded-xl bg-[#F24C20] hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs lg:text-sm transition-all shadow-xl shadow-[#F24C20]/20 flex items-center justify-center gap-2"
+                            >
+                              <Lock className="w-4 h-4 lg:w-5 lg:h-5" /> Unlock to Apply
+                            </button>
+                          ) : (
+                            <button
+                              disabled={project.status === 'closed' || project.isApplied}
+                              onClick={() => {
+                                if (userVerified === false) {
+                                  toast.error('KYC verification required', {
+                                    action: { label: 'Settings', onClick: () => navigate('/dashboard/settings') }
+                                  });
+                                  return;
+                                }
+                                setShowApplyModal(true);
+                              }}
+                              className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-xs lg:text-sm transition-all shadow-xl ${
+                                project.status === 'closed' 
+                                  ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed shadow-none' 
+                                  : project.isApplied
+                                    ? 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 cursor-default shadow-none'
+                                    : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-[#044071]/30'
+                              }`}
+                            >
+                              {project.status === 'closed' ? 'Project Closed' : project.isApplied ? 'Applied' : 'Apply for Project'}
+                            </button>
+                          )}
                           {!project.isApplied && (
                             <button
                               onClick={handleToggleSave}
                               disabled={favoriteLoading}
-                              className={`w-full py-3 rounded-lg font-medium transition-all duration-300 border-2 ${
-                                saved ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : 'bg-neutral-900 border-neutral-700 text-white hover:border-[#F24C20]'
+                              className={`w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs lg:text-sm transition-all border-2 ${
+                                saved ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-transparent border-neutral-800 text-neutral-400 hover:border-[#F24C20] hover:text-white'
                               }`}
                             >
                               <div className="flex items-center justify-center gap-2">
@@ -875,21 +871,17 @@ export default function ProjectDetails() {
                       {isOwner && project.status !== 'closed' && (
                         <button
                           onClick={() => navigate(`/dashboard/projects/edit/${project._id}`)}
-                          className="w-full py-3 bg-[#F24C20] hover:bg-orange-600 text-white rounded-lg font-bold transition-all shadow-lg shadow-[#F24C20]/20 flex items-center justify-center gap-2"
+                          className="w-full py-4 bg-[#F24C20] hover:bg-orange-600 text-white rounded-xl font-black uppercase tracking-widest text-xs lg:text-sm transition-all shadow-xl shadow-[#F24C20]/20 flex items-center justify-center gap-2"
                         >
-                          <FileText className="w-5 h-5" />
+                          <FileText className="w-4 h-4" />
                           Edit Project
                         </button>
                       )}
                       
-                      <div className="relative">
-                      <div 
-                        className="relative group/share"
-                        onMouseEnter={() => setShowShareModal(true)}
-                        onMouseLeave={() => setShowShareModal(false)}
-                      >
+                      <div className="relative group/share">
                         <button
-                          className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 border-2 border-neutral-700 rounded-lg font-medium text-white transition-all duration-300 flex items-center justify-center gap-2"
+                          onClick={() => setShowShareModal(!showShareModal)}
+                          className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl font-black uppercase tracking-widest text-xs lg:text-sm text-white transition-all flex items-center justify-center gap-2"
                         >
                           <Share2 className="w-4 h-4" /> Share
                         </button>
@@ -899,19 +891,19 @@ export default function ProjectDetails() {
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                              className="absolute bottom-full mb-2 left-0 right-0 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50 ring-1 ring-white/10"
+                              className="absolute bottom-full mb-3 left-0 right-0 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-2 z-50 ring-1 ring-white/10"
                             >
                               <div className="flex flex-col gap-1">
-                                <button onClick={() => handleShare('whatsapp')} className="flex items-center justify-between gap-3 p-3 hover:bg-emerald-500/10 rounded-lg transition-all group">
-                                  <span className="text-sm font-medium text-neutral-300 group-hover:text-emerald-400">Share on WhatsApp</span>
-                                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                                    <MessageCircle className="w-4 h-4 text-emerald-500 group-hover:text-white" />
+                                <button onClick={() => handleShare('whatsapp')} className="flex items-center justify-between gap-3 p-3 hover:bg-emerald-500/10 rounded-xl transition-all group">
+                                  <span className="text-[10px] lg:text-xs font-black uppercase tracking-widest text-neutral-400 group-hover:text-emerald-400">WhatsApp</span>
+                                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 text-emerald-500 group-hover:text-white transition-all">
+                                    <MessageCircle className="w-4 h-4" />
                                   </div>
                                 </button>
-                                <button onClick={() => handleShare('email')} className="flex items-center justify-between gap-3 p-3 hover:bg-[#F24C20]/10 rounded-lg transition-all group">
-                                  <span className="text-sm font-medium text-neutral-300 group-hover:text-[#F24C20]">Share via Email</span>
-                                  <div className="w-8 h-8 rounded-lg bg-[#F24C20]/10 flex items-center justify-center group-hover:bg-[#F24C20] group-hover:text-white transition-all">
-                                    <Mail className="w-4 h-4 text-[#F24C20] group-hover:text-white" />
+                                <button onClick={() => handleShare('email')} className="flex items-center justify-between gap-3 p-3 hover:bg-[#F24C20]/10 rounded-xl transition-all group">
+                                  <span className="text-[10px] lg:text-xs font-black uppercase tracking-widest text-neutral-400 group-hover:text-[#F24C20]">Email</span>
+                                  <div className="w-8 h-8 rounded-lg bg-[#F24C20]/10 flex items-center justify-center group-hover:bg-[#F24C20] text-[#F24C20] group-hover:text-white transition-all">
+                                    <Mail className="w-4 h-4" />
                                   </div>
                                 </button>
                               </div>
@@ -919,82 +911,111 @@ export default function ProjectDetails() {
                           )}
                         </AnimatePresence>
                       </div>
-                      </div>
                     </div>
                   </div>
-
                   {/* Client Profile Card */}
                   {!isOwner && (
-                    <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl relative overflow-hidden">
-                      <h3 className="font-bold mb-4 text-white">About the Client</h3>
+                    <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl relative overflow-hidden">
+                      <h3 className="text-[10px] lg:text-xs font-black text-neutral-500 uppercase tracking-[0.2em] mb-6">About the Client</h3>
                       {project.client_id ? (
                         <>
-                          <div className="flex items-center gap-3 mb-4">
+                          <div className="flex items-center gap-4 mb-6">
                             <ImageWithFallback
                               src={project.client_id?.profile_image ? (project.client_id.profile_image.startsWith('http') ? project.client_id.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${project.client_id.profile_image}`) : `https://ui-avatars.com/api/?name=${project.client_id?.full_name}`}
                               alt={project.client_id?.full_name}
-                              className="w-14 h-14 rounded-full object-cover"
+                              className="w-12 h-12 lg:w-16 lg:h-16 rounded-full object-cover border-2 border-neutral-800"
                             />
-                            <div>
-                              <Link to={`/dashboard/projects/explore?search=${project.client_id?.full_name}`} className="font-bold text-white hover:text-[#F24C20] transition-colors">
+                            <div className="min-w-0">
+                              <h4 className="font-black text-sm lg:text-lg text-white truncate hover:text-[#F24C20] transition-colors cursor-pointer">
                                 {project.client_id?.full_name}
-                              </Link>
-                              {project.client_id?.kyc_details?.is_verified && <CheckCircle className="w-4 h-4 text-blue-500 ml-1 inline" />}
-                              <div className="text-sm text-neutral-400">{project.location || 'Remote'}</div>
+                              </h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <MapPin className="w-3 h-3 text-[#F24C20]" />
+                                <span className="text-[10px] lg:text-xs text-neutral-500 font-medium">{project.location || 'India'}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between text-sm mb-4">
-                            <span className="text text-neutral-400">Rating</span>
-                            <div className="flex items-center gap-1 font-medium text-white">
-                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> 4.8
+                          <div className="grid grid-cols-2 gap-3 mb-6">
+                            <div className="p-3 bg-black/20 rounded-xl border border-neutral-800">
+                              <div className="text-[8px] lg:text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-1">Rating</div>
+                              <div className="flex items-center gap-1 font-black text-white text-xs lg:text-base">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> 4.8
+                              </div>
+                            </div>
+                            <div className="p-3 bg-green-500/5 rounded-xl border border-green-500/20 flex flex-col justify-center">
+                              <div className="flex items-center gap-1 text-green-400">
+                                <Shield className="w-3 h-3" />
+                                <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest leading-none">Verified</span>
+                              </div>
                             </div>
                           </div>
                           {!canSeeFullDetails && (
-                            <div className="text-center py-2 border-t border-neutral-800 mt-4">
-                              <button onClick={() => setShowUnlockModal(true)} className="text-[#F24C20] text-xs font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
-                                <Lock className="w-3 h-3" /> Unlock for Contact Info
-                              </button>
-                            </div>
+                            <button onClick={() => setShowUnlockModal(true)} className="w-full py-2 bg-[#F24C20]/10 text-[#F24C20] text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-lg border border-[#F24C20]/20 hover:bg-[#F24C20] hover:text-white transition-all flex items-center justify-center gap-2 mb-4">
+                              <Lock className="w-3 h-3" /> Unlock Profile
+                            </button>
                           )}
-                          <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/30 rounded-lg mb-4 text-green-400 text-sm font-medium">
-                            <Shield className="w-4 h-4" /> Payment Verified
-                          </div>
-                          <div className="text-xs text-neutral-500">
-                            Member since {new Date(project.client_id?.createdAt || project.createdAt).toLocaleDateString()}
+                          <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest opacity-60">
+                            Member since {new Date(project.client_id?.createdAt || project.createdAt).getFullYear()}
                           </div>
                         </>
                       ) : (
                         <div className="text-center py-6">
-                          <div className="w-16 h-16 bg-neutral-800 rounded-full mx-auto mb-4 flex items-center justify-center"><Lock className="w-6 h-6 text-neutral-600" /></div>
-                          <p className="text-sm text-neutral-500 mb-4 px-4">Client identity is hidden. Unlock the project to see profile and ratings.</p>
-                          <button onClick={() => setShowUnlockModal(true)} className="text-[#F24C20] font-bold text-sm hover:underline">Unlock Now</button>
+                          <div className="w-12 h-12 lg:w-16 lg:h-16 bg-black/40 border border-neutral-800 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <Lock className="w-6 h-6 text-neutral-700" />
+                          </div>
+                          <p className="text-[10px] lg:text-xs text-neutral-500 font-medium px-4 leading-relaxed mb-4 italic text-center">Identity hidden. Express interest to view full profile.</p>
+                          <button onClick={() => setShowUnlockModal(true)} className="text-[#F24C20] font-black text-[10px] uppercase tracking-widest hover:underline">Unlock Now</button>
                         </div>
                       )}
                     </div>
                   )}
 
                   {/* Project Activity */}
-                  <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/50 border border-neutral-800 rounded-2xl">
-                    <h3 className="font-bold mb-4 text-white">Project Activity</h3>
-                    <div className="flex items-center justify-between text-sm text-neutral-400">
-                      <div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Proposals</div>
-                      <span className="font-bold text-white">
-                        {project.proposals <= 5 ? 'Less than 5' : project.proposals <= 10 ? '5-10' : project.proposals <= 20 ? '10-20' : '20+'}
-                      </span>
+                  <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl">
+                    <h3 className="text-[10px] lg:text-xs font-black text-neutral-500 uppercase tracking-widest mb-6 border-b border-neutral-800 pb-4">Project Activity</h3>
+                    <div className="space-y-4 font-bold">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-neutral-500">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-xs lg:text-sm">Proposals</span>
+                        </div>
+                        <span className="text-white text-xs lg:text-base">
+                          {project.stats?.proposals || project.proposals || 0}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 text-neutral-500">
+                          <MessageCircle className="w-4 h-4" />
+                          <span className="text-xs lg:text-sm">Conversations</span>
+                        </div>
+                        <span className="text-white text-xs lg:text-base">
+                          {project.stats?.interviewing || 0}
+                        </span>
+                      </div>
+                      <div className="pt-4 border-t border-neutral-800 flex items-center justify-between text-[10px] text-neutral-600 uppercase font-black">
+                        <span>Last Updated</span>
+                        <span>{project.updatedAt ? new Date(project.updatedAt).toLocaleDateString() : 'Today'}</span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Quick Questions */}
-                  <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-2xl">
-                    <h3 className="font-bold mb-4 text-white">Quick Questions</h3>
-                    <div className="space-y-3">
+                  <div className="p-6 lg:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl">
+                    <h3 className="text-[10px] lg:text-xs font-black text-neutral-500 uppercase tracking-widest mb-6 border-b border-neutral-800 pb-4">Quick Questions</h3>
+                    <div className="space-y-4">
                       <details className="group">
-                        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">Is this fixed or hourly?</summary>
-                        <p className="mt-2 text-sm text-neutral-400">This is a {project.budget_range ? 'Fixed/Negotiable' : 'N/A'} project.</p>
+                        <summary className="flex items-center justify-between cursor-pointer text-xs lg:text-sm font-bold text-neutral-300 hover:text-[#F24C20] transition-colors">
+                          Is this fixed or hourly?
+                          <span className="text-[#F24C20] group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <p className="mt-3 text-[11px] lg:text-xs text-neutral-500 leading-relaxed font-medium">This is a {project.budget_range ? 'Fixed/Negotiated' : 'N/A'} project. Payments are released upon milestone completion.</p>
                       </details>
                       <details className="group">
-                        <summary className="flex items-center justify-between cursor-pointer text-sm font-medium text-neutral-300 hover:text-[#F24C20] transition-colors">Can I submit a sample?</summary>
-                        <p className="mt-2 text-sm text-neutral-400">Yes, you can include relevant portfolio samples in your proposal.</p>
+                        <summary className="flex items-center justify-between cursor-pointer text-xs lg:text-sm font-bold text-neutral-300 hover:text-[#F24C20] transition-colors">
+                          Can I submit a sample?
+                          <span className="text-[#F24C20] group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <p className="mt-3 text-[11px] lg:text-xs text-neutral-500 leading-relaxed font-medium">Yes, you can include relevant portfolio samples or case studies in your proposal message.</p>
                       </details>
                     </div>
                   </div>

@@ -165,20 +165,24 @@ export default function PricingSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
-                    className={`flex gap-6 p-6 rounded-[32px] border ${item.color} backdrop-blur-sm group hover:scale-[1.02] transition-all cursor-pointer`}
+                    className={`flex gap-4 sm:gap-6 p-4 sm:p-6 rounded-[2rem] sm:rounded-[32px] border ${item.color} backdrop-blur-sm group hover:scale-[1.02] transition-all cursor-pointer`}
                     onClick={handleNavigate}
                   >
                     <div className={`w-14 h-14 rounded-2xl ${item.iconBg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
                       <item.icon className="w-7 h-7" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2 gap-4">
-                        <h3 className="text-lg font-black text-white uppercase tracking-tight italic">{item.role}</h3>
-                        <span className="text-[#F24C20] font-black text-xs uppercase shrink-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1 sm:gap-4">
+                        <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight italic truncate sm:whitespace-normal">
+                          {item.role}
+                        </h3>
+                        <span className="text-[#F24C20] font-black text-[10px] sm:text-xs uppercase shrink-0 whitespace-nowrap bg-[#F24C20]/10 px-2 py-0.5 rounded-full border border-[#F24C20]/20 sm:bg-transparent sm:px-0 sm:py-0 sm:border-0 w-fit">
                           Starts at {startPrice || "Custom"}
                         </span>
                       </div>
-                      <p className="text-sm text-neutral-400 leading-relaxed">{item.desc}</p>
+                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed line-clamp-2 md:line-clamp-none">
+                        {item.desc}
+                      </p>
                     </div>
                   </motion.div>
                 );

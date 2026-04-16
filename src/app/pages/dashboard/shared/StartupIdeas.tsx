@@ -76,17 +76,38 @@ export default function StartupIdeas() {
 
   const fetchRecommendedPlan = async () => {
     try {
-      const res = await api.get('/subscription-plans');
-      if (res.data.success) {
-        const activePlans = res.data.data.filter((p: any) => p.status === 'enabled');
-        const startupPlans = activePlans.filter((p: any) => 
-            p.startup_idea_post_limit > 0 || 
-            (p.group && p.group.includes('Start-Up Idea Creator Plans'))
-        );
+      const [plansRes, statusRes] = await Promise.all([
+        api.get('/subscription-plans'),
+        api.get('/subscription/my-status', { skipToast: true } as any).catch(() => null)
+      ]);
+
+      if (plansRes.data.success) {
+        const subscription = statusRes?.data?.subscription;
+        const currentPlanId = subscription?.plan_id?._id || subscription?.plan_id;
+        const currentStartupLimit = Number(subscription?.plan_id?.startup_idea_post_limit || 0);
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const roles = currentUser?.roles || (currentUser?.role ? [currentUser.role] : []);
+
+        const roleMatches = (plan: any) => {
+          const targetRoles = Array.isArray(plan.target_role) ? plan.target_role : [plan.target_role].filter(Boolean);
+          return targetRoles.includes('both') || targetRoles.some((role: string) => roles.includes(role)) || targetRoles.includes('startup_creator');
+        };
+
+        const activePlans = plansRes.data.data.filter((p: any) => p.status === 'enabled');
+        const startupPlans = activePlans.filter((p: any) => {
+          const planLimit = Number(p.startup_idea_post_limit || 0);
+          const isCurrentPlan = String(p._id) === String(currentPlanId);
+          return !isCurrentPlan && p.price > 0 && planLimit > currentStartupLimit && roleMatches(p);
+        });
+
         if (startupPlans.length > 0) {
-          // You could sort by price and pick the most affordable, or any featured one
           const featured = startupPlans.find((p: any) => p.featured);
-          setRecommendedPlan(featured || startupPlans[0]);
+          setRecommendedPlan(featured || startupPlans.sort((a: any, b: any) => a.price - b.price)[0]);
+        } else {
+          const fallbackPaidPlan = activePlans
+            .filter((p: any) => p.price > 0 && Number(p.startup_idea_post_limit || 0) > 0 && roleMatches(p))
+            .sort((a: any, b: any) => a.price - b.price)[0];
+          setRecommendedPlan(fallbackPaidPlan || null);
         }
       }
     } catch (err) {
@@ -534,29 +555,29 @@ export default function StartupIdeas() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-[40px] bg-[#044071] p-10 lg:p-16 text-white">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/20 to-transparent pointer-events-none" />
-        <div className="relative z-10 max-w-2xl">
+      <div className="relative overflow-hidden rounded-[32px] bg-[#044071] px-8 py-9 lg:px-12 lg:py-11 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(242,76,32,0.24),transparent_34%),linear-gradient(120deg,rgba(4,64,113,0),rgba(255,255,255,0.08))] pointer-events-none" />
+        <div className="relative z-10 max-w-3xl">
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/10 text-sm font-medium mb-6"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/10 text-sm font-medium mb-5"
             >
                 <Rocket className="w-4 h-4 text-orange-400" />
                 Go Experts Startup Hub
             </motion.div>
-            <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-6">
+            <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-4 max-w-2xl">
               Turn your startup idea into an <span className="text-orange-400">investable</span> opportunity.
             </h1>
-            <p className="text-blue-100 text-lg mb-10 leading-relaxed">
+            <p className="text-blue-100 text-base lg:text-lg mb-7 leading-relaxed max-w-2xl">
               Submit your project concepts through a structured workflow, showcase your vision with clarity, and connect with partners using smart matching.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap items-center gap-3">
                 <button 
                     onClick={handleStartSubmission}
-                    className="px-10 py-4 bg-[#F24C20] rounded-2xl font-bold hover:scale-105 transition-all shadow-xl shadow-[#F24C20]/20"
+                    className="px-7 py-3 bg-[#F24C20] rounded-2xl font-bold hover:scale-105 transition-all shadow-xl shadow-[#F24C20]/20"
                 >
                     Submit Your Idea
                 </button>
@@ -565,19 +586,19 @@ export default function StartupIdeas() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-neutral-900 p-4 rounded-3xl border border-neutral-200 dark:border-neutral-800">
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between bg-white dark:bg-neutral-900 p-3 rounded-2xl border border-neutral-200 dark:border-neutral-800">
+          <div className="flex items-center gap-2 overflow-x-auto w-full pb-1 lg:pb-0 hide-scrollbar">
               {['All', ...categories].map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-6 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-[#F24C20] text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200'}`}
+                    className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/15' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`}
                   >
                       {cat}
                   </button>
               ))}
           </div>
-          <div className="relative w-full md:w-64">
+          <div className="relative w-full lg:w-72 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input 
                 type="text" 
@@ -585,18 +606,18 @@ export default function StartupIdeas() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && fetchIdeas()}
-                className="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl border-none outline-none focus:ring-1 focus:ring-[#F24C20]"
+                className="w-full pl-10 pr-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl border-none outline-none focus:ring-1 focus:ring-[#F24C20]"
               />
           </div>
       </div>
 
       {/* Ideas Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1,2,3].map(i => <div key={i} className="h-64 rounded-3xl bg-neutral-100 dark:bg-neutral-800 animate-pulse" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1,2,3].map(i => <div key={i} className="h-56 rounded-3xl bg-neutral-100 dark:bg-neutral-800 animate-pulse" />)}
         </div>
       ) : ideas.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ideas.map((idea) => (
                 <motion.div 
                     layout

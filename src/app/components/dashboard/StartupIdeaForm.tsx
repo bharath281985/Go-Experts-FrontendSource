@@ -134,17 +134,17 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
     <div className={`max-w-5xl mx-auto rounded-[3.5rem] border overflow-hidden transition-all duration-700 ${isDarkMode ? 'bg-neutral-950/80 border-neutral-800 backdrop-blur-3xl' : 'bg-white border-neutral-200'}`}>
       
       {/* Header with Progress */}
-      <div className="relative p-10 md:p-14 pb-4">
-        <div className="flex items-center justify-between mb-8">
+      <div className="relative p-6 md:p-14 pb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
             <div>
-                <h2 className={`text-4xl font-black italic tracking-tighter flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                    <Rocket className="w-10 h-10 text-[#F24C20]" />
+                <h2 className={`text-2xl md:text-4xl font-black italic tracking-tighter flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                    <Rocket className="w-8 h-8 md:w-10 md:h-10 text-[#F24C20]" />
                     New Pitch <span className="text-[#F24C20]">Submission</span>
                 </h2>
-                <p className="mt-2 text-xs font-bold text-neutral-500 uppercase tracking-[0.3em]">Igniting the future of innovation.</p>
+                <p className="mt-2 text-[10px] font-bold text-neutral-500 uppercase tracking-[0.3em]">Igniting the future of innovation.</p>
             </div>
-            <button onClick={onCancel} className="p-3 rounded-2xl bg-neutral-900 text-neutral-500 hover:text-white transition-all">
-                <X className="w-6 h-6" />
+            <button onClick={onCancel} className="absolute top-6 right-6 p-2 md:p-3 rounded-2xl bg-neutral-900 text-neutral-500 hover:text-white transition-all">
+                <X className="w-5 h-5 md:w-6 md:h-6" />
             </button>
         </div>
 
@@ -176,14 +176,14 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
       </div>
 
       {/* Main Content Area */}
-      <div className="p-10 md:p-14 pt-0 min-h-[500px]">
+      <div className="p-6 md:p-14 pt-0 min-h-[500px]">
         <AnimatePresence mode="wait">
             <motion.div
                 key={currentStep}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-10"
+                className="space-y-6 md:y-10"
             >
                 {/* --- STEP 1: THE VISION --- */}
                 {currentStep === 1 && (

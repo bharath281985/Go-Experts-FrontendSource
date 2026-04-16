@@ -30,7 +30,16 @@ export default function FeaturedProjectsSection() {
     try {
       const res = await api.get('/projects?is_featured=true');
       if (res.data.success) {
-        setProjects(res.data.data.slice(0, 8)); // Fetch more to check if > 4 exist
+        const userStr = localStorage.getItem('user');
+        const currentUser = userStr ? JSON.parse(userStr) : null;
+        const currentUserId = currentUser?._id;
+
+        const filtered = res.data.data.filter((p: any) => {
+          const pClientId = p.client_id?._id || p.client_id;
+          return pClientId !== currentUserId;
+        });
+
+        setProjects(filtered.slice(0, 8)); // Fetch more to check if > 4 exist
       }
     } catch (error) {
       console.error('Error fetching featured projects:', error);

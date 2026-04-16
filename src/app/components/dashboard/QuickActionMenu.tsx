@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus,
   Briefcase,
-  Package,
+  Search,
+  Users,
   MessageSquare,
-  Bell,
   Wallet,
   HelpCircle,
   X
@@ -26,13 +26,19 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
       label: 'Post a Project',
       icon: Plus,
       path: '/dashboard/projects/create',
-      color: 'bg-[#F24C20]'
+      color: 'bg-orange-600'
     },
     {
-      label: 'Go Talent',
-      icon: Briefcase,
+      label: 'Find Talent',
+      icon: Users,
       path: '/talent',
       color: 'bg-[#044071]'
+    },
+    {
+      label: 'My Projects',
+      icon: Briefcase,
+      path: '/dashboard/projects/my-projects',
+      color: 'bg-[#F24C20]'
     },
     {
       label: 'Messages',
@@ -40,13 +46,6 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
       path: '/dashboard/messages',
       color: 'bg-blue-500',
       badge: 5
-    },
-    {
-      label: 'Notifications',
-      icon: Bell,
-      path: '/dashboard',
-      color: 'bg-green-500',
-      badge: 3
     },
     {
       label: 'Help',
@@ -58,16 +57,22 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
 
   const freelancerActions = [
     {
-      label: 'Go Projects',
+      label: 'Active Projects',
       icon: Briefcase,
-      path: '/projects',
+      path: '/dashboard/projects/my-projects',
       color: 'bg-[#F24C20]'
     },
     {
-      label: 'My Proposals',
-      icon: Package,
-      path: '/dashboard/proposals',
+      label: 'Find Work',
+      icon: Search,
+      path: '/projects',
       color: 'bg-[#044071]'
+    },
+    {
+      label: 'Wallet',
+      icon: Wallet,
+      path: '/dashboard/wallet',
+      color: 'bg-green-600'
     },
     {
       label: 'Messages',
@@ -75,13 +80,6 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
       path: '/dashboard/messages',
       color: 'bg-blue-500',
       badge: 3
-    },
-    {
-      label: 'Notifications',
-      icon: Bell,
-      path: '/dashboard',
-      color: 'bg-green-500',
-      badge: 2
     },
     {
       label: 'Help',
@@ -94,7 +92,20 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
   const actions = userType === 'client' ? clientActions : freelancerActions;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className="fixed bottom-4 md:bottom-8 left-4 md:left-8 z-50">
+      {/* Backdrop for mobile */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[-1] lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Action Menu Items */}
       <AnimatePresence>
         {isOpen && (
@@ -117,20 +128,20 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
                   <Link
                     to={action.path}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 pl-4 pr-6 py-3 rounded-full shadow-xl backdrop-blur-xl border transition-all hover:scale-105 ${isDarkMode
+                    className={`flex items-center gap-3 pl-3 md:pl-4 pr-5 md:pr-6 py-2.5 md:py-3 rounded-full shadow-xl backdrop-blur-xl border transition-all active:scale-95 lg:hover:scale-105 ${isDarkMode
                       ? 'bg-neutral-900/95 border-neutral-800 hover:border-neutral-700'
                       : 'bg-white/95 border-neutral-200 hover:border-neutral-300'
                       }`}
                   >
-                    <div className={`relative p-2 rounded-full ${action.color}`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className={`relative p-2 rounded-full ${action.color} shadow-lg shadow-black/20`}>
+                      <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
                       {action.badge && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                        <span className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center border-2 border-neutral-900">
                           {action.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`font-medium ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                    <span className={`text-sm md:text-base font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
                       {action.label}
                     </span>
                   </Link>
@@ -146,7 +157,7 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all ${isOpen
+        className={`w-14 h-14 md:w-16 md:h-16 rounded-full shadow-2xl flex items-center justify-center transition-all ${isOpen
           ? 'bg-red-500 hover:bg-red-600'
           : 'bg-gradient-to-br from-[#F24C20] to-orange-600 hover:from-orange-600 hover:to-[#F24C20]'
           }`}
@@ -156,9 +167,9 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
           transition={{ duration: 0.2 }}
         >
           {isOpen ? (
-            <X className="w-7 h-7 text-white" />
+            <X className="w-6 h-6 md:w-7 md:h-7 text-white" />
           ) : (
-            <Plus className="w-7 h-7 text-white" />
+            <Plus className="w-6 h-6 md:w-7 md:h-7 text-white" />
           )}
         </motion.div>
       </motion.button>

@@ -35,8 +35,9 @@ function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title:
   );
 }
 
-function PlanCard({ plan, buying, onChoose }: { plan: any; buying: string | null; onChoose: (id: string) => void }) {
+function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying: string | null; onChoose: (id: string) => void; currentPlanId?: string | null }) {
   const isBuying = buying === plan._id;
+  const isCurrentPlan = currentPlanId && String(currentPlanId) === String(plan._id);
 
   const themes: any = {
     green: {
@@ -86,11 +87,19 @@ function PlanCard({ plan, buying, onChoose }: { plan: any; buying: string | null
   return (
     <div
       className={`relative rounded-[40px] border p-8 shadow-2xl transition-all duration-500 flex flex-col h-full ${
-        plan.featured
-          ? `${theme.border} bg-gradient-to-b ${theme.glow} via-[#0b0d14] to-[#0b0d14] ${theme.shadow}`
-          : "border-white/10 bg-[#0b0d14] hover:border-white/20"
+        isCurrentPlan
+          ? `border-[#F24C20] bg-gradient-to-b ${theme.glow} via-[#0b0d14] to-[#0b0d14] shadow-[#F24C20]/20`
+          : plan.featured
+            ? `${theme.border} bg-gradient-to-b ${theme.glow} via-[#0b0d14] to-[#0b0d14] ${theme.shadow}`
+            : "border-white/10 bg-[#0b0d14] hover:border-white/20"
       }`}
     >
+      {isCurrentPlan && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#F24C20] text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2 rounded-full shadow-lg z-10 whitespace-nowrap">
+          Your Active Plan
+        </div>
+      )}
+
       {plan.badge ? (
         <div className={`absolute right-6 top-6 rounded-full border border-white/10 ${theme.badge} px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white`}>
           {plan.badge}
@@ -160,18 +169,25 @@ function PlanCard({ plan, buying, onChoose }: { plan: any; buying: string | null
       </div>
 
       <motion.button 
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        disabled={!!buying}
+        whileHover={!isCurrentPlan ? { scale: 1.02 } : {}}
+        whileTap={!isCurrentPlan ? { scale: 0.98 } : {}}
+        disabled={!!buying || isCurrentPlan}
         onClick={() => onChoose(plan._id)}
         className={`w-full rounded-[20px] px-5 py-4 text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-            plan.featured 
-            ? `${theme.btn} text-white shadow-xl` 
-            : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
+            isCurrentPlan
+            ? "bg-white/10 text-slate-400 border border-white/10 cursor-default"
+            : plan.featured 
+              ? `${theme.btn} text-white shadow-xl` 
+              : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
         }`}
       >
         {isBuying ? (
             <Loader2 className="w-5 h-5 animate-spin" />
+        ) : isCurrentPlan ? (
+            <>
+                <BadgeCheck className="w-5 h-5 mr-1 text-[#F24C20]" />
+                Current Plan
+            </>
         ) : (
             <>
                 {plan.cta || 'Choose Plan'}
@@ -187,22 +203,46 @@ export default function SubscriptionPlansPricingPage() {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const settings = useSiteSettings();
 
   useEffect(() => {
-    const fetchPlans = async () => {
+    // Immediate fallback from localStorage
+    const localUser = localStorage.getItem('user');
+    if (localUser) {
+        try {
+            const userData = JSON.parse(localUser);
+            if (userData.subscription_details?.plan_id) {
+                setCurrentPlanId(userData.subscription_details.plan_id);
+            }
+        } catch (e) {}
+    }
+
+    const fetchData = async () => {
       try {
-        const res = await api.get('/subscription-plans');
-        if (res.data.success) {
-          setPlans(res.data.data.filter((p: any) => p.status === 'enabled'));
+        setLoading(true);
+        // Fetch Plans
+        const plansRes = await api.get('/subscription-plans');
+        if (plansRes.data.success) {
+          setPlans(plansRes.data.data.filter((p: any) => p.status === 'enabled'));
+        }
+
+        // Fetch User Subscription (only if token exists)
+        if (localStorage.getItem('token')) {
+            const subRes = await api.get('/subscription/my-status');
+            if (subRes.data.success && subRes.data.subscription) {
+                const sub = subRes.data.subscription;
+                const planId = sub.plan_id?._id || sub.plan_id;
+                setCurrentPlanId(planId);
+            }
         }
       } catch (error) {
-        console.error("Error fetching pricing plans:", error);
+        console.error("Error fetching pricing data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchPlans();
+    fetchData();
   }, []);
 
   const handleChoosePlan = async (planId: string) => {
@@ -222,7 +262,15 @@ export default function SubscriptionPlansPricingPage() {
   };
 
   const groupedPlans = plans.reduce((acc: any, plan: any) => {
-    const group = plan.group || "Other Plans";
+    const isAuthed = !!localStorage.getItem('token') || !!localStorage.getItem('user');
+    const isFreeTrial = plan.price === 0 || (typeof plan.group === 'string' && plan.group.includes('Trial')) || (Array.isArray(plan.group) && plan.group.some((g: any) => g.includes('Trial')));
+
+    // If user is logged in, never show them a "Free Trial" option (they already had/have it)
+    if (isAuthed && isFreeTrial) {
+      return acc;
+    }
+
+    const group = Array.isArray(plan.group) ? plan.group[0] : (plan.group || "Other Plans");
     if (!acc[group]) acc[group] = [];
     acc[group].push(plan);
     return acc;
@@ -366,25 +414,25 @@ export default function SubscriptionPlansPricingPage() {
           return (
             <section key={group.name} className="border-t border-white/5 py-24">
               <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-16">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
                   <div className="max-w-3xl">
                     <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#F24C20]">
                       <DynamicIcon name={group.icon} className="h-3.5 w-3.5" />
                       {group.name}
                     </div>
-                    <h2 className="mt-6 text-3xl font-black italic uppercase tracking-tighter sm:text-5xl text-white">
+                    <h2 className="mt-4 md:mt-6 text-3xl font-black italic uppercase tracking-tighter sm:text-5xl text-white">
                       {group.label}
                     </h2>
-                    <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">{group.description}</p>
+                    <p className="mt-3 md:mt-4 text-sm leading-7 text-slate-400 sm:text-base">{group.description}</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <div className="w-fit rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
                     Annual subscription pricing
                   </div>
                 </div>
 
                 <div className="grid gap-8 lg:grid-cols-3">
                   {groupedPlans[group.name].sort((a: any, b: any) => a.price - b.price).map((plan: any) => (
-                    <PlanCard key={plan._id} plan={plan} buying={buying} onChoose={handleChoosePlan} />
+                    <PlanCard key={plan._id} plan={plan} buying={buying} onChoose={handleChoosePlan} currentPlanId={currentPlanId} />
                   ))}
                 </div>
               </div>
@@ -402,49 +450,66 @@ export default function SubscriptionPlansPricingPage() {
               description={comboPlanGroup.description}
             />
 
-            {groupedPlans[comboPlanGroup.name].map((plan: any) => (
-              <motion.div 
-                key={plan._id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="mx-auto mt-12 max-w-4xl rounded-[48px] border border-[#F24C20]/30 bg-gradient-to-r from-[#F24C20]/15 via-[#0b0d14] to-[#044071]/15 p-8 shadow-2xl shadow-black/20 sm:p-10"
-              >
-                <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between mb-10">
-                  <div>
-                    <div className="inline-flex rounded-full border border-[#F24C20]/30 bg-[#F24C20]/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-4">
-                        <DynamicIcon name={plan.icon || 'Star'} className="w-3.5 h-3.5 mr-2 inline" />
-                        {plan.badge || 'Best Seller'}
+            {groupedPlans[comboPlanGroup.name].map((plan: any) => {
+              const isCurrentPlan = currentPlanId && String(currentPlanId) === String(plan._id);
+              return (
+                <motion.div 
+                  key={plan._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className={`mx-auto mt-12 max-w-4xl rounded-[48px] border p-8 shadow-2xl shadow-black/20 sm:p-10 ${
+                    isCurrentPlan ? 'border-[#F24C20] bg-gradient-to-r from-[#F24C20]/20 via-[#0b0d14] to-[#044071]/20' : 'border-[#F24C20]/30 bg-gradient-to-r from-[#F24C20]/15 via-[#0b0d14] to-[#044071]/15'
+                  }`}
+                >
+                  <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between mb-10">
+                    <div>
+                      <div className="inline-flex rounded-full border border-[#F24C20]/30 bg-[#F24C20]/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-4">
+                          <DynamicIcon name={plan.icon || 'Star'} className="w-3.5 h-3.5 mr-2 inline" />
+                          {isCurrentPlan ? 'YOUR CURRENT PLAN' : (plan.badge || 'Best Seller')}
+                      </div>
+                      <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">{plan.name}</h3>
+                      <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                        {plan.description || "Ideal for freelancers who are also founders, or clients who also invest. Get access across different roles in one bundled subscription."}
+                      </p>
                     </div>
-                    <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">{plan.name}</h3>
-                    <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-                      {plan.description || "Ideal for freelancers who are also founders, or clients who also invest. Get access across different roles in one bundled subscription."}
-                    </p>
-                  </div>
 
-                  <div className="rounded-[32px] border border-white/10 bg-[#0b0d14] p-8 text-center min-w-[240px]">
-                    <div className="text-xs font-black uppercase tracking-widest text-[#F24C20] mb-2">Yearly Price</div>
-                    <div className="text-4xl font-black text-white italic">₹{plan.price.toLocaleString()}</div>
-                    <button 
-                      onClick={() => handleChoosePlan(plan._id)}
-                      disabled={!!buying}
-                      className="mt-6 w-full rounded-2xl bg-[#F24C20] px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition hover:bg-[#F24C20]/80 flex items-center justify-center gap-2"
-                    >
-                      {buying === plan._id ? <Loader2 className="w-5 h-5 animate-spin" /> : (plan.cta || 'Choose All Access')}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  {plan.features.map((item: string) => (
-                    <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/5 bg-white/5 p-4 text-sm text-slate-300">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F24C20]" />
-                      <span>{item}</span>
+                    <div className="rounded-[32px] border border-white/10 bg-[#0b0d14] p-6 md:p-8 text-center min-w-[240px]">
+                      <div className="text-xs font-black uppercase tracking-widest text-[#F24C20] mb-2">Yearly Price</div>
+                      <div className="text-4xl font-black text-white italic">₹{plan.price.toLocaleString()}</div>
+                      <button 
+                        onClick={() => handleChoosePlan(plan._id)}
+                        disabled={!!buying || isCurrentPlan}
+                        className={`mt-6 w-full rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition flex items-center justify-center gap-2 ${
+                          isCurrentPlan 
+                            ? 'bg-white/10 text-slate-400 border border-white/10 cursor-default' 
+                            : 'bg-[#F24C20] hover:bg-[#F24C20]/80'
+                        }`}
+                      >
+                        {buying === plan._id ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : isCurrentPlan ? (
+                          <>
+                            <BadgeCheck className="w-5 h-5 mr-1 text-[#F24C20]" />
+                            Current Plan
+                          </>
+                        ) : (
+                          (plan.cta || 'Choose All Access')
+                        )}
+                      </button>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {plan.features.map((item: string) => (
+                      <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/5 bg-white/5 p-4 text-sm text-slate-300">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F24C20]" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -456,22 +521,27 @@ export default function SubscriptionPlansPricingPage() {
           description="A transparent subscription structure makes it easy for users to understand what is included at each level."
         />
 
-        <div className="mt-12 overflow-hidden rounded-[40px] border border-white/10 bg-[#0b0d14]">
-          <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-xs font-black uppercase tracking-widest text-white">
-            <div className="p-6">Feature</div>
-            <div className="p-6">Freelancer</div>
-            <div className="p-6">Client</div>
-            <div className="p-6">Creator</div>
-            <div className="p-6">Investor</div>
-          </div>
-          {compareRows.map((row) => (
-            <div key={row.label} className="grid grid-cols-5 border-b border-white/5 text-sm text-slate-400 last:border-b-0 hover:bg-white/5 transition-colors">
-              <div className="p-6 font-bold text-white">{row.label}</div>
-              {row.values.map((value, index) => (
-                <div key={`${row.label}-${index}`} className="p-6">{value}</div>
-              ))}
+        <div className="mt-12 overflow-x-auto rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0d14] custom-scrollbar">
+          <div className="min-w-[800px]">
+            <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-[10px] md:text-xs font-black uppercase tracking-widest text-white">
+              <div className="p-4 md:p-6">Feature</div>
+              <div className="p-4 md:p-6 text-center">Freelancer</div>
+              <div className="p-4 md:p-6 text-center">Client</div>
+              <div className="p-4 md:p-6 text-center">Creator</div>
+              <div className="p-4 md:p-6 text-center">Investor</div>
             </div>
-          ))}
+            {compareRows.map((row) => (
+              <div key={row.label} className="grid grid-cols-5 border-b border-white/5 text-xs md:text-sm text-slate-400 last:border-b-0 hover:bg-white/5 transition-colors">
+                <div className="p-4 md:p-6 font-bold text-white">{row.label}</div>
+                {row.values.map((value, index) => (
+                  <div key={`${row.label}-${index}`} className="p-4 md:p-6 text-center">{value}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 flex justify-center lg:hidden">
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest animate-pulse">Swipe left to see more →</p>
         </div>
       </section>
 

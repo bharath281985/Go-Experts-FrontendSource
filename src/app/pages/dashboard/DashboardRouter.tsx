@@ -102,6 +102,10 @@ export default function DashboardRouter() {
             path="projects/create"
             element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />}
           />
+          <Route
+            path="projects/edit/:id"
+            element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />}
+          />
 
           {/* Gigs */}
           {/* <Route path="gigs/orders" element={<GigOrders />} />

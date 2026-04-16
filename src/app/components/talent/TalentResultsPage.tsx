@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import {
   Star, MapPin, CheckCircle, Heart, Clock, IndianRupee,
   SlidersHorizontal, Search, Award, Zap, TrendingUp,
-  Loader2
+  Loader2, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/app/components/Header';
@@ -40,6 +40,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
     preferences: answers.preferences || []
   });
   const [searchTerm, setSearchTerm] = useState(answers.searchTerm || '');
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
   
@@ -231,21 +232,33 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <TrendingUp className="w-8 h-8 text-[#F24C20]" />
-                <h1 className="text-4xl font-bold text-white">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-3 lg:gap-4 mb-4">
+                <TrendingUp className="w-8 h-8 lg:w-10 lg:h-10 text-[#F24C20]" />
+                <h1 className="text-2xl lg:text-4xl font-bold text-white">
                   We found <span className="text-[#F24C20]">{filteredTalents.length}</span> world-class experts
                 </h1>
               </div>
-              <p className="text-xl text-neutral-400">Ready to transform your vision into reality</p>
+              <p className="text-lg lg:text-xl text-neutral-400">Ready to transform your vision into reality</p>
             </motion.div>
           </div>
         </section>
 
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex gap-8">
-              <aside className="w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
+        <section className="py-8 lg:py-12">
+          <div className="max-w-7xl mx-auto px-4 lg:px-6">
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Mobile Filter Toggle */}
+              <div className="lg:hidden">
+                <button 
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white font-bold shadow-xl active:scale-95 transition-all"
+                >
+                  <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
+                  Refine Your Search
+                </button>
+              </div>
+
+              {/* Sidebar / Filters Overlay */}
+              <aside className="hidden lg:block w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
                 <div className="p-6 rounded-3xl bg-neutral-900/50 border border-neutral-800 backdrop-blur-xl">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
@@ -328,20 +341,94 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                 </div>
               </aside>
 
+              {/* Mobile Filter Drawer */}
+              <div className={`lg:hidden fixed inset-0 z-[100] transition-all duration-300 ${isMobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileFiltersOpen(false)} />
+                <div className={`absolute bottom-0 left-0 right-0 max-h-[90vh] bg-neutral-900 rounded-t-[2.5rem] border-t border-neutral-800 p-6 overflow-y-auto transition-transform duration-300 ${isMobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-bold text-white">Filters</h3>
+                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 rounded-full bg-neutral-800 text-neutral-400"><XCircle className="w-6 h-6" /></button>
+                  </div>
+                  
+                  <div className="space-y-8 pb-8">
+                    {/* Copy of filters for mobile */}
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Keywords</label>
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Name, role, or skill..."
+                        className="w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-white text-sm focus:outline-none focus:border-[#F24C20]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Specialization</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => setFilters(prev => ({ ...prev, role: '' }))}
+                          className={`p-3 rounded-xl border text-sm font-bold transition-all ${
+                            !filters.role ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                          }`}
+                        >
+                          All Roles
+                        </button>
+                        {availableCategories.slice(0, 8).map(cat => (
+                          <button
+                            key={cat._id}
+                            onClick={() => setFilters(prev => ({ ...prev, role: cat.name }))}
+                            className={`p-3 rounded-xl border text-sm font-bold transition-all ${
+                              filters.role === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                            }`}
+                          >
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Required Skills</label>
+                      <div className="flex flex-wrap gap-2">
+                        {availableSkills.slice(0, 15).map(skill => (
+                          <button
+                            key={skill._id}
+                            onClick={() => toggleSkill(skill.name)}
+                            className={`px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-wider transition-all ${
+                              filters.skills.includes(skill.name) ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-neutral-800 text-neutral-500'
+                            }`}
+                          >
+                            {skill.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-lg shadow-[#F24C20]/20"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex-1 space-y-8">
                 {featuredTalent && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative p-8 rounded-3xl bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-800 overflow-hidden group"
+                    className="relative p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-neutral-900 to-neutral-950 border border-neutral-800 overflow-hidden group"
                   >
-                    <div className="absolute top-6 right-6 px-4 py-2 rounded-full bg-[#F24C20] text-white text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#F24C20]/50">
-                      <Award className="w-4 h-4" />
+                    <div className="absolute top-4 lg:top-6 right-4 lg:right-6 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full bg-[#F24C20] text-white text-[10px] lg:text-sm font-bold flex items-center gap-2 shadow-lg shadow-[#F24C20]/50 z-10">
+                      <Award className="w-3 h-3 lg:w-4 lg:h-4" />
                       Best Match {featuredTalent.matchScore}%
                     </div>
-                    <div className="relative flex gap-8">
+                    <div className="relative flex gap-4 lg:gap-8">
                       <div className="relative flex-shrink-0">
-                        <div className="relative w-48 h-48 rounded-2xl overflow-hidden bg-neutral-800">
+                        <div className="relative w-24 h-24 lg:w-48 lg:h-48 rounded-2xl overflow-hidden bg-neutral-800">
                           <img
                             src={featuredTalent.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredTalent.full_name || 'Expert')}&size=200&background=random&color=fff`}
                             onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredTalent.full_name || 'Expert')}&size=200&background=random&color=fff`; }}
@@ -349,26 +436,22 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center border-4 border-neutral-900 shadow-lg">
-                          <CheckCircle className="w-5 h-5 text-white" />
+                        <div className="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 w-7 h-7 lg:w-10 lg:h-10 bg-green-500 rounded-full flex items-center justify-center border-2 lg:border-4 border-neutral-900 shadow-lg">
+                          <CheckCircle className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-white" />
                         </div>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-3xl font-bold text-white mb-1">{featuredTalent.full_name}</h3>
-                            <p className="text-xl text-neutral-400 capitalize">{featuredTalent.role}</p>
-                          </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="mb-2 lg:mb-3">
+                          <h3 className="text-xl lg:text-3xl font-bold text-white mb-0.5 truncate">{featuredTalent.full_name}</h3>
+                          <p className="text-sm lg:text-xl text-neutral-400 capitalize truncate">{featuredTalent.role}</p>
                         </div>
-                        <div className="flex items-center gap-6 mb-4">
-                          <div className="flex items-center gap-2">
-                            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                            <span className="font-bold text-white text-lg">{featuredTalent.rating}</span>
-                           </div>
+                        <div className="flex items-center gap-2 mb-3 lg:mb-4">
+                          <Star className="w-4 h-4 lg:w-5 lg:h-5 fill-yellow-400 text-yellow-400" />
+                          <span className="font-bold text-white lg:text-lg">{featuredTalent.rating}</span>
                         </div>
-                        <div className="flex items-center justify-between mt-8">
-                          <div className="text-3xl font-bold text-[#F24C20]">₹{featuredTalent.hourly_rate || '1200'}/hr</div>
-                          <Link to={`/f/${featuredTalent.username || featuredTalent.id}`} className="px-6 py-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white font-semibold transition-colors">View Profile</Link>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 lg:gap-4 lg:mt-8">
+                          <div className="text-xl lg:text-3xl font-bold text-[#F24C20]">₹{featuredTalent.hourly_rate || '1200'}/hr</div>
+                          <Link to={`/f/${featuredTalent.username || featuredTalent.id}`} className="w-full sm:w-auto px-4 lg:px-6 py-2 lg:py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-sm lg:font-semibold transition-colors text-center">View Profile</Link>
                         </div>
                       </div>
                     </div>
@@ -386,21 +469,21 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                    <motion.div 
                      initial={{ opacity: 0, y: 30 }}
                      whileInView={{ opacity: 1, y: 0 }}
-                     className="mt-12 p-12 rounded-[2.5rem] bg-gradient-to-br from-[#F24C20] to-orange-600 text-center relative overflow-hidden"
+                     className="mt-12 p-8 lg:p-12 rounded-[2rem] lg:rounded-[2.5rem] bg-gradient-to-br from-[#F24C20] to-orange-600 text-center relative overflow-hidden"
                    >
                      <div className="relative z-10">
-                       <Award className="w-16 h-16 text-white mx-auto mb-6 opacity-80" />
-                       <h3 className="text-4xl font-black text-white mb-4 italic tracking-tighter">
+                       <Award className="w-12 h-12 lg:w-16 lg:h-16 text-white mx-auto mb-6 opacity-80" />
+                       <h3 className="text-2xl lg:text-4xl font-black text-white mb-4 italic tracking-tighter">
                          {isLoggedIn ? 'Upgrade Your Performance' : 'Unlock Your Potential'}
                        </h3>
-                       <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto font-medium">
+                       <p className="text-lg lg:text-xl text-white/90 mb-10 max-w-2xl mx-auto font-medium">
                          {isLoggedIn 
                             ? 'You have reached the limit of your Free plan. Upgrade to access our full network of elite experts.'
                             : 'Join our exclusive community to discover thousands of world-class talents and start building today.'}
                        </p>
                        <Link 
                          to={isLoggedIn ? "/plans" : "/signup"}
-                         className="inline-flex items-center gap-3 px-12 py-5 bg-white text-[#F24C20] rounded-2xl font-black text-xl shadow-2xl hover:scale-105 transition-all"
+                         className="inline-flex items-center gap-3 px-8 lg:px-12 py-4 lg:py-5 bg-white text-[#F24C20] rounded-2xl font-black text-lg lg:text-xl shadow-2xl hover:scale-105 transition-all w-full sm:w-auto justify-center"
                        >
                          {isLoggedIn ? 'View Subscription Plans' : 'Sign Up to See More'}
                        </Link>

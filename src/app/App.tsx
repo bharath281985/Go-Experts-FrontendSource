@@ -68,11 +68,11 @@ export default function App() {
             <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
             <Route path="/onboarding/freelancer" element={<FreelancerOnboarding />} />
             <Route path="/onboarding/client" element={<ClientOnboarding />} />
-            {/* Protected: requires auth + verified email */}
+            {/* Protected: requires auth + verified email + role check */}
             <Route
               path="/dashboard/*"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['freelancer', 'client']}>
                   <NewDashboardPage />
                 </ProtectedRoute>
               }
@@ -80,7 +80,7 @@ export default function App() {
             <Route
               path="/dashboard-investor/*"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['investor']}>
                   <InvestorDashboard />
                 </ProtectedRoute>
               }
@@ -88,7 +88,7 @@ export default function App() {
             <Route
               path="/dashboard-startup/*"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['startup_creator']}>
                   <StartupCreatorDashboard />
                 </ProtectedRoute>
               }

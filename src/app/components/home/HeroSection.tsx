@@ -4,9 +4,19 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
+function shuffleArray<T>(items: T[]) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function HeroSection() {
   const navigate = useNavigate();
   const [searchType, setSearchType] = useState<'sellers' | 'buyers'>('sellers');
+  const [userSearchMode, setUserSearchMode] = useState<'guest' | 'freelancer' | 'client'>('guest');
   const [searchTerm, setSearchTerm] = useState('');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
@@ -69,7 +79,9 @@ export default function HeroSection() {
       try {
         const res = await api.get('/cms/skills');
         if (res.data.success) {
-          const activeSkills = res.data.skills.filter((s: any) => s.is_active).slice(0, 5);
+          const activeSkills = shuffleArray(
+            res.data.skills.filter((s: any) => s.is_active)
+          ).slice(0, 5);
           if (activeSkills.length > 0) {
             setSkills(activeSkills.map((s: any) => s.name));
           } else {
@@ -84,6 +96,52 @@ export default function HeroSection() {
     fetchSkills();
   }, []);
 
+  useEffect(() => {
+    const syncUserSearchMode = () => {
+      const userStr = localStorage.getItem('user');
+      const storedUserType = localStorage.getItem('userType');
+
+      if (!userStr) {
+        setUserSearchMode('guest');
+        setSearchType('sellers');
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userStr);
+        const roles: string[] = Array.isArray(user?.roles) ? user.roles : (user?.role ? [user.role] : []);
+        const primaryRole = storedUserType || (roles.includes('freelancer') ? 'freelancer' : roles.includes('client') ? 'client' : '');
+
+        if (primaryRole === 'freelancer') {
+          setUserSearchMode('freelancer');
+          setSearchType('buyers');
+          return;
+        }
+
+        if (primaryRole === 'client') {
+          setUserSearchMode('client');
+          setSearchType('sellers');
+          return;
+        }
+
+        setUserSearchMode('guest');
+        setSearchType('sellers');
+      } catch {
+        setUserSearchMode('guest');
+        setSearchType('sellers');
+      }
+    };
+
+    syncUserSearchMode();
+    window.addEventListener('storage', syncUserSearchMode);
+    window.addEventListener('userUpdate', syncUserSearchMode as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', syncUserSearchMode);
+      window.removeEventListener('userUpdate', syncUserSearchMode as EventListener);
+    };
+  }, []);
+
   const handleSearch = (e?: React.FormEvent, overrideTerm?: string) => {
     if (e) e.preventDefault();
     const finalTerm = (overrideTerm || searchTerm).trim();
@@ -95,6 +153,12 @@ export default function HeroSection() {
       navigate(`/projects?search=${encodeURIComponent(finalTerm)}`);
     }
   };
+
+  const showBothSearchModes = userSearchMode === 'guest';
+  const searchPlaceholder = searchType === 'sellers'
+    ? 'Search for experts, skills, or services...'
+    : 'Search for projects, ventures, or opportunities...';
+  const searchButtonLabel = searchType === 'sellers' ? 'Find Talent' : 'Find Projects';
 
   return (
     <section
@@ -259,28 +323,30 @@ export default function HeroSection() {
               className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-3xl border border-neutral-800"
             >
               {/* Type Selector */}
-              <div className="flex gap-2 p-1.5 bg-black/40 rounded-2xl">
-                <button
-                  type="button"
-                  onClick={() => setSearchType('sellers')}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'sellers'
-                    ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
-                    : 'text-neutral-400 hover:text-white'
-                    }`}
-                >
-                  Find Talent
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchType('buyers')}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'buyers'
-                    ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
-                    : 'text-neutral-400 hover:text-white'
-                    }`}
-                >
-                  Find Projects
-                </button>
-              </div>
+              {showBothSearchModes && (
+                <div className="flex gap-2 p-1.5 bg-black/40 rounded-2xl">
+                  <button
+                    type="button"
+                    onClick={() => setSearchType('sellers')}
+                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'sellers'
+                      ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
+                      : 'text-neutral-400 hover:text-white'
+                      }`}
+                  >
+                    Find Talent
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSearchType('buyers')}
+                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'buyers'
+                      ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
+                      : 'text-neutral-400 hover:text-white'
+                      }`}
+                  >
+                    Find Projects
+                  </button>
+                </div>
+              )}
 
               {/* Search Input */}
               <div className="flex-1 flex items-center px-6">
@@ -289,9 +355,7 @@ export default function HeroSection() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={
-                    searchType === 'sellers'
-                      ? 'Search for experts, skills, or services...'
-                      : 'Search for projects, ventures, or opportunities...'
+                    searchPlaceholder
                   }
                   className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-lg"
                 />
@@ -304,7 +368,7 @@ export default function HeroSection() {
                 type="submit"
                 className="px-8 py-3 bg-[#044071] hover:bg-[#055a99] text-white rounded-2xl font-semibold transition-all duration-300 flex items-center gap-2 group"
               >
-                <span>Search</span>
+                <span>{searchButtonLabel}</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </form>

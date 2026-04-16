@@ -107,7 +107,10 @@ export default function ExploreIdeasPage() {
     const matchesCategory = selectedCategory === 'All' || 
                            idea.category?.trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
                            
-    return matchesSearch && matchesCategory;
+    const creatorId = idea.creator?._id || idea.creator;
+    const isOwner = creatorId === user?._id;
+                           
+    return matchesSearch && matchesCategory && !isOwner;
   });
 
   return (
@@ -117,11 +120,11 @@ export default function ExploreIdeasPage() {
       <main className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6">
           {/* Hero Section */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 lg:mb-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/20 text-[#F24C20] text-sm font-bold uppercase tracking-widest mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F24C20]/10 border border-[#F24C20]/20 text-[#F24C20] text-[10px] lg:text-sm font-black uppercase tracking-widest mb-6"
             >
               <Rocket className="w-4 h-4" />
               Innovation Hub
@@ -130,7 +133,7 @@ export default function ExploreIdeasPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-5xl md:text-6xl font-black mb-6 tracking-tight"
+              className="text-4xl md:text-5xl lg:text-7xl font-black mb-6 tracking-tighter leading-tight"
             >
               Explore <span className="text-[#F24C20]">Startup Ideas</span>
             </motion.h1>
@@ -138,24 +141,24 @@ export default function ExploreIdeasPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
+              className="text-base lg:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed px-4"
             >
               Discover groundbreaking concepts, disruptive technologies, and investment-ready ventures approved by the Go Experts network.
             </motion.p>
           </div>
 
           {/* Search & Filter */}
-          <div className="max-w-4xl mx-auto mb-16">
-            <div className="relative group mb-8">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500 group-focus-within:text-[#F24C20] transition-colors" />
+          <div className="max-w-4xl mx-auto mb-10 lg:mb-16">
+            <div className="relative group mb-6 lg:mb-8">
+              <Search className="absolute left-5 lg:left-6 top-1/2 -translate-y-1/2 w-5 h-5 lg:w-6 lg:h-6 text-slate-500 group-focus-within:text-[#F24C20] transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search innovative concepts, tech stacks, or market gaps..."
+                placeholder="Search innovative concepts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-16 pr-8 py-5 rounded-[2rem] border transition-all outline-none text-lg ${
+                className={`w-full pl-14 lg:pl-16 pr-6 lg:pr-8 py-4 lg:py-5 rounded-2xl lg:rounded-[2rem] border transition-all outline-none text-base lg:text-lg ${
                     isDarkMode 
-                    ? 'bg-white/5 border-white/10 focus:border-[#F24C20]/50 text-white shadow-2xl' 
+                    ? 'bg-neutral-900 border-neutral-800 focus:border-[#F24C20]/50 text-white shadow-2xl' 
                     : 'bg-white border-gray-200 focus:border-[#F24C20] text-gray-900 shadow-xl'
                 }`}
               />
@@ -191,13 +194,13 @@ export default function ExploreIdeasPage() {
 
           {/* Ideas Grid */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className={`h-[450px] rounded-[32px] animate-pulse ${isDarkMode ? 'bg-white/5' : 'bg-gray-200'}`} />
+                <div key={i} className={`h-[400px] lg:h-[450px] rounded-[32px] animate-pulse ${isDarkMode ? 'bg-white/5' : 'bg-gray-200'}`} />
               ))}
             </div>
           ) : filteredIdeas.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {filteredIdeas.map((idea, idx) => {
                 const isOwner = idea.creator?._id === user._id || idea.creator === user._id;
                 const isUnlocked = isOwner || idea.contacts?.includes(user._id);
@@ -207,13 +210,13 @@ export default function ExploreIdeasPage() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className={`group relative flex flex-col rounded-[32px] border transition-all duration-500 overflow-hidden h-[500px] ${
+                    className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-500 overflow-hidden min-h-[460px] lg:h-[500px] ${
                       isDarkMode 
-                      ? 'bg-[#0b0d14] border-white/10 hover:border-[#F24C20]/50' 
-                      : 'bg-white border-gray-200 hover:border-[#F24C20]/30 shadow-sm'
+                      ? 'bg-[#0b0d14] border-neutral-800' 
+                      : 'bg-white border-gray-200 shadow-sm'
                     }`}
                   >
-                    <div className="p-8 pb-0">
+                    <div className="p-6 lg:p-8 pb-0">
                       <div className="flex items-center justify-between mb-4">
                         <span className="px-3 py-1 bg-[#F24C20]/10 text-[#F24C20] text-[10px] font-black uppercase tracking-widest rounded-lg">
                           {idea.category}
@@ -222,7 +225,7 @@ export default function ExploreIdeasPage() {
                           <ShieldCheck className="w-3.5 h-3.5" /> Approved
                         </div>
                       </div>
-                      <h3 className="text-2xl font-bold mb-4 line-clamp-2 leading-tight group-hover:text-[#F24C20] transition-colors">
+                      <h3 className="text-xl lg:text-2xl font-bold mb-4 line-clamp-2 leading-tight group-hover:text-[#F24C20] transition-colors">
                         {idea.title}
                       </h3>
                       <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 mb-6">
@@ -230,24 +233,24 @@ export default function ExploreIdeasPage() {
                       </p>
                     </div>
 
-                    <div className="mt-auto p-8 pt-0">
-                      <div className="grid grid-cols-2 gap-4 mb-8">
-                        <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                    <div className="mt-auto p-6 lg:p-8 pt-0">
+                      <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div className={`p-3 lg:p-4 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
                           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Target</div>
-                          <div className="text-xs font-bold line-clamp-1">{idea.targetAudience || 'General'}</div>
+                          <div className="text-[11px] font-bold line-clamp-1">{idea.targetAudience || 'General'}</div>
                         </div>
-                        <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                        <div className={`p-3 lg:p-4 rounded-2xl border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
                           <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Funding</div>
-                          <div className="text-xs font-bold text-[#F24C20]">{idea.fundingAmount || 'Seed'}</div>
+                          <div className="text-[11px] font-bold text-[#F24C20]">{idea.fundingAmount || 'Seed'}</div>
                         </div>
                       </div>
 
                       <button 
                         onClick={() => handleDeepDiveClick(idea)}
-                        className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 ${
+                        className={`flex items-center justify-center gap-3 w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-sm lg:text-base ${
                             isUnlocked 
                             ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20' 
-                            : 'bg-[#F24C20] hover:bg-orange-600 text-white shadow-[#F24C20]/20'
+                            : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-blue-900/10'
                         }`}
                       >
                         {isUnlocked ? (isOwner ? 'View Analytics' : 'Concept Unlocked') : 'View Deep Dive'}
@@ -303,7 +306,7 @@ export default function ExploreIdeasPage() {
 
               <h2 className="text-2xl font-black mb-4 leading-tight">Unlock Exclusive Analytics</h2>
               <p className="text-slate-400 text-sm leading-7 mb-8">
-                To access the full concept deep dive, market strategy, and founder roadmap for <span className="text-white font-bold">"{unlockingIdea.title}"</span>, a one-time fee of <span className="text-orange-500 font-black">20 Credit Points</span> will be debited from your account.
+                To access the full concept deep dive, market strategy, and founder roadmap for <span className="text-white font-bold">"{unlockingIdea.title}"</span>, a one-time fee of <span className="text-orange-500 font-black">1 Credit Point</span> will be debited from your account.
               </p>
 
               <div className="space-y-4">
@@ -320,7 +323,7 @@ export default function ExploreIdeasPage() {
                   disabled={isProcessing}
                   className="w-full flex items-center justify-center gap-3 py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-orange-500/20 hover:bg-orange-600 transition-all disabled:opacity-50"
                 >
-                  {isProcessing ? 'Processing Transaction...' : 'Confirm Unlock (20 PTS)'}
+                  {isProcessing ? 'Processing Transaction...' : 'Confirm Unlock (1 PTS)'}
                   {!isProcessing && <ArrowRight className="w-4 h-4" />}
                 </button>
                 

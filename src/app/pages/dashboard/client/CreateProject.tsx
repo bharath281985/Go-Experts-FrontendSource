@@ -18,11 +18,13 @@ import {
 import { useState, useEffect } from 'react';
 import api from '@/app/utils/api';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function CreateProject() {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = !!id;
   const [isVerified, setIsVerified] = useState<boolean | null>(null);
   const [kycStatus, setKycStatus] = useState<string>('unverified');
   const [currentStep, setCurrentStep] = useState(1);
@@ -75,12 +77,31 @@ export default function CreateProject() {
           setIsVerified(userRes.data.user.kyc_details?.is_verified || false);
           setKycStatus(userRes.data.user.kyc_status || 'unverified');
         }
+
+        // Fetch project data if editing
+        if (id) {
+          const projectRes = await api.get(`/projects/${id}`);
+          if (projectRes.data.success) {
+            const p = projectRes.data.data;
+            setProjectData({
+              title: p.title || '',
+              category: p.category || '',
+              description: p.description || '',
+              budget_range: p.budget_range || '',
+              duration: p.timeline || '',
+              experienceLevel: p.experience_level || '',
+              location: p.location || '',
+              skills: p.skills_required || [],
+              attachments: p.attachments || []
+            });
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch data:', err);
       }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   const durations = [
     'Less than 1 month',
@@ -142,15 +163,16 @@ export default function CreateProject() {
         formData.append('attachments', file);
       });
 
-      const res = await api.post('/projects', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = isEdit 
+        ? await api.put(`/projects/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        : await api.post('/projects', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+
       if (res.data.success) {
-        toast.success('Project published successfully! It is now live for freelancers to see.');
+        toast.success(isEdit ? 'Project updated successfully!' : 'Project published successfully! It is now live for freelancers to see.');
         navigate('/dashboard/projects/my-projects');
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to publish project');
+      toast.error(error.response?.data?.message || 'Failed to save project');
     } finally {
       setLoading(false);
     }
@@ -186,10 +208,10 @@ export default function CreateProject() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-          Create New Project
+          {isEdit ? 'Edit Project' : 'Create New Project'}
         </h1>
         <p className={`mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-          Post your project and find the perfect freelancer
+          {isEdit ? 'Update your project details and requirements' : 'Post your project and find the perfect freelancer'}
         </p>
         {!isVerified && kycStatus === 'pending' && (
           <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
@@ -543,28 +565,56 @@ export default function CreateProject() {
                   {skillSearchTerm ? 'Search Results' : 'Suggested Skills'}
                 </p>
                 <div className="flex flex-wrap gap-3">
-                  {(skillSearchTerm 
-                    ? availableSkills.filter(s => s.name.toLowerCase().includes(skillSearchTerm.toLowerCase()))
-                    : availableSkills.slice(0, 5)
-                  ).map((skill) => (
-                    <button
-                      key={skill._id}
-                      onClick={() => toggleSkill(skill.name)}
-                      className={`px-4 py-2 rounded-full border-2 font-medium transition-all ${projectData.skills.includes(skill.name)
-                          ? 'border-[#F24C20] bg-[#F24C20] text-white'
-                          : isDarkMode
-                            ? 'border-neutral-700 text-neutral-300 hover:border-neutral-600'
-                            : 'border-neutral-300 text-neutral-700 hover:border-neutral-400'
-                        }`}
-                    >
-                      {skill.name}
-                      {projectData.skills.includes(skill.name) && (
-                        <X className="w-4 h-4 inline-block ml-2" />
-                      )}
-                    </button>
-                  ))}
-                  {skillSearchTerm && availableSkills.filter(s => s.name.toLowerCase().includes(skillSearchTerm.toLowerCase())).length === 0 && (
-                    <p className="text-sm text-neutral-500 italic">No matching skills found.</p>
+                  {(() => {
+                    // Find selected category object
+                    const selectedCat = categories.find(c => c.name === projectData.category);
+                    const catId = selectedCat?._id;
+                    const parentId = selectedCat?.parent;
+
+                    // HIERARCHICAL FILTERING: Show skills belonging to this category OR its parent
+                    const categorySkills = availableSkills.filter(s => 
+                      catId && (s.category === catId || (parentId && s.category === parentId))
+                    );
+
+                    // Further filter by search term if user is typing
+                    const displaySkills = skillSearchTerm 
+                      ? categorySkills.filter(s => s.name.toLowerCase().includes(skillSearchTerm.toLowerCase()))
+                      : categorySkills;
+
+                    // If we have a category but no skills are found even in the parent
+                    if (catId && categorySkills.length === 0 && !skillSearchTerm) {
+                      return (
+                        <div className="w-full py-4 text-center">
+                          <p className={`text-sm italic ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                            No matching skills found in this niche. Try searching or assigning skills in the Admin Panel.
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    return displaySkills.map((skill) => (
+                      <button
+                        key={skill._id}
+                        onClick={() => toggleSkill(skill.name)}
+                        className={`px-4 py-2 rounded-full border-2 font-medium transition-all ${projectData.skills.includes(skill.name)
+                            ? 'border-[#F24C20] bg-[#F24C20] text-white shadow-xl shadow-[#F24C20]/20'
+                            : isDarkMode
+                              ? 'border-neutral-700 text-neutral-300 hover:border-neutral-600'
+                              : 'border-neutral-300 text-neutral-700 hover:border-neutral-400'
+                          }`}
+                      >
+                        {skill.name}
+                        {projectData.skills.includes(skill.name) && (
+                          <X className="w-4 h-4 inline-block ml-2" />
+                        )}
+                      </button>
+                    ));
+                  })()}
+                  {skillSearchTerm && availableSkills.filter(s => {
+                     const sc = categories.find(c => c.name === projectData.category);
+                     return sc && (s.category === sc._id || (sc.parent && s.category === sc.parent)) && s.name.toLowerCase().includes(skillSearchTerm.toLowerCase());
+                  }).length === 0 && (
+                    <p className="text-sm text-neutral-500 italic mt-2">No matching skills found in this category hierarchy.</p>
                   )}
                 </div>
               </div>
@@ -710,7 +760,7 @@ export default function CreateProject() {
               className="flex items-center gap-2 px-8 py-3 bg-[#F24C20] text-white rounded-xl font-medium hover:bg-[#F24C20]/90 transition-colors"
             >
               <CheckCircle className="w-5 h-5" />
-              Publish Project
+              {isEdit ? 'Update Project' : 'Publish Project'}
             </button>
           )}
         </div>
