@@ -110,13 +110,17 @@ export default function ChatWindow({ otherUser, onClose }: ChatWindowProps) {
                     </span>
                 </div>
             </div>
-            <button onClick={onClose} className="p-2 text-neutral-500 hover:text-white transition-colors">
-                <MessageSquare className="w-5 h-5 rotate-90" />
+            <button 
+                onClick={onClose} 
+                className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-white/5 text-neutral-500' : 'hover:bg-black/5 text-neutral-500'}`}
+                title="Back to Inbox"
+            >
+                <MessageSquare className="w-5 h-5 md:rotate-90" />
             </button>
         </div>
 
         {/* Messages Space */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4 scroll-smooth">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scroll-smooth">
             {loading ? (
                 <div className="flex items-center justify-center h-full"><Loader2 className="w-6 h-6 animate-spin text-[#F24C20]"/></div>
             ) : messages.length === 0 ? (
@@ -151,7 +155,7 @@ export default function ChatWindow({ otherUser, onClose }: ChatWindowProps) {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type your message..."
-                    className={`w-full pl-5 pr-14 py-3.5 rounded-2xl outline-none transition-all text-sm font-bold ${
+                    className={`w-full pl-4 sm:pl-5 pr-14 py-3 sm:py-3.5 rounded-2xl outline-none transition-all text-sm font-bold ${
                         isDarkMode ? 'bg-neutral-800 border-0 focus:ring-2 focus:ring-[#F24C20] text-white placeholder:text-neutral-500' : 'bg-white border-neutral-200 focus:ring-2 focus:ring-[#F24C20] text-neutral-900 shadow-sm'
                     }`}
                 />

@@ -327,7 +327,7 @@ export default function FreelancerLandingPage() {
                 }}
               />
 
-              <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-20 py-6 lg:py-0 min-h-[calc(100vh-6rem)] lg:min-h-[calc(100vh-8rem)] flex items-center">
+              <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-20 pt-6 pb-32 lg:py-0 min-h-[calc(100vh-6rem)] lg:min-h-[calc(100vh-8rem)] flex items-center">
                 <div className="w-full grid grid-cols-1 lg:grid-cols-[minmax(320px,420px)_72px_minmax(0,1fr)] items-center gap-8 lg:gap-10 xl:gap-14 pr-0 lg:pr-24">
                   <div className="w-full flex justify-center lg:justify-start z-10 order-1">
                     <div className="relative w-72 h-80 sm:w-80 sm:h-[26rem] lg:w-[420px] lg:h-[580px] overflow-hidden rounded-[2.5rem] shadow-2xl bg-[#111] border-4 border-white/5">
@@ -408,10 +408,10 @@ export default function FreelancerLandingPage() {
                       {talent.bio || 'I am a passionate freelancer dedicated to delivering high-quality work and exceeding client expectations.'}
                     </p>
 
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 lg:gap-6">
+                    <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 w-full sm:w-auto max-w-sm mx-auto lg:mx-0">
                       <button
                         onClick={() => setActiveSection('about')}
-                        className="group relative h-14 pl-8 pr-20 bg-transparent border-2 border-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300"
+                        className="group relative h-14 w-full sm:w-auto pl-8 pr-20 bg-transparent border-2 border-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300"
                       >
                         <span className="relative z-10 group-hover:text-white transition-colors duration-300">More About Me</span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-[#F24C20] rounded-full flex items-center justify-center z-20 transition-transform group-hover:scale-110">
@@ -422,7 +422,7 @@ export default function FreelancerLandingPage() {
 
                       <button
                         onClick={() => navigate(`/dashboard/messages?user=${id}&intent=hire`)}
-                        className="group relative h-14 pl-8 pr-20 bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
+                        className="group relative h-14 w-full sm:w-auto pl-8 pr-20 bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
                       >
                         <span className="text-white">Hire Me Now</span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-black/10 rounded-full flex items-center justify-center">
@@ -442,7 +442,7 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className="max-w-7xl mx-auto px-6 py-20 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Resume</h2>
@@ -578,7 +578,7 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="max-w-7xl mx-auto px-6 py-20 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Works</h2>
@@ -695,7 +695,7 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              className="max-w-7xl mx-auto px-6 py-20 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Contact</h2>

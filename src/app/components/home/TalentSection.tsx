@@ -10,6 +10,7 @@ export default function TalentSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [talents, setTalents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
 
   const mockTalents = [
     { id: '1', full_name: 'Sarah Johnson', role: 'Full Stack Developer', rating: '4.9', reviews: 124, location: 'San Francisco, CA', skills: ['React', 'Node.js', 'PostgreSQL'], hourly_rate: '1500', verified: true, profile_image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150' },
@@ -28,8 +29,15 @@ export default function TalentSection() {
 
         const res = await api.get('/users/freelancers');
         if (res.data.success && res.data.data.length > 0) {
-          // Filter out current user and take top 4
+          // Filter out current user
           const filtered = res.data.data.filter((t: any) => t._id !== currentUserId);
+          
+          // Check if more than 4 exist
+          if (filtered.length > 4) {
+            setHasMore(true);
+          }
+
+          // Take top 4 for display
           const processed = filtered.slice(0, 4).map((t: any) => ({
             ...t,
             id: t._id, // Map database _id to id for Links
@@ -43,11 +51,13 @@ export default function TalentSection() {
           }));
           setTalents(processed);
         } else {
-          setTalents(mockTalents);
+          setTalents(mockTalents.slice(0, 4));
+          setHasMore(mockTalents.length > 4);
         }
       } catch (error) {
         console.error('Error fetching talents:', error);
-        setTalents(mockTalents);
+        setTalents(mockTalents.slice(0, 4));
+        setHasMore(mockTalents.length > 4);
       } finally {
         setTimeout(() => setLoading(false), 800);
       }
@@ -110,7 +120,7 @@ export default function TalentSection() {
 
         {/* Floating Talent Cards - Staggered Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16 items-stretch">
-          {(loading ? mockTalents : talents).map((talent, index) => (
+          {(loading ? mockTalents.slice(0, 4) : talents).map((talent, index) => (
             <motion.div
               key={talent.id}
               initial={{ opacity: 0, y: 60, rotateY: -20 }}
@@ -256,23 +266,25 @@ export default function TalentSection() {
         </div>
 
         {/* View All CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="text-center"
-        >
-          <Link to="/talent">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[#F24C20] to-orange-600 hover:from-[#F24C20]/90 hover:to-orange-600/90 text-white rounded-2xl font-semibold transition-all duration-300 shadow-2xl shadow-[#F24C20]/40 group text-lg"
-            >
-              <span>Discover All Talent</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-          </Link>
-        </motion.div>
+        {hasMore && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="text-center"
+          >
+            <Link to="/talent">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-[#F24C20] to-orange-600 hover:from-[#F24C20]/90 hover:to-orange-600/90 text-white rounded-2xl font-semibold transition-all duration-300 shadow-2xl shadow-[#F24C20]/40 group text-lg"
+              >
+                <span>Discover All Talent</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </motion.button>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );

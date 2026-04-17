@@ -19,12 +19,21 @@ export default function ExploreStartupIdeas() {
   const [unlockingIdea, setUnlockingIdea] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
+    // Role guard: Only investors can browse other ideas
+    const role = user.role || (user.roles && user.roles[0]);
+    if (role !== 'investor') {
+       toast.error("Access Restricted: Only Investors can browse the Startup Marketplace.");
+       navigate(getDashboardPath());
+       return;
+    }
+
     fetchApprovedIdeas();
     fetchCategories();
     fetchSubscription();
@@ -35,9 +44,9 @@ export default function ExploreStartupIdeas() {
       const res = await api.get('/auth/me');
       if (res.data.success) {
         // Fetch active subscription details
-        const subRes = await api.get('/subscription/my-plan'); // Assuming this endpoint exists or similar
+        const subRes = await api.get('/subscription/my-status'); 
         if (subRes.data.success) {
-          setSubscription(subRes.data.data);
+          setSubscription(subRes.data.subscription);
         }
       }
     } catch (err) {
@@ -71,9 +80,16 @@ export default function ExploreStartupIdeas() {
     }
   };
 
+  const getDashboardPath = () => {
+    const role = user.role || (user.roles && user.roles[0]);
+    if (role === 'investor') return '/dashboard-investor';
+    if (role === 'startup_creator') return '/dashboard-startup';
+    return '/dashboard';
+  };
+
   const handleDeepDiveClick = (idea: any) => {
     if (idea.contacts?.includes(user._id)) {
-      navigate(`/dashboard/startup-ideas/${idea._id}`);
+      navigate(`${getDashboardPath()}/startup-ideas/${idea._id}`);
       return;
     }
     setUnlockingIdea(idea);
@@ -89,7 +105,7 @@ export default function ExploreStartupIdeas() {
         // Refresh concepts to show unlocked state
         fetchApprovedIdeas();
         fetchSubscription(); // Update limits
-        navigate(`/dashboard/startup-ideas/${unlockingIdea._id}`);
+        navigate(`${getDashboardPath()}/startup-ideas/${unlockingIdea._id}`);
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to unlock concept');
@@ -113,12 +129,32 @@ export default function ExploreStartupIdeas() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 min-h-screen">
+      {/* Mobile Header with Filter Toggle */}
+      <div className="lg:hidden flex items-center justify-between mb-2">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight">Venture Marketplace</h1>
+          <p className="text-xs text-neutral-500">Discover disruptive startups</p>
+        </div>
+        <button 
+          onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+          className={`p-3 rounded-2xl border flex items-center gap-2 ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-neutral-400' : 'bg-white border-neutral-200 text-neutral-600'}`}
+        >
+          <Filter className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase tracking-wider">Filters</span>
+        </button>
+      </div>
+
       {/* Filters Sidebar */}
-      <aside className="w-full lg:w-80 space-y-6">
-        <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}>
-          <div className="flex items-center gap-2 mb-6">
-            <Filter className="w-5 h-5 text-[#F24C20]" />
-            <h2 className="font-bold">Advanced Filters</h2>
+      <aside className={`w-full lg:w-80 space-y-6 ${isMobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+        <div className={`p-6 rounded-[2rem] border ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200 shadow-sm'}`}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-[#F24C20]" />
+              <h2 className="font-bold">Advanced Filters</h2>
+            </div>
+            <button className="lg:hidden" onClick={() => setIsMobileFiltersOpen(false)}>
+              <X className="w-5 h-5 text-neutral-500" />
+            </button>
           </div>
 
           <div className="space-y-6">
@@ -206,7 +242,7 @@ export default function ExploreStartupIdeas() {
               <div className="mt-4 flex items-center justify-between">
                  <span className="text-sm font-medium">Remaining Unlocks:</span>
                  <span className="text-lg font-black text-[#F24C20]">
-                    {subscription ? (subscription.unlock_limit - (subscription.unlock_count || 0)) : '-'}
+                    {subscription ? (subscription.remaining_idea_unlocks || 0) : '-'}
                  </span>
               </div>
            </div>
@@ -215,7 +251,7 @@ export default function ExploreStartupIdeas() {
 
       {/* Main Content Area */}
       <main className="flex-1 space-y-6">
-        <header className="flex items-center justify-between mb-8">
+        <header className="hidden lg:flex items-center justify-between mb-8">
            <div>
               <h1 className="text-3xl font-black tracking-tight">Venture Marketplace</h1>
               <p className={`mt-1 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>Discover disruptive startups curated by Go Experts</p>
@@ -262,7 +298,7 @@ export default function ExploreStartupIdeas() {
                     {idea.shortDescription}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                     <div className={`p-3 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50 border-neutral-100'}`}>
                       <div className="text-[10px] font-bold text-neutral-500 uppercase mb-1 flex items-center gap-1">
                          <Target className="w-3 h-3" /> Target

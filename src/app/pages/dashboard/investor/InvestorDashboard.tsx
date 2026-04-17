@@ -25,7 +25,13 @@ import {
   DollarSign,
   ChevronRight,
   Filter,
-  Bookmark
+  Bookmark,
+  Camera,
+  Lock,
+  Mail,
+  User as UserIcon,
+  Phone,
+  Globe
 } from "lucide-react";
 import PremiumDashboardLayout from "@/app/components/dashboard/PremiumDashboardLayout";
 import ChatWindow from "@/app/components/dashboard/ChatWindow";
@@ -33,6 +39,7 @@ import KYCSettings from "@/app/components/dashboard/KYCSettings";
 import SubscriptionCredits from "@/app/pages/dashboard/shared/SubscriptionCredits";
 import ExploreStartupIdeas from "@/app/pages/dashboard/shared/ExploreStartupIdeas";
 import StartupIdeaDashboardDetail from "@/app/pages/dashboard/shared/StartupIdeaDashboardDetail";
+import FindTalent from "@/app/pages/dashboard/client/FindTalent";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -79,11 +86,20 @@ function StatCard({ label, value, icon: Icon, trend }: { label: string; value: s
     );
 }
 
-function DealCard({ deal }: { deal: any }) {
+function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
     const { isDarkMode } = useTheme();
     const idea = deal.startup_idea || {};
+    
+    const handleViewRoom = () => {
+        if (idea._id) {
+            navigate(`/dashboard-investor/startup-ideas/${idea._id}`);
+        } else {
+            toast.error("Idea details not available");
+        }
+    };
+    
     return (
-        <div className={`group rounded-2xl border p-5 transition-all hover:shadow-xl ${isDarkMode ? 'bg-neutral-900/40 border-neutral-800 hover:border-[#F24C20]/50' : 'bg-white border-neutral-200 hover:border-[#F24C20]/30 shadow-sm'}`}>
+        <div onClick={handleViewRoom} className={`group cursor-pointer rounded-2xl border p-5 transition-all hover:shadow-xl ${isDarkMode ? 'bg-neutral-900/40 border-neutral-800 hover:border-[#F24C20]/50' : 'bg-white border-neutral-200 hover:border-[#F24C20]/30 shadow-sm'}`}>
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center text-[#F24C20] font-bold">
@@ -165,6 +181,7 @@ function StartupDiscoverCard({ idea }: { idea: any }) {
 
 function MeetingItem({ meeting }: { meeting: any }) {
     const { isDarkMode } = useTheme();
+    
     return (
         <div className={`flex items-center justify-between p-4 rounded-xl border ${isDarkMode ? 'bg-neutral-900/20 border-neutral-800 hover:bg-neutral-800/10' : 'bg-white border-neutral-100 hover:bg-neutral-50'}`}>
             <div className="flex items-center gap-4">
@@ -182,14 +199,320 @@ function MeetingItem({ meeting }: { meeting: any }) {
                     <Clock className="w-3 h-3" />
                     {new Date(meeting.meeting_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                <button className={`mt-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                    meeting.status === 'scheduled' ? 'bg-[#F24C20] text-white' : 'bg-neutral-800 text-neutral-500'
-                }`}>
-                    {meeting.status === 'scheduled' ? 'Join Now' : meeting.status}
-                </button>
+                {meeting.status === 'scheduled' && meeting.meeting_link ? (
+                    <a href={meeting.meeting_link} target="_blank" rel="noreferrer" className="mt-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-[#F24C20] text-white hover:bg-[#d43a12]">
+                        Join Now
+                    </a>
+                ) : (
+                    <button className={`mt-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-neutral-800 text-neutral-500 cursor-not-allowed`}>
+                        {meeting.status}
+                    </button>
+                )}
             </div>
         </div>
     );
+}
+
+// --- Investor Settings Component ---
+
+function InvestorSettings({ isDarkMode }: { isDarkMode: boolean }) {
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'kyc'>('profile');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<any>({
+    full_name: '', email: '', phone_number: '', bio: '', location: '', profile_image: '',
+    linkedin: '', website: ''
+  });
+  const fileInputRef = useState<any>(null)[0];
+
+  useEffect(() => {
+    api.get('/auth/me').then(res => {
+      if (res.data.success) {
+        const u = res.data.user;
+        setProfile({
+          full_name: u.full_name || '',
+          email: u.email || '',
+          phone_number: u.phone_number || '',
+          bio: u.bio || '',
+          location: u.location || '',
+          profile_image: u.profile_image || '',
+          linkedin: u.social_links?.linkedin || '',
+          website: u.portfolio_url || ''
+        });
+      }
+    }).catch(console.error).finally(() => setLoading(false));
+  }, []);
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const res = await api.put('/auth/update-profile', {
+        full_name: profile.full_name,
+        phone_number: profile.phone_number,
+        bio: profile.bio,
+        location: profile.location,
+        social_links: { linkedin: profile.linkedin },
+        portfolio_url: profile.website
+      });
+      if (res.data.success) {
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...stored, ...res.data.user }));
+        toast.success('Profile updated successfully!');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update profile');
+    } finally { setSaving(false); }
+  };
+
+  const handleSendResetLink = async () => {
+    setSaving(true);
+    try {
+      await api.post('/auth/forgot-password', { email: profile.email });
+      toast.success('Password reset link sent to ' + profile.email);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to send reset link');
+    } finally { setSaving(false); }
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('profile', file);
+    setSaving(true);
+    try {
+      const res = await api.put('/auth/update-profile', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        setProfile((p: any) => ({ ...p, profile_image: res.data.user.profile_image }));
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...stored, profile_image: res.data.user.profile_image }));
+        toast.success('Profile photo updated!');
+      }
+    } catch { toast.error('Failed to upload photo'); }
+    finally { setSaving(false); }
+  };
+
+  const getProfileImgSrc = () => {
+    if (!profile.profile_image) return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80';
+    if (profile.profile_image.startsWith('http')) return profile.profile_image;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${profile.profile_image.startsWith('/') ? '' : '/'}${profile.profile_image}`;
+  };
+
+  const inputCls = `w-full px-4 py-3 rounded-2xl border text-sm font-medium outline-none transition-all focus:border-[#F24C20] ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-white placeholder:text-neutral-600' : 'bg-neutral-50 border-neutral-200 text-neutral-900 placeholder:text-neutral-400'}`;
+  
+  const tabs = [
+    { id: 'profile' as const, label: 'Profile', icon: UserIcon },
+    { id: 'security' as const, label: 'Security', icon: Lock },
+    { id: 'kyc' as const, label: 'KYC Verification', icon: Shield },
+  ];
+
+  if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-[#F24C20]"/></div>;
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+      <div className="mb-8">
+        <h2 className={`text-3xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          Account Settings
+        </h2>
+        <p className={`mt-1 text-sm font-medium ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
+          Manage your investor profile, security, and KYC verification.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Tab Sidebar */}
+        <div className={`lg:col-span-1 p-3 rounded-3xl border h-fit ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}>
+          <nav className="flex lg:flex-col gap-1">
+            {tabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all w-full text-left ${
+                    activeTab === tab.id
+                      ? 'bg-[#F24C20]/10 text-[#F24C20] border border-[#F24C20]/20'
+                      : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-bold">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Content */}
+        <div className={`lg:col-span-3 p-6 md:p-8 rounded-3xl border ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}>
+          
+          {/* --- PROFILE TAB --- */}
+          {activeTab === 'profile' && (
+            <div className="space-y-8">
+              <div>
+                <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Profile Information</h3>
+                <p className="text-sm text-neutral-500 mt-1">Your public investor identity on the platform.</p>
+              </div>
+
+              {/* Avatar */}
+              <div className="flex items-center gap-6">
+                <div className="relative group">
+                  <img
+                    src={getProfileImgSrc()}
+                    alt="Profile"
+                    className="w-20 h-20 rounded-2xl object-cover border-2 border-[#F24C20]/20"
+                  />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <Camera className="w-5 h-5 text-white" />
+                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                  </label>
+                </div>
+                <div>
+                  <p className={`font-bold text-sm ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{profile.full_name || 'Investor'}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{profile.email}</p>
+                  <label className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[#F24C20] cursor-pointer hover:underline">
+                    <Camera className="w-3 h-3" /> Change Photo
+                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                  </label>
+                </div>
+              </div>
+
+              {/* Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Full Name</label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="text" value={profile.full_name} onChange={e => setProfile({...profile, full_name: e.target.value})} className={inputCls + ' pl-11'} placeholder="Your full name" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="email" value={profile.email} disabled className={inputCls + ' pl-11 opacity-50 cursor-not-allowed'} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="tel" value={profile.phone_number} onChange={e => setProfile({...profile, phone_number: e.target.value})} className={inputCls + ' pl-11'} placeholder="+91 98765 43210" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Location</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="text" value={profile.location} onChange={e => setProfile({...profile, location: e.target.value})} className={inputCls + ' pl-11'} placeholder="City, Country" />
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Investor Bio</label>
+                  <textarea 
+                    rows={3} value={profile.bio} maxLength={300}
+                    onChange={e => setProfile({...profile, bio: e.target.value})}
+                    className={inputCls + ' resize-none'}
+                    placeholder="Brief description of your investment focus, portfolio, and thesis..."
+                  />
+                  <p className="text-right text-[10px] text-neutral-600 mt-1">{profile.bio.length}/300</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">LinkedIn Profile</label>
+                  <div className="relative">
+                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="url" value={profile.linkedin} onChange={e => setProfile({...profile, linkedin: e.target.value})} className={inputCls + ' pl-11'} placeholder="https://linkedin.com/in/..." />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-widest text-neutral-500 mb-2">Website / Portfolio</label>
+                  <div className="relative">
+                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                    <input type="url" value={profile.website} onChange={e => setProfile({...profile, website: e.target.value})} className={inputCls + ' pl-11'} placeholder="https://yourwebsite.com" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                  className="flex items-center gap-2 rounded-2xl bg-[#F24C20] px-8 py-3.5 font-bold text-sm text-white shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  Save Profile
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* --- SECURITY TAB --- */}
+          {activeTab === 'security' && (
+            <div className="space-y-8">
+              <div>
+                <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Security Settings</h3>
+                <p className="text-sm text-neutral-500 mt-1">Manage your password and account protection.</p>
+              </div>
+
+              <div className={`p-8 rounded-3xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F24C20]/10 flex items-center justify-center flex-shrink-0">
+                    <Lock className="w-7 h-7 text-[#F24C20]" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className={`text-lg font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Change Password</h4>
+                    <p className="text-sm text-neutral-500 mt-1 mb-6">
+                      We'll send a secure password reset link to <strong className={isDarkMode ? 'text-white' : 'text-neutral-900'}>{profile.email}</strong>. Click the link in your email to set a new password.
+                    </p>
+                    <button
+                      onClick={handleSendResetLink}
+                      disabled={saving}
+                      className="flex items-center gap-2 rounded-2xl bg-[#F24C20] px-8 py-3.5 font-bold text-sm text-white shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                    >
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                      Send Reset Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-8 rounded-3xl border ${isDarkMode ? 'border-red-900/30 bg-red-900/10' : 'border-red-200 bg-red-50'}`}>
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-7 h-7 text-red-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-black text-red-500">Danger Zone</h4>
+                    <p className="text-sm text-neutral-500 mt-1 mb-6">Permanently deleting your account will wipe all your investment data, deal pipeline, and messages. This action cannot be undone.</p>
+                    <button 
+                      onClick={() => toast.error('Please contact support to delete your investor account.')}
+                      className="flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 text-red-500 px-6 py-3 text-sm font-bold hover:bg-red-500/20 transition-all"
+                    >
+                      Request Account Deletion
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- KYC TAB --- */}
+          {activeTab === 'kyc' && (
+            <div className="space-y-2">
+              <div className="mb-6">
+                <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>KYC Verification</h3>
+                <p className="text-sm text-neutral-500 mt-1">Complete verification to unlock all deal access and build trust with founders.</p>
+              </div>
+              <KYCSettings userRole="investor" />
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // --- Main Dashboard Component ---
@@ -279,10 +602,10 @@ export default function InvestorDashboard() {
                 <motion.h1 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={`text-4xl font-black tracking-tight flex items-center gap-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}
+                    className={`text-2xl sm:text-3xl md:text-4xl font-black tracking-tight flex flex-wrap items-center gap-2 sm:gap-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}
                 >
                     Investor <span className="text-[#F24C20]">Command Center</span>
-                    <Badge variant={kycStatus === 'fully_verified' ? 'success' : kycStatus === 'pending' ? 'warning' : 'default'}>
+                    <Badge className="text-[10px] sm:text-xs px-2 py-0.5" variant={kycStatus === 'fully_verified' ? 'success' : kycStatus === 'pending' ? 'warning' : 'default'}>
                         {kycStatus.replace('_', ' ')}
                     </Badge>
                 </motion.h1>
@@ -290,18 +613,18 @@ export default function InvestorDashboard() {
                     Real-time venture intelligence and deal management.
                 </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
                 <button 
                    onClick={fetchData}
-                   className={`p-3 rounded-2xl border transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white' : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'}`}
+                   className={`p-2.5 sm:p-3 rounded-2xl border transition-all ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white' : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'}`}
                 >
-                    <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
                 <button 
-                  onClick={() => handleNav('discover')}
-                  className="flex items-center gap-2 rounded-2xl bg-[#F24C20] px-6 py-3 font-bold text-white shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all"
+                   onClick={() => handleNav('explore-ideas')}
+                   className="flex-1 md:flex-none flex items-center justify-center gap-2 rounded-2xl bg-[#F24C20] px-4 sm:px-6 py-3 font-bold text-white shadow-xl shadow-[#F24C20]/20 hover:scale-[1.02] active:scale-95 transition-all text-sm sm:text-base"
                 >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                     New Investment
                 </button>
             </div>
@@ -326,7 +649,7 @@ export default function InvestorDashboard() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                             {pipeline.slice(0, 4).length > 0 ? pipeline.slice(0, 4).map(deal => (
-                                <DealCard key={deal._id} deal={deal} />
+                                <DealCard key={deal._id} deal={deal} navigate={navigate} />
                             )) : (
                                 <div className="col-span-2 py-20 text-center border-2 border-dashed border-neutral-800 rounded-3xl text-neutral-600">
                                     Your deal flow is empty. Start discovering startups.
@@ -370,13 +693,13 @@ export default function InvestorDashboard() {
 
                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {pipeline.map(deal => (
-                        <DealCard key={deal._id} deal={deal} />
+                        <DealCard key={deal._id} deal={deal} navigate={navigate} />
                     ))}
-                    <button className={`group rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-8 transition-all hover:bg-[#F24C20]/5 hover:border-[#F24C20]/30 min-h-[200px] ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}>
+                    <button onClick={() => handleNav('explore-ideas')} className={`group rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-8 transition-all hover:bg-[#F24C20]/5 hover:border-[#F24C20]/30 min-h-[200px] ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}>
                         <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center group-hover:bg-[#F24C20] transition-colors mb-4">
                             <Plus className="w-6 h-6 text-neutral-400 group-hover:text-white" />
                         </div>
-                        <span className="text-sm font-bold text-neutral-500 group-hover:text-[#F24C20]">Ad-hoc Deal</span>
+                        <span className="text-sm font-bold text-neutral-500 group-hover:text-[#F24C20]">Discover Deal</span>
                     </button>
                  </div>
             </div>
@@ -389,30 +712,36 @@ export default function InvestorDashboard() {
             </div>
         )}
 
-        {/* --- SECTION: DETAIL VIEW --- */}
-        {activeMenuId === 'startup-ideas' && (
+        {/* --- SECTION: TALENT DISCOVERY --- */}
+        {activeMenuId === 'talent' && (
             <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
-                <StartupIdeaDashboardDetail />
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h2 className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Talent Marketplace</h2>
+                        <p className="text-neutral-500 font-medium mt-1">Discover world-class freelancers and agencies for your projects.</p>
+                    </div>
+                </div>
+                <FindTalent />
             </div>
         )}
 
         {/* --- SECTION: MEETINGS --- */}
         {activeMenuId === 'meetings' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-500">
-                 <div className="flex items-center justify-between mb-2">
-                    <h2 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Investment Calendar</h2>
+                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <h2 className={`text-xl sm:text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Investment Calendar</h2>
                     <div className="flex items-center gap-2">
-                        <button className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest ${isDarkMode ? 'bg-neutral-800 text-neutral-300' : 'bg-neutral-100 text-neutral-600'}`}>Overview</button>
-                        <button className="px-4 py-2 rounded-xl bg-[#F24C20] text-white text-xs font-bold uppercase tracking-widest">Schedule New</button>
+                        <button className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'bg-neutral-800 text-neutral-300' : 'bg-neutral-100 text-neutral-600'}`}>Overview</button>
+                        <button onClick={() => toast.info('Scheduling module is pending integration')} className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#F24C20] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#d43a12] transition-colors">Schedule New</button>
                     </div>
                  </div>
 
-                 <div className={`rounded-3xl border p-8 ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}>
+                 <div className={`rounded-3xl border p-4 sm:p-8 ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}>
                     <div className="grid gap-4 max-w-4xl mx-auto">
                         {meetings.length > 0 ? meetings.map(m => (
                             <MeetingItem key={m._id} meeting={m} />
                         )) : (
-                            <div className="text-center py-20 text-neutral-600">
+                            <div className="text-center py-16 sm:py-20 text-neutral-600 text-sm">
                                 No meetings scheduled. Check your "Interested" deals to initiate contact.
                             </div>
                         )}
@@ -423,9 +752,9 @@ export default function InvestorDashboard() {
 
         {/* --- SECTION: MESSAGES --- */}
         {activeMenuId === 'messages' && (
-            <div className="flex h-[75vh] rounded-[3.5rem] border overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700 bg-black/20 backdrop-blur-3xl border-neutral-800">
+            <div className="flex h-[75vh] rounded-3xl sm:rounded-[3.5rem] border overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-700 bg-black/20 backdrop-blur-3xl border-neutral-800 shadow-2xl">
                 {/* Conversations Sidebar */}
-                <div className="w-80 lg:w-96 border-r border-neutral-800 flex flex-col">
+                <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-neutral-800 flex-col`}>
                     <div className="p-8 border-b border-neutral-800">
                         <h3 className="text-2xl font-black text-white italic tracking-tighter">Venture Inbox</h3>
                     </div>
@@ -458,7 +787,7 @@ export default function InvestorDashboard() {
                 </div>
 
                 {/* Chat Area */}
-                <div className="flex-1 flex flex-col h-full bg-neutral-900/60 transition-all">
+                <div className={`${!selectedConversation ? 'hidden md:flex' : 'flex'} flex-1 flex-col h-full bg-neutral-900/60 transition-all`}>
                     {selectedConversation ? (
                         <ChatWindow 
                             otherUser={selectedConversation.user} 
@@ -481,13 +810,7 @@ export default function InvestorDashboard() {
         
         {/* --- SECTION: SETTINGS --- */}
         {activeMenuId === 'settings' && (
-            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500 max-w-4xl">
-                 <div className="mb-10">
-                    <h2 className={`text-4xl font-black italic tracking-tighter ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Capital Governance</h2>
-                    <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest mt-2 px-1">Manage your identity and investment credentials.</p>
-                </div>
-                <KYCSettings userRole="investor" />
-            </div>
+            <InvestorSettings isDarkMode={isDarkMode} />
         )}
 
         {/* --- SECTION: SUBSCRIPTION --- */}

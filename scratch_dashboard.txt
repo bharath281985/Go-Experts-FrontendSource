@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+﻿import { useMemo, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "@/app/utils/api";
 import { toast } from "sonner";
@@ -359,13 +359,6 @@ export default function StartupCreatorDashboard() {
                             ))}
                             <button 
                                 onClick={() => {
-                                    if (kycStatus !== 'fully_verified') {
-                                        toast.error('KYC verification required. Please complete your profile in Settings.', {
-                                            action: {
-                                                label: 'Settings',
-                                                onClick: () => handleNav('settings')
-                                            }
-                                        });
                                         return;
                                     }
                                     handleNav('ideas', 'new');

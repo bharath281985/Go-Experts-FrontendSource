@@ -133,10 +133,9 @@ export default function DashboardRouter() {
             element={userType === 'freelancer' ? <WalletWithdraw /> : <Navigate to="/dashboard/balance" />}
           />
 
-          {/* Startup Ideas */}
+          {/* Startup Ideas - Personal Pitches Only */}
           <Route path="startup-ideas" element={<StartupIdeas />} />
-          <Route path="explore-ideas" element={<ExploreStartupIdeas />} />
-          <Route path="startup-ideas/:id" element={<StartupIdeaDashboardDetail />} />
+          {/* Marketplace Access Restricted To Investors */}
 
           {/* Shared Pages */}
 

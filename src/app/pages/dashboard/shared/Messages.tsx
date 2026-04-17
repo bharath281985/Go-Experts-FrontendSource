@@ -504,8 +504,14 @@ export default function Messages() {
                     </div>
                     <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Your Inbox</h3>
                     <p className={`text-sm max-w-xs mx-auto ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
-                      Select an active conversation from the left to start collaborating with experts or clients.
+                      Select an active conversation to start collaborating with experts or clients.
                     </p>
+                    <button 
+                      onClick={() => setShowChatArea(false)}
+                      className="mt-8 px-8 py-3 bg-[#F24C20] text-white rounded-full font-bold text-sm md:hidden hover:scale-105 transition-transform shadow-lg shadow-[#F24C20]/20"
+                    >
+                      View All Conversations
+                    </button>
                   </div>
                 </div>
              )}

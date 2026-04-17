@@ -9,10 +9,18 @@ import api from '@/app/utils/api';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { toast } from 'sonner';
 
-export default function StartupIdeaDashboardDetail() {
-  const { id } = useParams();
+export default function StartupIdeaDashboardDetail({ ideaId }: { ideaId?: string }) {
+  const params = useParams();
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  
+  // Resolve ID — prefer explicitly passed prop, then URL params, then defensive path parsing
+  const rawId = ideaId || params.id || (window.location.pathname.split('/').pop() ?? '');
+  
+  // Guard: only use the ID if it looks like a valid MongoDB ObjectId (24 hex chars)
+  const isValidObjectId = (str: string) => /^[a-fA-F0-9]{24}$/.test(str);
+  const id = isValidObjectId(rawId) ? rawId : null;
+  
   const [idea, setIdea] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -21,6 +29,11 @@ export default function StartupIdeaDashboardDetail() {
   const [user, setUser] = useState<any>(JSON.parse(localStorage.getItem('user') || '{}'));
 
   useEffect(() => {
+    if (!id) {
+      // No valid ID — don't make an API call, just show not found
+      setLoading(false);
+      return;
+    }
     fetchIdeaDetails();
   }, [id]);
 
@@ -39,7 +52,12 @@ export default function StartupIdeaDashboardDetail() {
       }
     } catch (err: any) {
       toast.error('Concept details are temporarily unavailable');
-      navigate('/dashboard/explore-ideas');
+      // Role-aware fallback navigation
+      const role = user.role || (user.roles && user.roles[0]);
+      let basePath = '/dashboard';
+      if (role === 'investor') basePath = '/dashboard-investor';
+      else if (role === 'startup_creator') basePath = '/dashboard-startup';
+      navigate(basePath);
     } finally {
       setLoading(false);
     }
@@ -72,11 +90,29 @@ export default function StartupIdeaDashboardDetail() {
             receiverId: idea.creator._id,
             content: `I am interested in your concept "${idea.title}" and would like to discuss potential collaboration or investment.`
         });
+        
+        // Auto-track the deal if they are an investor
+        const role = user.role || (user.roles && user.roles[0]);
+        if (role === 'investor') {
+            await api.post(`/investor/dashboard/track/${idea._id}`, { status: 'interested' });
+        }
+        
         toast.success(`Inquiry sent to ${idea.creator.full_name}! Check your messages for their reply.`);
     } catch (err: any) {
         toast.error(err.response?.data?.message || 'Unable to send inquiry at this time');
     } finally {
         setSubmitting(false);
+    }
+  };
+
+  const handleTrackPipeline = async (status: string) => {
+    try {
+      const res = await api.post(`/investor/dashboard/track/${idea._id}`, { status });
+      if (res.data.success) {
+         toast.success(`Deal marked as ${status} in your pipeline`);
+      }
+    } catch (err: any) {
+      toast.error('Could not track deal');
     }
   };
 
@@ -299,11 +335,31 @@ export default function StartupIdeaDashboardDetail() {
                         >
                            {submitting ? 'Sending...' : 'Send Direct Inquiry'}
                         </button>
+                        
+                        {(user.role === 'investor' || (user.roles && user.roles[0] === 'investor')) && (
+                          <div className="grid grid-cols-2 gap-3">
+                              <button 
+                                onClick={() => handleTrackPipeline('shortlisted')}
+                                className="w-full py-3 rounded-2xl border border-orange-500/30 bg-orange-500/10 text-[#F24C20] font-black uppercase tracking-widest text-[10px] hover:bg-orange-500/20 transition-all"
+                              >
+                                 Shortlist Deal
+                              </button>
+                              <button 
+                                onClick={() => handleTrackPipeline('saved')}
+                                className={`w-full py-3 rounded-2xl border font-black uppercase tracking-widest text-[10px] hover:bg-neutral-800 transition-all ${
+                                 isDarkMode ? 'border-neutral-800 text-neutral-400' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'
+                                }`}
+                              >
+                                 Save for Later
+                              </button>
+                          </div>
+                        )}
+
                         <button 
                           onClick={handleRequestVideoPitch}
                           disabled={submitting}
                           className={`w-full py-4 rounded-2xl border font-black uppercase tracking-widest text-xs hover:bg-neutral-800 transition-all disabled:opacity-50 ${
-                           isDarkMode ? 'border-neutral-800 text-neutral-400' : 'border-neutral-200 text-neutral-600'
+                           isDarkMode ? 'border-neutral-800 text-neutral-400' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'
                         }`}>
                            {submitting ? 'Requesting...' : 'Request Video Pitch'}
                         </button>

@@ -59,6 +59,14 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [disputeCount, setDisputeCount] = useState(0);
   const [subscriptionSummary, setSubscriptionSummary] = useState<{ planName: string; daysLeft: number | null } | null>(null);
+  
+  const getDashboardBase = () => {
+    if (userType === 'investor') return '/dashboard-investor';
+    if (userType === 'startup_creator') return '/dashboard-startup';
+    return '/dashboard';
+  };
+  
+  const dashboardBase = getDashboardBase();
   const useHoverProfileMenu = userType === 'client' || userType === 'freelancer';
   const logoUrl = getImgUrl(header_logo || site_logo) || logoFallback;
 
@@ -85,7 +93,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
           id: `msg-${c.user._id}`,
           title: `New message from ${c.user.full_name}`,
           time: new Date(c.lastMessage.createdAt),
-          path: '/dashboard/messages'
+          path: `${dashboardBase}/messages`
         })));
       }
 
@@ -145,9 +153,13 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       ]
     },
     {
-      label: 'Startup Ideas',
+      label: 'My Startup Pitches',
       icon: Briefcase,
-      path: '/dashboard/startup-ideas'
+      path: '/dashboard/startup-ideas',
+      submenu: [
+        { label: 'Submit New Idea', path: '/dashboard/startup-ideas' },
+        { label: 'My Submissions', path: '/dashboard/startup-ideas' }
+      ]
     },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
@@ -168,9 +180,13 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       ]
     },
     {
-      label: 'Startup Ideas',
+      label: 'My Startup Pitches',
       icon: Briefcase,
-      path: '/dashboard/startup-ideas'
+      path: '/dashboard/startup-ideas',
+      submenu: [
+        { label: 'Submit New Idea', path: '/dashboard/startup-ideas' },
+        { label: 'My Submissions', path: '/dashboard/startup-ideas' }
+      ]
     },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
@@ -183,16 +199,21 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const investorNavItems: NavItem[] = [
     { label: 'Overview', icon: LayoutDashboard, path: '/dashboard-investor' },
     {
-      label: 'Startup Ideas',
+      label: 'Startup Marketplace',
       icon: Briefcase,
       path: '/dashboard-investor/explore-ideas',
       submenu: [
-        { label: 'Explore All', path: '/dashboard-investor/explore-ideas' },
-        { label: 'Saved Content', path: '/dashboard-investor/pipeline' }
+        { label: 'Explore All Ideas', path: '/dashboard-investor/explore-ideas' },
+        { label: 'Saved & Pipeline', path: '/dashboard-investor/pipeline' }
       ]
     },
+    { 
+      label: 'Hire Freelancers', 
+      icon: Users, 
+      path: '/dashboard-investor/talent' 
+    },
     { label: 'Meetings', icon: Calendar, path: '/dashboard-investor/meetings' },
-    { label: 'Messages', icon: MessageSquare, path: '/dashboard-investor/messages', badge: 2 },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard-investor/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard-investor/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard-investor/settings' }
   ];
@@ -207,7 +228,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     },
     { label: 'Analytics', icon: Search, path: '/dashboard-startup/analytics' },
     { label: 'NDA Requests', icon: FileText, path: '/dashboard-startup/nda' },
-    { label: 'Messages', icon: MessageSquare, path: '/dashboard-startup/messages' },
+    { label: 'Messages', icon: MessageSquare, path: '/dashboard-startup/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard-startup/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard-startup/settings' }
   ];
@@ -413,7 +434,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                       <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{JSON.parse(localStorage.getItem('user') || '{}').email || ''}</div>
                     </div>
                     <div className="p-2">
-                      <Link to="/dashboard/settings" className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-100 text-neutral-700'}`}>
+                      <Link to={`${dashboardBase}/settings`} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-100 text-neutral-700'}`}>
                         <UserIcon className="w-4 h-4" /> <span className="text-sm">My Profile</span>
                       </Link>
                       <button onClick={handleLogout} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}>

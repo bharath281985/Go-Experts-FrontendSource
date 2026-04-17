@@ -63,14 +63,15 @@ const formatCurrency = (amount: number) => `₹${Number(amount || 0).toLocaleStr
 const getPlanTargetRoles = (plan: any) => Array.isArray(plan?.target_role) ? plan.target_role : [plan?.target_role].filter(Boolean);
 
 const makeUsageMetric = (label: string, remaining: number, total: number) => {
-  const safeTotal = Number(total || 0);
   const safeRemaining = Math.max(Number(remaining || 0), 0);
-  const used = safeTotal > 0 ? Math.max(safeTotal - safeRemaining, 0) : 0;
+  // Prioritize the explicit total provided by the backend record
+  const safeTotal = Number(total) > 0 ? Number(total) : safeRemaining;
+  const used = Math.max(safeTotal - safeRemaining, 0);
 
   return {
     label,
     remaining: safeRemaining,
-    total: safeTotal,
+    total: safeTotal.toString() === '0' && safeRemaining > 0 ? safeRemaining : safeTotal,
     used,
     percentage: safeTotal > 0 ? Math.min(Math.round((used / safeTotal) * 100), 100) : 0
   };
@@ -80,23 +81,23 @@ const buildPlanFeatures = (plan: any, targetRole: string) => {
   const features = new Set<string>();
 
   if (targetRole === 'freelancer') {
-    if (plan.interest_click_limit > 0) features.add(`${plan.interest_click_limit} project applications`);
-    if (plan.project_visit_limit > 0) features.add(`${plan.project_visit_limit} project detail visits`);
-    if (plan.startup_idea_post_limit > 0) features.add(`${plan.startup_idea_post_limit} startup idea submissions`);
-    if (plan.startup_idea_explore_limit > 0) features.add(`${plan.startup_idea_explore_limit} startup idea unlocks`);
-    if (plan.chat_limit > 0) features.add(`Chat with ${plan.chat_limit} people`);
+    if (plan.interest_click_limit > 0) features.add(`Apply to ${plan.interest_click_limit} projects`);
+    if (plan.project_visit_limit > 0) features.add(`View ${plan.project_visit_limit} detailed project briefs`);
+    if (plan.startup_idea_post_limit > 0) features.add(`Submit ${plan.startup_idea_post_limit} startup pitches`);
+    if (plan.startup_idea_explore_limit > 0) features.add(`Unlock ${plan.startup_idea_explore_limit} startup concepts`);
+    if (plan.chat_limit > 0) features.add(`Chat with ${plan.chat_limit} potential clients`);
   } else if (targetRole === 'client') {
-    if (plan.project_post_limit > 0) features.add(`${plan.project_post_limit} project posts`);
-    if (plan.portfolio_visit_limit > 0) features.add(`${plan.portfolio_visit_limit} talent profile unlocks`);
-    if (plan.chat_limit > 0) features.add(`Chat with ${plan.chat_limit} people`);
+    if (plan.project_post_limit > 0) features.add(`Post up to ${plan.project_post_limit} active projects`);
+    if (plan.portfolio_visit_limit > 0) features.add(`Unlock ${plan.portfolio_visit_limit} premium talent profiles`);
+    if (plan.chat_limit > 0) features.add(`Directly message ${plan.chat_limit} freelancers`);
   } else if (targetRole === 'startup_creator') {
-    if (plan.startup_idea_post_limit > 0) features.add(`${plan.startup_idea_post_limit} startup idea submissions`);
-    if (plan.startup_idea_explore_limit > 0) features.add(`${plan.startup_idea_explore_limit} idea unlocks`);
-    if (plan.chat_limit > 0) features.add(`Contact ${plan.chat_limit} people`);
+    if (plan.startup_idea_post_limit > 0) features.add(`Publish ${plan.startup_idea_post_limit} investment pitches`);
+    if (plan.startup_idea_explore_limit > 0) features.add(`Deep-dive into ${plan.startup_idea_explore_limit} idea analytics`);
+    if (plan.chat_limit > 0) features.add(`Connect with ${plan.chat_limit} verified investors`);
   } else if (targetRole === 'investor') {
-    if (plan.startup_idea_explore_limit > 0) features.add(`${plan.startup_idea_explore_limit} startup idea unlocks`);
-    if (plan.database_access_limit > 0) features.add(`${plan.database_access_limit} founder DB hits`);
-    if (plan.chat_limit > 0) features.add(`Contact ${plan.chat_limit} founders`);
+    if (plan.startup_idea_explore_limit > 0) features.add(`Unlock ${plan.startup_idea_explore_limit} curated startup ideas`);
+    if (plan.database_access_limit > 0) features.add(`Access ${plan.database_access_limit} premium founder lookups`);
+    if (plan.chat_limit > 0) features.add(`Initiate chats with ${plan.chat_limit} venture founders`);
   }
 
   (plan.features || []).forEach((feature: string) => feature?.trim() && features.add(feature.trim()));
@@ -209,23 +210,23 @@ export default function SubscriptionCredits() {
   const planTimeline = getPlanTimeline(sub, planDetails.duration_days, now);
 
   const usageMetrics = isFreelancer ? [
-    makeUsageMetric('Project Applications', sub?.remaining_interest_clicks, planDetails.interest_click_limit || sub?.total_interest_clicks),
-    makeUsageMetric('Project Detail Visits', sub?.remaining_project_visits, planDetails.project_visit_limit || sub?.total_project_visits),
-    makeUsageMetric('Startup Submissions', sub?.remaining_startup_posts, planDetails.startup_idea_post_limit),
-    makeUsageMetric('Startup Unlocks', sub?.remaining_idea_unlocks, planDetails.startup_idea_explore_limit),
-    makeUsageMetric('Direct Chats', sub?.remaining_chats, planDetails.chat_limit)
+    makeUsageMetric('Project Applications', sub?.remaining_interest_clicks, sub?.total_interest_clicks ?? planDetails.interest_click_limit),
+    makeUsageMetric('Project Detail Visits', sub?.remaining_project_visits, sub?.total_project_visits ?? planDetails.project_visit_limit),
+    makeUsageMetric('Startup Submissions', sub?.remaining_startup_posts, sub?.total_startup_posts ?? planDetails.startup_idea_post_limit),
+    makeUsageMetric('Startup Unlocks', sub?.remaining_idea_unlocks, sub?.total_idea_unlocks ?? planDetails.startup_idea_explore_limit),
+    makeUsageMetric('Direct Chats', sub?.remaining_chats, sub?.total_chats ?? planDetails.chat_limit)
   ] : isInvestor ? [
-    makeUsageMetric('Startup Unlocks', sub?.remaining_idea_unlocks, planDetails.startup_idea_explore_limit),
-    makeUsageMetric('Database Access', sub?.remaining_db_access, planDetails.database_access_limit),
-    makeUsageMetric('Direct Chats', sub?.remaining_chats, planDetails.chat_limit)
+    makeUsageMetric('Startup Unlocks', sub?.remaining_idea_unlocks ?? 0, sub?.total_idea_unlocks ?? planDetails.startup_idea_explore_limit),
+    makeUsageMetric('Database Access', sub?.remaining_db_access ?? 0, sub?.total_db_access ?? planDetails.database_access_limit),
+    makeUsageMetric('Direct Chats', sub?.remaining_chats ?? 0, sub?.total_chats ?? planDetails.chat_limit)
   ] : isStartupCreator ? [
-    makeUsageMetric('Startup Submissions', sub?.remaining_startup_posts, planDetails.startup_idea_post_limit),
-    makeUsageMetric('Idea Unlocks', sub?.remaining_idea_unlocks, planDetails.startup_idea_explore_limit),
-    makeUsageMetric('Direct Chats', sub?.remaining_chats, planDetails.chat_limit)
+    makeUsageMetric('Startup Pitches', sub?.remaining_startup_posts, sub?.total_startup_posts ?? planDetails.startup_idea_post_limit),
+    makeUsageMetric('Idea Unlocks', sub?.remaining_idea_unlocks, sub?.total_idea_unlocks ?? planDetails.startup_idea_explore_limit),
+    makeUsageMetric('Direct Chats', sub?.remaining_chats, sub?.total_chats ?? planDetails.chat_limit)
   ] : [
-    makeUsageMetric('Project Posts', sub?.remaining_project_posts, planDetails.project_post_limit || sub?.total_project_posts),
-    makeUsageMetric('Talent Profile Unlocks', sub?.remaining_portfolio_visits, planDetails.portfolio_visit_limit || sub?.total_portfolio_visits),
-    makeUsageMetric('Direct Chats', sub?.remaining_chats, planDetails.chat_limit)
+    makeUsageMetric('Project Posts', sub?.remaining_project_posts, sub?.total_project_posts ?? planDetails.project_post_limit),
+    makeUsageMetric('Talent Unlocks', sub?.remaining_portfolio_visits, sub?.total_portfolio_visits ?? planDetails.portfolio_visit_limit),
+    makeUsageMetric('Direct Chats', sub?.remaining_chats, sub?.total_chats ?? planDetails.chat_limit)
   ];
 
   const visibleUsageMetrics = usageMetrics.filter(metric => metric.total > 0 || metric.remaining > 0);
@@ -299,15 +300,15 @@ export default function SubscriptionCredits() {
             : 'bg-white/50 border-neutral-200'
             }`}
         >
-          <div className="flex flex-col gap-2.5 mb-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-3.5 mb-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className={`text-base font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <h2 className={`text-lg sm:text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
                   {currentPlanData.planName}
                 </h2>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${sub ? (isDarkMode
-                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                  : 'bg-blue-50 text-blue-600 border border-blue-200'
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${sub ? (isDarkMode
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
                 ) : (isDarkMode 
                   ? 'bg-neutral-800 text-neutral-500 border border-neutral-700'
                   : 'bg-neutral-100 text-neutral-500 border border-neutral-200'
@@ -315,9 +316,9 @@ export default function SubscriptionCredits() {
                   {sub ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <p className={`mt-1 text-xs ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              <p className={`mt-1.5 text-[11px] sm:text-xs font-medium ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
                 {sub?.start_date || sub?.createdAt
-                  ? `Live from ${new Date(sub.start_date || sub.createdAt).toLocaleDateString('en-IN', {
+                  ? `Authenticated on ${new Date(sub.start_date || sub.createdAt).toLocaleDateString('en-IN', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric'
@@ -325,49 +326,41 @@ export default function SubscriptionCredits() {
                   : (planDetails.description || `${currentPlanData.totalDays} day plan`)}
               </p>
             </div>
-            <div className="flex items-center justify-between gap-2.5 sm:justify-end sm:ml-4">
+            <div className="flex items-center justify-start gap-4 lg:justify-end lg:ml-4">
               {sub && (
-                <div className={`min-w-[132px] rounded-xl border px-3 py-2.5 ${isDarkMode
-                  ? 'bg-neutral-800/50 border-neutral-700'
-                  : 'bg-neutral-50 border-neutral-200'
+                <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${isDarkMode
+                  ? 'bg-neutral-800/80 border-neutral-700 shadow-lg shadow-black/20'
+                  : 'bg-neutral-50/50 border-neutral-200'
                 }`}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className={`text-[11px] font-medium uppercase tracking-[0.16em] ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-                      Plan Duration
-                    </span>
-                    <Calendar className="w-3.5 h-3.5 text-[#F24C20]" />
-                  </div>
-                  <div className="flex items-center justify-center">
+                  <div className="flex-shrink-0">
                     <RadialProgress
                       value={currentPlanData.progressPercent}
                       color="#F24C20"
-                      size={56}
+                      size={44}
                     />
                   </div>
-                  <div className="mt-1.5 space-y-0.5 text-center">
-                    <p className={`text-[13px] font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                      {currentPlanData.daysRemaining} days left
-                    </p>
-                    <p className={`text-[11px] ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
-                      {currentPlanData.daysUsed} days used
-                    </p>
+                  <div className="min-w-0">
+                     <p className={`text-[13px] font-black leading-none ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                        {currentPlanData.daysRemaining} Days
+                     </p>
+                     <p className="text-[10px] font-bold text-[#F24C20] uppercase tracking-widest mt-1">Remaining</p>
                   </div>
                 </div>
               )}
               {(currentPlanData.planName === 'No Active Plan' || currentPlanData.planName === 'Free Trial') && (
                 <button 
                   onClick={() => document.getElementById('plans-selection')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-4 py-2 bg-[#044071] text-white rounded-xl text-sm font-medium hover:bg-[#044071]/90 transition-colors"
+                  className="flex-1 lg:flex-none px-6 py-3.5 bg-[#F24C20] text-white rounded-2xl text-sm font-black shadow-lg shadow-[#F24C20]/20 active:scale-95 transition-all text-center"
                 >
-                  Upgrade
+                  UPGRADE
                 </button>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <div className={`p-3.5 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className={`p-4 sm:p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50/50 border-neutral-200 shadow-inner'}`}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {visibleUsageMetrics.length > 0 ? visibleUsageMetrics.map((metric) => (
                   <div key={metric.label} className="rounded-xl bg-black/5 dark:bg-black/20 p-3">
                     <div className="flex items-center justify-between gap-3 mb-2">
@@ -616,7 +609,7 @@ export default function SubscriptionCredits() {
                   className={`w-full py-3 rounded-xl font-medium ${isDarkMode
                     ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
                     : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                    }`}
+                  }`}
                 >
                   Current Plan Live
                 </button>
@@ -624,12 +617,12 @@ export default function SubscriptionCredits() {
                 <button 
                   disabled={buying !== null}
                   onClick={() => handleChoosePlan(plan.id)}
-                  className="w-full py-3 bg-[#044071] text-white rounded-xl font-medium hover:bg-[#044071]/90 transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-black shadow-xl shadow-[#F24C20]/20 hover:bg-orange-600 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                 >
                   {buying === plan.id ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                     <>
                       Upgrade Now
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>

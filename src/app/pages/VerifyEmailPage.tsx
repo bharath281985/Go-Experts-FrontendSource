@@ -53,9 +53,28 @@ export default function VerifyEmailPage() {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
         } else if (status === 'success' && countdown === 0) {
-            navigate('/dashboard');
+            handleTargetRedirect();
         }
     }, [status, countdown, navigate]);
+
+    const handleTargetRedirect = () => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                const role = user.role || (user.roles && user.roles[0]);
+
+                // Use window.location.href for a full reload redirect to ensure fresh state (avoiding stale localStorage)
+                if (role === 'investor') window.location.href = '/dashboard-investor';
+                else if (role === 'startup_creator') window.location.href = '/dashboard-startup';
+                else window.location.href = '/dashboard';
+            } catch {
+                navigate('/dashboard');
+            }
+        } else {
+            navigate('/dashboard');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-6">
@@ -120,7 +139,7 @@ export default function VerifyEmailPage() {
                 <div className="space-y-4">
                     {status === 'success' ? (
                         <button
-                            onClick={() => navigate('/dashboard')}
+                            onClick={handleTargetRedirect}
                             className="w-full py-4 rounded-xl bg-gradient-to-r from-[#F24C20] to-orange-600 text-white font-bold hover:shadow-lg hover:shadow-[#F24C20]/20 transition-all flex items-center justify-center gap-2 group"
                         >
                             Go to Dashboard

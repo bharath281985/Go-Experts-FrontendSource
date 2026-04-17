@@ -64,7 +64,7 @@ export default function FindTalent() {
 
   const filteredCategories = categories.filter(c => 
     c.name.toLowerCase().includes(categorySearch.toLowerCase())
-  ).slice(0, categorySearch ? 50 : 15); // Show top 15 by default, more when searching
+  ).slice(0, categorySearch ? 50 : 8); // Show top 8 by default, more when searching
 
   if (loading) {
     return (
@@ -83,28 +83,28 @@ export default function FindTalent() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <div className="flex items-center gap-3 mb-2 text-[#F24C20]">
-            <Users className="w-6 h-6" />
-            <span className="text-sm font-bold tracking-wider uppercase">Talent Pool</span>
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
+            <span className="text-[10px] sm:text-sm font-bold tracking-wider uppercase">Talent Pool</span>
           </div>
-          <h1 className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
             Find Talent
           </h1>
-          <p className={`mt-2 max-w-xl ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+          <p className={`mt-2 text-sm sm:text-base max-w-xl ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
             Browse our curated list of world-class freelancers and hire the perfect match for your project.
           </p>
         </motion.div>
 
-        <div className="flex items-center gap-4">
-          <div className={`relative w-full md:w-80 group ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+        <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
+          <div className={`relative flex-1 md:w-80 group ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
               isDarkMode ? 'text-neutral-500 group-focus-within:text-[#F24C20]' : 'text-neutral-400 group-focus-within:text-[#F24C20]'
             }`} />
             <input
               type="text"
-              placeholder="Search by name, bio, or skills..."
+              placeholder="Search talent..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all ${
+              className={`w-full pl-10 pr-4 py-3 rounded-xl border outline-none transition-all text-sm sm:text-base ${
                 isDarkMode 
                   ? 'bg-neutral-900/50 border-neutral-800 focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20]' 
                   : 'bg-white border-neutral-200 focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20]'
@@ -181,9 +181,10 @@ export default function FindTalent() {
               {cat.name}
             </button>
           ))}
-          {!categorySearch && categories.length > 15 && (
-            <div className={`px-4 py-2 text-xs font-black uppercase text-neutral-600`}>
-              Search for more...
+          {!categorySearch && categories.length > 8 && (
+            <div className="px-4 py-2 text-[10px] font-black uppercase text-neutral-500 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20] animate-pulse" />
+              Search for more skills...
             </div>
           )}
         </div>
@@ -208,30 +209,30 @@ export default function FindTalent() {
             >
               <div className="p-6">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="relative">
+                  <div className="relative shrink-0">
                     <img
                       src={talent.profile_image ? (talent.profile_image.startsWith('http') ? talent.profile_image : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${talent.profile_image}`) : `https://ui-avatars.com/api/?name=${talent.full_name}&background=random`}
                       alt={talent.full_name}
-                      className="w-20 h-20 rounded-2xl object-cover ring-2 ring-neutral-800"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-2 ring-neutral-800"
                     />
                     {talent.kyc_details?.is_verified && (
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-neutral-900">
-                        <CheckCircle className="w-3.5 h-3.5 text-white" />
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-neutral-900">
+                        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold text-lg truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <div className="flex-1 min-w-0 w-full">
+                    <h3 className={`font-bold text-base sm:text-lg truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
                       {talent.full_name}
                     </h3>
                     <div className="flex items-center gap-1 mt-1">
                       <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
                       <span className="text-sm font-bold text-yellow-400">4.9</span>
-                      <span className="text-xs text-neutral-500">(120+ reviews)</span>
+                      <span className="text-[10px] sm:text-xs text-neutral-500">(120+ reviews)</span>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-3">
                       {talent.skills?.slice(0, 2).map((skill: any) => (
-                        <span key={skill._id} className="px-2 py-0.5 rounded-md bg-neutral-800 text-[10px] font-bold text-neutral-400 uppercase">
+                        <span key={typeof skill === 'object' ? skill._id : skill} className="px-2 py-0.5 rounded-md bg-neutral-800 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase">
                           {typeof skill === 'object' ? skill.name : skill}
                         </span>
                       ))}

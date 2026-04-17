@@ -93,6 +93,26 @@ export default function PricingSection() {
     }
   ];
 
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserRole(user.role || (user.roles ? user.roles[0] : null));
+      } catch (e) {}
+    }
+  }, []);
+
+  const filteredCategories = categories.filter(c => {
+    if (!userRole) return true;
+    if (userRole === 'freelancer' && c.group === 'Freelancer Plans') return true;
+    if (userRole === 'client' && c.group === 'Client Plans') return true;
+    if ((userRole === 'investor' || userRole === 'startup_creator') && c.group === 'Investor Plans') return true;
+    return false;
+  });
+
   const handleNavigate = () => {
     navigate('/subscription');
     window.scrollTo(0, 0);
@@ -156,7 +176,7 @@ export default function PricingSection() {
                 <p className="text-neutral-500 text-sm">Syncing latest plans...</p>
               </div>
             ) : (
-              categories.map((item, idx) => {
+              filteredCategories.map((item, idx) => {
                 const startPrice = getStartingPrice(item.group);
                 
                 return (
