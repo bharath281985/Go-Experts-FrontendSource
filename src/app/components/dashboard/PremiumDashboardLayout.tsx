@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { io, Socket } from 'socket.io-client';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -23,7 +24,8 @@ import {
   User as UserIcon,
   Mail,
   UserCircle2,
-  Calendar
+  Calendar,
+  Crown
 } from 'lucide-react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
@@ -37,6 +39,7 @@ interface NavItem {
   icon: any;
   path: string;
   badge?: number;
+  premium?: boolean;
   submenu?: { label: string; path: string }[];
 }
 
@@ -54,18 +57,18 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['Dashboard']);
-  const [walletBalance, setWalletBalance] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [disputeCount, setDisputeCount] = useState(0);
-  const [subscriptionSummary, setSubscriptionSummary] = useState<{ planName: string; daysLeft: number | null } | null>(null);
-  
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [incomingMessagePopup, setIncomingMessagePopup] = useState<any>(null);
+
   const getDashboardBase = () => {
     if (userType === 'investor') return '/dashboard-investor';
     if (userType === 'startup_creator') return '/dashboard-startup';
     return '/dashboard';
   };
-  
+
   const dashboardBase = getDashboardBase();
   const useHoverProfileMenu = userType === 'client' || userType === 'freelancer';
   const logoUrl = getImgUrl(header_logo || site_logo) || logoFallback;
@@ -74,13 +77,53 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     fetchHeaderData();
   }, [userType]);
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user._id || user.id;
+    if (!userId) return;
+
+    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    setSocket(newSocket);
+    newSocket.emit('register', userId);
+
+    return () => {
+      newSocket.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (msg: any) => {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const currentUserId = currentUser._id || currentUser.id;
+      const sender = typeof msg.sender === 'string' ? null : msg.sender;
+      const senderId = sender?._id || msg.sender;
+
+      if (!senderId || senderId === currentUserId) return;
+
+      setUnreadMessageCount(prev => prev + 1);
+      setIncomingMessagePopup({
+        id: senderId,
+        name: sender?.full_name || 'New message',
+        message: msg.content || 'Sent you a message',
+        avatar: sender?.profile_image
+          ? (sender.profile_image.startsWith('http')
+            ? sender.profile_image
+            : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${sender.profile_image}`)
+          : null
+      });
+      fetchHeaderData();
+    };
+
+    socket.on('newMessage', handleNewMessage);
+    return () => {
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket, dashboardBase]);
+
   const fetchHeaderData = async () => {
     try {
-      const authRes = await api.get('/auth/me');
-      if (authRes.data.success) {
-        setWalletBalance(authRes.data.user.wallet_balance || 0);
-      }
-
       const newNotifs: any[] = [];
 
       const msgRes = await api.get('/messages/conversations');
@@ -98,22 +141,6 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       }
 
       if (userType === 'freelancer') {
-        const subRes = await api.get('/subscription/my-status', { skipToast: true } as any).catch(() => null);
-        if (subRes?.data?.success && subRes.data.subscription) {
-          const subscription = subRes.data.subscription;
-          const endDate = subscription.end_date ? new Date(subscription.end_date) : null;
-          const daysLeft = endDate
-            ? Math.max(Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)), 0)
-            : null;
-
-          setSubscriptionSummary({
-            planName: subscription.plan_name || subscription.plan_id?.name || 'Active Plan',
-            daysLeft
-          });
-        } else {
-          setSubscriptionSummary(null);
-        }
-
         const invRes = await api.get('/invitations');
         if (invRes.data.success) {
           const pendingInvs = invRes.data.data.filter((i: any) => i.status === 'pending');
@@ -147,6 +174,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       label: 'Manage Projects',
       icon: FolderKanban,
       path: '/dashboard/projects/my-projects',
+      premium: true,
       submenu: [
         { label: 'Create Project', path: '/dashboard/projects/create' },
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
@@ -156,15 +184,16 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       label: 'My Startup Pitches',
       icon: Briefcase,
       path: '/dashboard/startup-ideas',
+      premium: true,
       submenu: [
         { label: 'Submit New Idea', path: '/dashboard/startup-ideas' },
-        { label: 'My Submissions', path: '/dashboard/startup-ideas' }
+        // { label: 'My Submissions', path: '/dashboard/startup-ideas' }
       ]
     },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
-    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet' },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet', premium: true },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
   ];
@@ -172,15 +201,16 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   // Navigation items for Freelancer
   const freelancerNavItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    {
-      label: 'Find Experts',
-      icon: Users,
-      path: '/dashboard/talent'
-    },
+    // {
+    //   label: 'Find Experts',
+    //   icon: Users,
+    //   path: '/dashboard/talent'
+    // },
     {
       label: 'Manage Projects',
       icon: FolderKanban,
       path: '/dashboard/projects/my-projects',
+      premium: true,
       submenu: [
         { label: 'My Projects', path: '/dashboard/projects/my-projects' }
       ]
@@ -189,15 +219,16 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       label: 'My Startup Pitches',
       icon: Briefcase,
       path: '/dashboard/startup-ideas',
+      premium: true,
       submenu: [
         { label: 'Submit New Idea', path: '/dashboard/startup-ideas' },
-        { label: 'My Submissions', path: '/dashboard/startup-ideas' }
+        // { label: 'My Submissions', path: '/dashboard/startup-ideas' }
       ]
     },
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
-    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet' },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet', premium: true },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
   ];
@@ -214,14 +245,14 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
         { label: 'Saved & Pipeline', path: '/dashboard-investor/pipeline' }
       ]
     },
-    { 
-      label: 'Hire Freelancers', 
-      icon: Users, 
-      path: '/dashboard-investor/talent' 
+    {
+      label: 'Hire Freelancers',
+      icon: Users,
+      path: '/dashboard-investor/talent'
     },
     { label: 'Meetings', icon: Calendar, path: '/dashboard-investor/meetings' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard-investor/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
-    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard-investor/wallet' },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard-investor/wallet', premium: true },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard-investor/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard-investor/settings' }
   ];
@@ -320,6 +351,74 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
             onClick={() => setIsMobileMenuOpen(false)}
             className="fixed inset-0 z-[55] bg-black/60 backdrop-blur-sm lg:hidden"
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {incomingMessagePopup && (
+          <motion.div
+            initial={{ opacity: 0, x: 120 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 120 }}
+            className={`fixed right-6 top-24 z-[80] w-[340px] rounded-[1.75rem] border p-4 text-left shadow-2xl backdrop-blur-xl ${
+              isDarkMode
+                ? 'border-neutral-800 bg-neutral-900/95'
+                : 'border-neutral-200 bg-white/95'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                {incomingMessagePopup.avatar ? (
+                  <img
+                    src={incomingMessagePopup.avatar}
+                    alt={incomingMessagePopup.name}
+                    className="h-12 w-12 rounded-2xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F24C20]/10 text-[#F24C20] font-black">
+                    {incomingMessagePopup.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.18em] text-[#F24C20]">
+                    New Message
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIncomingMessagePopup(null);
+                    }}
+                    className={`rounded-full p-1 ${
+                      isDarkMode ? 'text-neutral-500 hover:bg-neutral-800' : 'text-neutral-400 hover:bg-neutral-100'
+                    }`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate(`${dashboardBase}/messages?user=${incomingMessagePopup.id}`);
+                    setIncomingMessagePopup(null);
+                  }}
+                  className="w-full text-left"
+                >
+                  <div className={`mt-1 truncate text-sm font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                    {incomingMessagePopup.name}
+                  </div>
+                  <div className={`mt-1 line-clamp-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                    {incomingMessagePopup.message}
+                  </div>
+                  <div className="mt-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#F24C20]">
+                    Open in Messages
+                  </div>
+                </button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -449,9 +548,9 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
       {/* Sidebar - Desktop and Mobile */}
       <motion.aside
         initial={{ x: -280 }}
-        animate={{ 
+        animate={{
           x: (isDesktop || isMobileMenuOpen) ? 0 : -280,
-          width: (sidebarCollapsed && isDesktop) ? 80 : 280 
+          width: (sidebarCollapsed && isDesktop) ? 80 : 280
         }}
         transition={{ type: 'spring', stiffness: 400, damping: 40 }}
         className={`fixed left-0 top-0 lg:top-16 bottom-0 z-[60] border-r backdrop-blur-xl ${isDarkMode ? 'bg-neutral-900/95 border-neutral-800' : 'bg-white/95 border-neutral-200 shadow-2xl lg:shadow-none'}`}
@@ -460,14 +559,14 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
           {/* Mobile Header Logo */}
           <div className="flex lg:hidden items-center justify-between mb-8 px-2">
             <img src={logoUrl} alt="Logo" className="h-7 w-auto object-contain" />
-            <button 
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 setIsMobileMenuOpen(false);
-              }} 
+              }}
               className="p-2 rounded-lg bg-neutral-800/50 text-neutral-400 active:scale-95 transition-all"
             >
-               <X className="w-5 h-5" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -489,7 +588,17 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                       >
                         <Icon className="w-5 h-5 flex-shrink-0" />
                         {!collapsed && (
-                          <><span className="flex-1 text-left text-sm font-medium">{item.label}</span><ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} /></>
+                          <>
+                            <div className="flex-1 min-w-0 flex items-center gap-1">
+                              <span className="text-left text-sm font-medium truncate">{item.label}</span>
+                              {item.premium && (
+                                <span className="relative -ml-1 -mt-3 inline-flex h-4 w-4 rotate-[24deg] items-center justify-center text-amber-500">
+                                  <Crown className="h-3.5 w-3.5" />
+                                </span>
+                              )}
+                            </div>
+                            <ChevronRight className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                          </>
                         )}
                         {item.badge && !collapsed && <span className="px-2 py-0.5 bg-[#F24C20] text-white text-xs rounded-full">{item.badge}</span>}
                       </button>
@@ -500,7 +609,16 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#F24C20]/10 text-[#F24C20]' : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'}`}
                       >
                         <Icon className="w-5 h-5 flex-shrink-0" />
-                        {!collapsed && <span className="flex-1 text-sm font-medium">{item.label}</span>}
+                        {!collapsed && (
+                          <div className="flex-1 min-w-0 flex items-center gap-1">
+                            <span className="text-sm font-medium truncate">{item.label}</span>
+                            {item.premium && (
+                              <span className="relative -ml-1 -mt-3 inline-flex h-4 w-4 rotate-[24deg] items-center justify-center text-amber-500">
+                                <Crown className="h-3.5 w-3.5" />
+                              </span>
+                            )}
+                          </div>
+                        )}
                         {item.badge && !collapsed && <span className="px-2 py-0.5 bg-[#F24C20] text-white text-xs rounded-full">{item.badge}</span>}
                       </Link>
                     )}

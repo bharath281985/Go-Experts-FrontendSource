@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import {
   Crown,
@@ -114,6 +114,7 @@ export default function SubscriptionCredits() {
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [pendingPlanChange, setPendingPlanChange] = useState<{ planId: string; planName: string } | null>(null);
 
   const queryParams = new URLSearchParams(location.search);
   const roleParam = queryParams.get('role');
@@ -208,6 +209,10 @@ export default function SubscriptionCredits() {
   const sub = subscription || stats?.subscription;
   const planDetails = sub?.plan_id || {};
   const planTimeline = getPlanTimeline(sub, planDetails.duration_days, now);
+  const currentPlanName = String(sub?.plan_name || planDetails?.name || '').trim().toLowerCase();
+  const hasActivePaidPlan = Boolean(
+    sub && currentPlanName && !currentPlanName.includes('free trial') && !currentPlanName.includes('trial')
+  );
 
   const usageMetrics = isFreelancer ? [
     makeUsageMetric('Project Applications', sub?.remaining_interest_clicks, sub?.total_interest_clicks ?? planDetails.interest_click_limit),
@@ -232,6 +237,7 @@ export default function SubscriptionCredits() {
   const visibleUsageMetrics = usageMetrics.filter(metric => metric.total > 0 || metric.remaining > 0);
   const primaryMetric = visibleUsageMetrics[0] || makeUsageMetric('Credits', 0, 0);
   const planFeatures = buildPlanFeatures(planDetails, targetRole);
+  const hasAnyLimitReached = visibleUsageMetrics.some((metric) => metric.total > 0 && metric.remaining <= 0);
 
   // Credit System Data object for the UI
   const currentPlanData = {
@@ -244,8 +250,18 @@ export default function SubscriptionCredits() {
     creditsLimit: primaryMetric.total
   };
 
-  // Plans are now fetched dynamically and stored in `plans` state
-  const handleChoosePlan = async (planId: string) => {
+  const visiblePlans = plans.filter((plan) => {
+    const planName = String(plan?.name || '').trim().toLowerCase();
+    const isFreeTrialPlan = Number(plan?.price || 0) === 0 || planName.includes('free trial') || planName.includes('trial');
+
+    if (hasActivePaidPlan && isFreeTrialPlan && !plan.current) {
+      return false;
+    }
+
+    return true;
+  });
+
+  const proceedChoosePlan = async (planId: string) => {
     try {
       setBuying(planId);
       const res = await api.post('/payment/initiate', { planId });
@@ -260,6 +276,16 @@ export default function SubscriptionCredits() {
     } finally {
       setBuying(null);
     }
+  };
+
+  // Plans are now fetched dynamically and stored in `plans` state
+  const handleChoosePlan = async (planId: string, planName?: string) => {
+    const isSamePlan = plans.some((plan) => plan.current && String(plan.name || '') === String(planName || ''));
+    if (sub && !isSamePlan) {
+      setPendingPlanChange({ planId, planName: planName || 'this new plan' });
+      return;
+    }
+    await proceedChoosePlan(planId);
   };
 
   return (
@@ -515,7 +541,7 @@ export default function SubscriptionCredits() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {plans.map((plan, index) => (
+          {visiblePlans.map((plan, index) => (
             <motion.div
               key={plan.name}
               initial={{ opacity: 0, y: 20 }}
@@ -616,23 +642,25 @@ export default function SubscriptionCredits() {
                       Expires in {currentPlanData.daysRemaining} day{currentPlanData.daysRemaining !== 1 ? 's' : ''}
                     </div>
                   )}
-                  <button
-                    disabled={buying !== null}
-                    onClick={() => handleChoosePlan(plan.id)}
-                    className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white active:scale-[0.98]"
-                  >
-                    {buying === plan.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                      <>
-                        <RefreshCw className="w-4 h-4" />
-                        Renew This Plan
-                      </>
-                    )}
-                  </button>
+                  {hasAnyLimitReached && (
+                    <button
+                      disabled={buying !== null}
+                    onClick={() => handleChoosePlan(plan.id, plan.name)}
+                      className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white active:scale-[0.98]"
+                    >
+                      {buying === plan.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                        <>
+                          <RefreshCw className="w-4 h-4" />
+                          Renew This Plan
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <button 
                   disabled={buying !== null}
-                  onClick={() => handleChoosePlan(plan.id)}
+                  onClick={() => handleChoosePlan(plan.id, plan.name)}
                   className="w-full py-4 bg-[#F24C20] text-white rounded-2xl font-black shadow-xl shadow-[#F24C20]/20 hover:bg-orange-600 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                 >
                   {buying === plan.id ? <Loader2 className="w-5 h-5 animate-spin" /> : (
@@ -647,6 +675,65 @@ export default function SubscriptionCredits() {
           ))}
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {pendingPlanChange && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onClick={() => setPendingPlanChange(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-lg rounded-3xl border p-6 shadow-2xl ${isDarkMode ? 'border-neutral-800 bg-[#121212]' : 'border-neutral-200 bg-white'}`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-[#F24C20]/10 p-3">
+                  <Crown className="h-6 w-6 text-[#F24C20]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                    Confirm Plan Change
+                  </h3>
+                  <p className={`mt-3 text-sm leading-6 ${isDarkMode ? 'text-neutral-300' : 'text-neutral-600'}`}>
+                    You already have an active subscription. If you switch to <span className="font-bold">{pendingPlanChange.planName}</span>, your current package benefits and remaining points or limits will be removed, and only the new plan points or limits will be updated.
+                  </p>
+                </div>
+              </div>
+
+              <div className={`mt-5 rounded-2xl border p-4 text-sm ${isDarkMode ? 'border-neutral-800 bg-neutral-900/80 text-neutral-400' : 'border-neutral-200 bg-neutral-50 text-neutral-600'}`}>
+                This replaces the current package. Old benefits do not carry over into the new plan.
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  onClick={() => setPendingPlanChange(null)}
+                  className={`rounded-2xl px-5 py-3 font-bold transition-all ${isDarkMode ? 'border border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border border-neutral-200 text-neutral-700 hover:bg-neutral-50'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const nextPlan = pendingPlanChange;
+                    setPendingPlanChange(null);
+                    if (nextPlan) {
+                      await proceedChoosePlan(nextPlan.planId);
+                    }
+                  }}
+                  className="rounded-2xl bg-[#F24C20] px-5 py-3 font-bold text-white transition-all hover:bg-[#d4431b]"
+                >
+                  Continue Upgrade
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

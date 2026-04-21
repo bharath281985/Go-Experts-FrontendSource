@@ -23,13 +23,13 @@ export default function SavedItems() {
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
     const role = storedUser.role || (storedUser.roles && storedUser.roles[0]) || 'client';
     setUserType(role);
-    
+
     // Set default tab based on role
     if (role === 'freelancer') setActiveTab('projects');
     else setActiveTab('talents');
 
     fetchSavedItems();
-    
+
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
     if (tab === 'ideas') setActiveTab('ideas');
@@ -63,40 +63,40 @@ export default function SavedItems() {
 
       if (projectRes.data.success) {
         setSavedProjects(projectRes.data.data.map((p: any) => ({
-             id: p._id,
-             title: p.title,
-             description: p.description,
-             budget: p.budget_range,
-             duration: p.timeline || 'TBD',
-             skills: p.skills_required || [],
-             postedBy: p.client_id?.full_name || 'Organizer',
-             applicants: 5,
-             status: p.status
+          id: p._id,
+          title: p.title,
+          description: p.description,
+          budget: p.budget_range,
+          duration: p.timeline || 'TBD',
+          skills: p.skills_required || [],
+          postedBy: p.client_id?.full_name || 'Organizer',
+          applicants: 5,
+          status: p.status
         })));
       }
 
       if (ideaRes.data.success) {
         setSavedIdeas(ideaRes.data.data.map((i: any) => ({
-             id: i._id,
-             title: i.title,
-             shortDescription: i.shortDescription,
-             category: i.category,
-             creator: i.creator?.full_name || 'Visionary',
-             status: i.status
+          id: i._id,
+          title: i.title,
+          shortDescription: i.shortDescription,
+          category: i.category,
+          creator: i.creator?.full_name || 'Visionary',
+          status: i.status
         })));
       }
 
       if (talentRes.data.success) {
         setSavedTalents(talentRes.data.data.map((t: any) => ({
-             id: t._id,
-             name: t.full_name,
-             title: t.role_title || 'Expert Professional',
-             avatar: t.profile_image ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${t.profile_image}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.full_name)}&background=044071&color=fff`,
-             rating: t.review_score || 0,
-             hourlyRate: t.hourly_rate || 0,
-             location: t.location || 'Remote',
-             skills: t.skills?.map((s: any) => s.name || s) || [],
-             completedProjects: t.completed_projects || 0
+          id: t._id,
+          name: t.full_name,
+          title: t.role_title || 'Expert Professional',
+          avatar: t.profile_image ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${t.profile_image}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.full_name)}&background=044071&color=fff`,
+          rating: t.review_score || 0,
+          hourlyRate: t.hourly_rate || 0,
+          location: t.location || 'Remote',
+          skills: t.skills?.map((s: any) => s.name || s) || [],
+          completedProjects: t.completed_projects || 0
         })));
       }
     } catch (err) {
@@ -178,13 +178,12 @@ export default function SavedItems() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${
-                isActive
+              className={`flex items-center gap-3 px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${isActive
                   ? 'bg-[#F24C20] text-white shadow-xl shadow-[#F24C20]/30'
                   : isDarkMode
-                  ? 'text-neutral-500 hover:text-white hover:bg-neutral-800'
-                  : 'text-neutral-500 hover:text-neutral-900 hover:bg-white'
-              }`}
+                    ? 'text-neutral-500 hover:text-white hover:bg-neutral-800'
+                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-white'
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -209,9 +208,8 @@ export default function SavedItems() {
               {savedTalents.map((talent, index) => (
                 <div
                   key={talent.id}
-                  className={`group p-6 rounded-[2.5rem] border transition-all duration-500 relative ${
-                    isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:border-[#F24C20]/50 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:border-[#F24C20]/50 hover:shadow-2xl'
-                  }`}
+                  className={`group p-6 rounded-[2.5rem] border transition-all duration-500 relative ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:border-[#F24C20]/50 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:border-[#F24C20]/50 hover:shadow-2xl'
+                    }`}
                 >
                   <button
                     onClick={() => handleRemove(talent.id, 'talents')}
@@ -367,7 +365,7 @@ export default function SavedItems() {
               </div>
               <h3 className={`text-2xl font-black mb-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Collection Empty</h3>
               <p className={`text-lg max-w-md mx-auto ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>You haven't added any {activeTab} to your personal collection yet. Start exploring to curate your dashboard.</p>
-              <button onClick={() => navigate('/dashboard')} className="mt-10 px-10 py-4 bg-[#F24C20] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl shadow-[#F24C20]/20">Explore Marketplace</button>
+              <button onClick={() => navigate('/')} className="mt-10 px-10 py-4 bg-[#F24C20] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl shadow-[#F24C20]/20">Explore Marketplace</button>
             </div>
           )}
         </motion.div>

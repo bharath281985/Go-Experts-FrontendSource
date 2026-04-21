@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User,
@@ -36,30 +36,7 @@ import api, { getImgUrl } from '@/app/utils/api';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { toast } from 'sonner';
 import Header from '@/app/components/Header';
-
-const ACCENT_COLOR = '#F24C20';
-
-const Typewriter = ({ text }: { text: string }) => {
-  const [displayText, setDisplayText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
-      }, 100);
-      return () => clearTimeout(timeout);
-    }
-  }, [currentIndex, text]);
-
-  return (
-    <span>
-      {displayText}
-      <span className="animate-pulse border-r-2 border-[#F24C20] ml-1"></span>
-    </span>
-  );
-};
+import { CreditUnlockModal } from '@/app/components/subscription/CreditUnlockModal';
 
 const maskEmail = (email?: string) => {
   if (!email || !email.includes('@')) return 'hidden@protected.com';
@@ -90,13 +67,12 @@ const maskText = (value?: string, fallback = 'Protected') => {
 export default function FreelancerLandingPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState<'home' | 'about' | 'works' | 'contact'>('home');
+  const [activeSection, setActiveSection] = useState<'home' | 'about' | 'portfolio' | 'contact' | 'chat'>('home');
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSending, setIsSending] = useState(false);
   const [talent, setTalent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [unlocking, setUnlocking] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
@@ -105,6 +81,8 @@ export default function FreelancerLandingPage() {
   const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any | null>(null);
   const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [unlockReason, setUnlockReason] = useState<'portfolio' | 'chat'>('portfolio');
 
   useEffect(() => {
     fetchTalentDetails();
@@ -179,38 +157,32 @@ export default function FreelancerLandingPage() {
     }
   };
 
-  const handleUnlockProfile = async () => {
+  const promptUnlock = (reason: 'portfolio' | 'chat') => {
     if (!currentUser) {
       toast.error('Please sign in to unlock this profile');
       navigate('/signin');
       return;
     }
+    setUnlockReason(reason);
+    setShowUnlockModal(true);
+  };
 
-    setUnlocking(true);
-    try {
-      const res = await api.post('/subscription/unlock', {
-        targetId: talent._id,
-        targetType: 'freelancer'
-      });
-      if (res.data.success) {
-        toast.success(res.data.message);
-        setIsUnlocked(true);
-        // Refresh talent list/points if needed
-      }
-    } catch (err: any) {
-      if (err.response?.data?.type === 'PLAN_EXPIRED' || err.response?.data?.type === 'OUT_OF_CREDITS') {
-        toast.error(err.response.data.message, {
-          action: {
-            label: 'Upgrade',
-            onClick: () => navigate('/dashboard/subscription')
-          }
-        });
-      } else {
-        toast.error(err.response?.data?.message || 'Failed to unlock profile');
-      }
-    } finally {
-      setUnlocking(false);
+  const handleUnlockSuccess = () => {
+    setIsUnlocked(true);
+    setShowUnlockModal(false);
+    if (unlockReason === 'chat') {
+      setIsChatDrawerOpen(true);
+      setActiveSection('chat');
     }
+  };
+
+  const handleHireMeNow = () => {
+    if (!isUnlocked) {
+      promptUnlock('chat');
+      return;
+    }
+    setActiveSection('chat');
+    setIsChatDrawerOpen(true);
   };
 
   if (loading) return <div className="min-h-screen bg-[#0b0b0b] flex items-center justify-center"><Loader2 className="animate-spin text-[#F24C20] w-12 h-12" /></div>;
@@ -227,9 +199,10 @@ export default function FreelancerLandingPage() {
       label: 'Chat',
       action: () => {
         if (!isUnlocked) {
-          handleUnlockProfile();
+          promptUnlock('chat');
           return;
         }
+        setActiveSection('chat');
         setIsChatDrawerOpen(true);
       }
     },
@@ -418,9 +391,11 @@ export default function FreelancerLandingPage() {
                     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 w-full sm:w-auto max-w-sm mx-auto lg:mx-0">
                       <button
                         onClick={() => setActiveSection('about')}
-                        className="group relative h-14 w-full sm:w-auto pl-8 pr-20 bg-transparent border-2 border-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300"
+                        className="group relative flex h-14 w-full sm:w-[270px] items-center bg-transparent border-2 border-[#F24C20] rounded-full font-black uppercase text-sm tracking-[0.12em] overflow-hidden transition-all duration-300"
                       >
-                        <span className="relative z-10 group-hover:text-white transition-colors duration-300">More About Me</span>
+                        <span className="relative z-10 flex-1 pl-8 pr-16 whitespace-nowrap text-left group-hover:text-white transition-colors duration-300">
+                          More About Me
+                        </span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-[#F24C20] rounded-full flex items-center justify-center z-20 transition-transform group-hover:scale-110">
                           <User className="w-5 h-5 text-white" />
                         </div>
@@ -428,10 +403,12 @@ export default function FreelancerLandingPage() {
                       </button>
 
                       <button
-                        onClick={() => navigate(`/dashboard/messages?user=${id}&intent=hire`)}
-                        className="group relative h-14 w-full sm:w-auto pl-8 pr-20 bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
+                        onClick={handleHireMeNow}
+                        className="group relative flex h-14 w-full sm:w-[240px] items-center bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-[0.12em] overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
                       >
-                        <span className="text-white">Hire Me Now</span>
+                        <span className="flex-1 pl-8 pr-16 whitespace-nowrap text-left text-white">
+                          Hire Me Now
+                        </span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-black/10 rounded-full flex items-center justify-center">
                           <Send className="w-5 h-5 text-white" />
                         </div>
@@ -486,15 +463,7 @@ export default function FreelancerLandingPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => navigate(`/talent/${id}`)}
-                    className="group relative h-14 pl-8 pr-20 bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-widest mt-12 overflow-hidden transition-all duration-300 hover:scale-105"
-                  >
-                    <span className="text-white">GoExperts Profile</span>
-                    <div className="absolute top-0 right-0 h-full w-14 bg-black/10 rounded-full flex items-center justify-center">
-                      <ChevronRight className="w-5 h-5 text-white" />
-                    </div>
-                  </button>
+
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
@@ -599,14 +568,13 @@ export default function FreelancerLandingPage() {
                   <p className="text-neutral-500 max-w-md mx-auto mb-8">
                     To view project gallery and case studies, please unlock this freelancer's details using your subscription credits.
                   </p>
-                  <button
-                    onClick={handleUnlockProfile}
-                    disabled={unlocking}
-                    className="px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-50"
-                  >
-                    {unlocking ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <ShieldCheck className="w-5 h-5 text-white" />}
-                    {unlocking ? 'Unlocking...' : 'Unlock Full Profile'}
-                  </button>
+                    <button
+                      onClick={() => promptUnlock('portfolio')}
+                      className="px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-50"
+                    >
+                      <ShieldCheck className="w-5 h-5 text-white" />
+                      Unlock Full Profile
+                    </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -661,16 +629,16 @@ export default function FreelancerLandingPage() {
                                   </a>
                                 ))}
                               </div>
-                                <button
-                                  onClick={() => {
-                                    setSelectedPortfolioItem(item);
-                                    setIsPortfolioModalOpen(true);
-                                    setCurrentImageIndex(0);
-                                  }}
-                                  className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20] hover:border-[#F24C20] transition-all"
-                                >
-                                  View Full Case Study
-                                </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedPortfolioItem(item);
+                                  setIsPortfolioModalOpen(true);
+                                  setCurrentImageIndex(0);
+                                }}
+                                className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20] hover:border-[#F24C20] transition-all"
+                              >
+                                View Full Case Study
+                              </button>
                             </div>
                           </div>
 
@@ -757,12 +725,12 @@ export default function FreelancerLandingPage() {
                       <Lock className="w-12 h-12 text-[#F24C20] mb-4 opacity-40" />
                       <h5 className="text-xl font-bold uppercase mb-2">Message feature is locked</h5>
                       <p className="text-sm text-neutral-500 mb-6">Unlock this freelancer's profile to send them a direct email inquiry.</p>
-                      <button
-                        onClick={handleUnlockProfile}
-                        className="px-8 py-3 bg-[#F24C20] text-white rounded-full font-bold uppercase text-xs tracking-widest"
-                      >
-                        Unlock to Contact
-                      </button>
+                        <button
+                          onClick={() => promptUnlock('chat')}
+                          className="px-8 py-3 bg-[#F24C20] text-white rounded-full font-bold uppercase text-xs tracking-widest"
+                        >
+                          Unlock to Contact
+                        </button>
                     </div>
                   ) : (
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={async (e) => {
@@ -916,13 +884,13 @@ export default function FreelancerLandingPage() {
                     {selectedPortfolioItem.images?.length > 1 && (
                       <div className="grid grid-cols-4 gap-4">
                         {selectedPortfolioItem.images.map((img: string, idx: number) => (
-                           <div 
-                             key={idx} 
-                             onClick={() => setCurrentImageIndex(idx)}
-                             className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${idx === currentImageIndex ? 'border-[#F24C20] scale-[0.98]' : 'border-white/10 grayscale hover:grayscale-0 hover:border-white/30'}`}
-                           >
-                              <ImageWithFallback src={getImgUrl(img)} className="w-full h-full object-cover" alt="Thumbnail" />
-                           </div>
+                          <div
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${idx === currentImageIndex ? 'border-[#F24C20] scale-[0.98]' : 'border-white/10 grayscale hover:grayscale-0 hover:border-white/30'}`}
+                          >
+                            <ImageWithFallback src={getImgUrl(img)} className="w-full h-full object-cover" alt="Thumbnail" />
+                          </div>
                         ))}
                       </div>
                     )}
@@ -931,18 +899,18 @@ export default function FreelancerLandingPage() {
                   {/* Content */}
                   <div className="p-8 lg:p-12 lg:pl-0 flex flex-col justify-center">
                     <div className="flex items-center gap-4 mb-6">
-                       <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                          <span className="text-xs font-black uppercase tracking-widest text-[#F24C20]">
-                             {selectedPortfolioItem.duration_days > 0 ? `${selectedPortfolioItem.duration_days} Days Duration` : 'Flexible Duration'}
+                      <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                        <span className="text-xs font-black uppercase tracking-widest text-[#F24C20]">
+                          {selectedPortfolioItem.duration_days > 0 ? `${selectedPortfolioItem.duration_days} Days Duration` : 'Flexible Duration'}
+                        </span>
+                      </div>
+                      {selectedPortfolioItem.completion_date && (
+                        <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                          <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+                            Completed {new Date(selectedPortfolioItem.completion_date).getFullYear()}
                           </span>
-                       </div>
-                       {selectedPortfolioItem.completion_date && (
-                         <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                            <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
-                               Completed {new Date(selectedPortfolioItem.completion_date).getFullYear()}
-                            </span>
-                         </div>
-                       )}
+                        </div>
+                      )}
                     </div>
 
                     <h3 className="text-4xl lg:text-6xl font-black uppercase text-white mb-8 leading-tight">
@@ -969,10 +937,10 @@ export default function FreelancerLandingPage() {
                         </a>
                       ))}
                       <button
-                         onClick={() => setIsPortfolioModalOpen(false)}
-                         className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-all"
+                        onClick={() => setIsPortfolioModalOpen(false)}
+                        className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-all"
                       >
-                         Back to Portfolio
+                        Back to Portfolio
                       </button>
                     </div>
                   </div>
@@ -982,6 +950,21 @@ export default function FreelancerLandingPage() {
           </>
         )}
       </AnimatePresence>
+
+      <CreditUnlockModal
+        isOpen={showUnlockModal && !!talent?._id}
+        onClose={() => setShowUnlockModal(false)}
+        targetId={talent?._id || ''}
+        targetType="freelancer"
+        onUnlocked={handleUnlockSuccess}
+        customTitle={unlockReason === 'chat' ? 'Unlock Chat Access' : 'Unlock Portfolio Access'}
+        customDescription={
+          unlockReason === 'chat'
+            ? `To chat or use Hire Me Now with ${talent?.full_name || 'this freelancer'}, 1 credit will be deducted from your balance. After unlock, you will be redirected into your dashboard messages.`
+            : `To view the full portfolio and case studies of ${talent?.full_name || 'this freelancer'}, 1 credit will be deducted from your balance.`
+        }
+        confirmLabel={unlockReason === 'chat' ? 'Unlock Chat for 1 Credit' : 'Unlock Portfolio for 1 Credit'}
+      />
 
       {/* Chat Aside Drawer */}
       <AnimatePresence>
@@ -1031,13 +1014,13 @@ export default function FreelancerLandingPage() {
                 </div>
 
                 <div className="space-y-4">
-                   <label className="text-[10px] uppercase font-black tracking-widest text-neutral-500">Your Message</label>
-                   <textarea
-                     value={initialMessage}
-                     onChange={(e) => setInitialMessage(e.target.value)}
-                     placeholder={`Hi ${talent.full_name.split(' ')[0]}, I'm interested in working with you...`}
-                     className="w-full h-40 bg-[#161616] border border-white/10 rounded-2xl p-6 text-sm outline-none focus:border-[#F24C20] transition-all resize-none"
-                   />
+                  <label className="text-[10px] uppercase font-black tracking-widest text-neutral-500">Your Message</label>
+                  <textarea
+                    value={initialMessage}
+                    onChange={(e) => setInitialMessage(e.target.value)}
+                    placeholder={`Hi ${talent.full_name.split(' ')[0]}, I'm interested in working with you...`}
+                    className="w-full h-40 bg-[#161616] border border-white/10 rounded-2xl p-6 text-sm outline-none focus:border-[#F24C20] transition-all resize-none"
+                  />
                 </div>
               </div>
 
@@ -1056,6 +1039,7 @@ export default function FreelancerLandingPage() {
                         toast.success('Message sent! You can continue in your dashboard.');
                         setIsChatDrawerOpen(false);
                         setInitialMessage('');
+                        navigate(`/dashboard/messages?user=${talent._id}`);
                       }
                     } catch (err: any) {
                       toast.error(err.response?.data?.message || 'Failed to send message');

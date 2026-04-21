@@ -1,27 +1,25 @@
+import { useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { CheckCircle2, XCircle, ArrowRight, Loader2, CreditCard, ExternalLink } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, CreditCard, ShieldCheck, RefreshCw } from 'lucide-react';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
-import { useEffect, useState } from 'react';
-import api from '@/app/utils/api';
 
 export default function PaymentStatus() {
   const [searchParams] = useSearchParams();
   const txnid = searchParams.get('txnid');
-  const msg = searchParams.get('msg');
+  const rawMessage = searchParams.get('msg');
+  const plan = searchParams.get('plan');
   const type = window.location.pathname.includes('success') ? 'success' : 'failure';
-
-  const [loading, setLoading] = useState(true);
-  const [details, setDetails] = useState<any>(null);
-
-  useEffect(() => {
-    if (txnid) {
-        // Here you could fetch additional transaction details from backend if needed
-        // but for now we trust the redirect
-        setLoading(false);
+  const message = useMemo(() => {
+    if (rawMessage) return decodeURIComponent(rawMessage);
+    if (type === 'success') {
+      return plan
+        ? `${plan} is now active on your account.`
+        : 'Your subscription is now active and ready to use.';
     }
-  }, [txnid]);
+    return 'Something went wrong while processing your payment with Easebuzz.';
+  }, [rawMessage, plan, type]);
 
   return (
     <div className="min-h-screen bg-neutral-950 flex flex-col">
@@ -55,11 +53,15 @@ export default function PaymentStatus() {
                 {type === 'success' ? 'Payment Success!' : 'Payment Failed'}
               </h1>
               <p className="text-neutral-400 mb-8 max-w-xs mx-auto text-lg leading-relaxed">
-                {type === 'success' 
-                  ? 'Your subscription is now active. Welcome to the elite tier of GoExperts!' 
-                  : (msg || 'Something went wrong while processing your payment with Easebuzz.')
-                }
+                {message}
               </p>
+
+              {plan && type === 'success' && (
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-4 py-3 mb-6 inline-flex items-center gap-3 text-emerald-300">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span className="text-sm font-semibold">{plan}</span>
+                </div>
+              )}
 
               {txnid && (
                 <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-8 inline-flex flex-col gap-1 w-full max-w-sm">
@@ -70,19 +72,29 @@ export default function PaymentStatus() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 {type === 'success' ? (
-                  <Link
-                    to="/dashboard"
-                    className="flex-1 py-4 bg-[#F24C20] hover:bg-[#d9431b] text-white rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#F24C20]/25 hover:-translate-y-1"
-                  >
-                    Go to Dashboard
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <>
+                    <Link
+                      to="/dashboard"
+                      className="flex-1 py-4 bg-[#F24C20] hover:bg-[#d9431b] text-white rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#F24C20]/25 hover:-translate-y-1"
+                    >
+                      Go to Dashboard
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      to="/subscription"
+                      className="flex-1 py-4 bg-transparent border border-neutral-700 hover:border-neutral-500 text-white rounded-2xl font-black flex items-center justify-center gap-2 transition-all"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      View Plans
+                    </Link>
+                  </>
                 ) : (
                   <>
                     <Link
                       to="/subscription"
                       className="flex-1 py-4 bg-[#F24C20] hover:bg-[#d9431b] text-white rounded-2xl font-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-[#F24C20]/25"
                     >
+                      <RefreshCw className="w-4 h-4" />
                       Try Again
                     </Link>
                     <Link

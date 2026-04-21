@@ -1,19 +1,7 @@
 import { motion } from 'motion/react';
 import { useTheme } from '@/app/components/ThemeProvider';
 import {
-  TrendingUp,
-  TrendingDown,
-  IndianRupee,
-  Clock,
-  Star,
   CheckCircle,
-  RefreshCw,
-  Package,
-  Award,
-  Target,
-  ArrowRight,
-  FileText,
-  Briefcase,
   Loader2,
   Share2,
   ExternalLink,
@@ -23,9 +11,6 @@ import {
   UserRound
 } from 'lucide-react';
 import { toast } from 'sonner';
-import CountUp from '@/app/components/dashboard/CountUp';
-import DonutChart from '@/app/components/dashboard/charts/DonutChart';
-import LineChartComponent from '@/app/components/dashboard/charts/LineChartComponent';
 import RadialProgress from '@/app/components/dashboard/charts/RadialProgress';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -52,36 +37,18 @@ export default function FreelancerDashboardHome() {
     fetchStats();
   }, []);
 
-  // Earnings Data (Mapping real data or using defaults)
   const profile = stats?.profile || {};
   const publicProfileSlug = profile.username || stats?.username || profile._id || stats?._id;
   const publicProfileUrl = publicProfileSlug ? `${window.location.origin}/f/${publicProfileSlug}` : '';
-  const totalEarnings = stats?.freelancer?.total_earnings || 0;
-  const currentMonthEarnings = stats?.freelancer?.current_month_earnings || 0;
-  const earningsTrend = stats?.freelancer?.earnings_trend || 0;
-  const pendingPayments = stats?.freelancer?.pending_payouts || 0;
   const completedProjects = stats?.freelancer?.completed_projects || 0;
   const totalOrders = stats?.freelancer?.total_orders || 0;
 
-  // Work Pipeline Data
   const workPipeline = [
-    // { stage: 'Live Gigs', count: stats?.freelancer?.live_gigs || 0, color: '#F24C20' },
     { stage: 'Total Orders', count: totalOrders, color: '#3b82f6' },
     { stage: 'In Progress', count: stats?.freelancer?.pipeline?.in_progress || 0, color: '#10b981' },
     { stage: 'Delivered', count: stats?.freelancer?.pipeline?.delivered || 0, color: '#f59e0b' }
   ];
 
-  // Earnings Chart Data
-  const earningsData = stats?.freelancer?.chart_data || [
-    { month: 'Jan', amount: 0 },
-    { month: 'Feb', amount: 0 },
-    { month: 'Mar', amount: 0 },
-    { month: 'Apr', amount: 0 },
-    { month: 'May', amount: 0 },
-    { month: 'Jun', amount: 0 }
-  ];
-
-  // Completion Stats
   const performance = stats?.freelancer?.performance || {};
   const completionRate = performance.completion_rate || 0;
   const onTimeDelivery = performance.on_time_delivery || 0;
@@ -96,16 +63,6 @@ export default function FreelancerDashboardHome() {
     );
   }
 
-  // Reviews Summary
-  const reviewsData = [
-    { rating: 5, count: 0, color: '#10b981' },
-    { rating: 4, count: 0, color: '#3b82f6' },
-    { rating: 3, count: 0, color: '#f59e0b' },
-    { rating: 2, count: 0, color: '#f97316' },
-    { rating: 1, count: 0, color: '#ef4444' }
-  ];
-
-  // Recent Orders
   const recentOrders = stats?.freelancer?.recent_orders?.map((o: any) => ({
     title: o.gig_title || `Order #${o._id.slice(-6)}`,
     client: o.client_name || 'Go Experts Client',
@@ -117,7 +74,6 @@ export default function FreelancerDashboardHome() {
 
   return (
     <div className="space-y-4">
-      {/* Page Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -160,7 +116,7 @@ export default function FreelancerDashboardHome() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <div 
+          <div
             className={`w-full sm:flex-1 flex items-center gap-2 px-3 py-2 md:py-1.5 rounded-xl border overflow-hidden ${
               isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'
             }`}
@@ -172,7 +128,7 @@ export default function FreelancerDashboardHome() {
               </span>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0 border-l border-neutral-800 pl-2 ml-1">
-              <button 
+              <button
                 onClick={() => {
                   if (!publicProfileUrl) return;
                   navigator.clipboard.writeText(publicProfileUrl);
@@ -183,7 +139,7 @@ export default function FreelancerDashboardHome() {
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
-              <Link 
+              <Link
                 to={publicProfileSlug ? `/f/${publicProfileSlug}` : '#'}
                 target="_blank"
                 className="p-1.5 hover:bg-white/5 rounded-lg transition-colors text-neutral-400 hover:text-[#F24C20]"
@@ -193,7 +149,7 @@ export default function FreelancerDashboardHome() {
               </Link>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => {
               if (navigator.share && publicProfileUrl) {
                 navigator.share({
@@ -214,9 +170,7 @@ export default function FreelancerDashboardHome() {
         </div>
       </motion.div>
 
-      {/* Earnings KPI Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Total Earnings */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_360px] gap-4 items-stretch">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -226,100 +180,43 @@ export default function FreelancerDashboardHome() {
             : 'bg-white/50 border-neutral-200'
             }`}
         >
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-[#F24C20]/10">
-              <IndianRupee className="w-5 h-5 text-[#F24C20]" />
-            </div>
-            <div className={`flex items-center gap-1 text-sm ${earningsTrend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {earningsTrend >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              <span>{Math.abs(earningsTrend)}%</span>
-            </div>
-          </div>
-          <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
-            Total Earnings
-          </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            <CountUp end={totalEarnings} prefix="₹" />
-          </div>
-        </motion.div>
-
-        {/* This Month */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className={`p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-            }`}
-        >
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-green-500/10">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-            </div>
-            <div className={`flex items-center gap-1 text-sm ${earningsTrend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {earningsTrend >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              <span>{Math.abs(earningsTrend)}%</span>
-            </div>
-          </div>
-          <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
-            This Month
-          </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            <CountUp end={currentMonthEarnings} prefix="₹" />
-          </div>
-        </motion.div>
-
-        {/* Completed Projects */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className={`p-6 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-            }`}
-        >
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2.5 rounded-xl bg-blue-500/10">
-              <CheckCircle className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="flex items-center gap-1 text-green-500 text-sm">
-              <TrendingUp className="w-4 h-4" />
-              <span>{completedProjectsTrend}%</span>
-            </div>
-          </div>
-          <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'} mb-1`}>
-            Completed Projects
-          </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            <CountUp end={completedProjects} />
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Work Pipeline & Performance Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Work Pipeline */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className={`lg:col-span-2 p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
-            }`}
-        >
           <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
             Work Pipeline
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className={`p-3 rounded-xl border ${isDarkMode
+                ? 'bg-neutral-800/50 border-neutral-700'
+                : 'bg-neutral-50 border-neutral-200'
+                }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  Completed Projects
+                </span>
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <CheckCircle className="w-4 h-4 text-blue-500" />
+                </div>
+              </div>
+              <div className="flex items-end justify-between gap-3">
+                <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  {completedProjects}
+                </div>
+                <div className="text-sm font-semibold text-green-500">
+                  {completedProjectsTrend}%
+                </div>
+              </div>
+            </motion.div>
+
             {workPipeline.map((stage, index) => (
               <motion.div
                 key={stage.stage}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 + index * 0.1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
                 className={`p-3 rounded-xl border ${isDarkMode
                   ? 'bg-neutral-800/50 border-neutral-700'
                   : 'bg-neutral-50 border-neutral-200'
@@ -342,11 +239,10 @@ export default function FreelancerDashboardHome() {
           </div>
         </motion.div>
 
-        {/* Performance Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.2 }}
           className={`p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
             ? 'bg-neutral-900/50 border-neutral-800'
             : 'bg-white/50 border-neutral-200'
@@ -382,34 +278,10 @@ export default function FreelancerDashboardHome() {
         </motion.div>
       </div>
 
-      {/* Earnings Trend */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className={`p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-          ? 'bg-neutral-900/50 border-neutral-800'
-          : 'bg-white/50 border-neutral-200'
-          }`}
-      >
-        <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-          Earnings Trend
-        </h2>
-        <LineChartComponent
-          data={earningsData}
-          dataKey="amount"
-          xAxisKey="month"
-          color="#F24C20"
-          height={190}
-          showArea
-        />
-      </motion.div>
-
-      {/* Recent Orders */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
+        transition={{ delay: 0.3 }}
         className={`p-6 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
           ? 'bg-neutral-900/50 border-neutral-800'
           : 'bg-white/50 border-neutral-200'
@@ -426,7 +298,7 @@ export default function FreelancerDashboardHome() {
               key={index}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.1 + index * 0.1 }}
+              transition={{ delay: 0.4 + index * 0.1 }}
               className={`p-4 rounded-xl border ${isDarkMode
                 ? 'bg-neutral-800/50 border-neutral-700'
                 : 'bg-neutral-50 border-neutral-200'
@@ -442,7 +314,7 @@ export default function FreelancerDashboardHome() {
                   </div>
                 </div>
                 <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                  ₹{order.amount.toLocaleString()}
+                  Rs {order.amount.toLocaleString()}
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm">

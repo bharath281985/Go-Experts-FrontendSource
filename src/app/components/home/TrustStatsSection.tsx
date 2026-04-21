@@ -132,7 +132,7 @@ export default function TrustStatsSection() {
         </motion.div>
 
         {/* Floating Stats - Responsive Grid */}
-        <div className="relative max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:flex lg:justify-center gap-8 mb-20">
+        <div className="relative max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-2 lg:flex lg:justify-center gap-4 md:gap-8 mb-20">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -154,7 +154,7 @@ export default function TrustStatsSection() {
               <motion.div
                 whileHover={{ y: -15, scale: 1.05 }}
                 transition={{ duration: 0.3 }}
-                className="relative w-full max-w-[280px] md:max-w-none md:w-72 p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
+                className="relative w-full max-w-none md:w-72 p-5 sm:p-7 md:p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
               >
                 {/* Animated Border Glow */}
                 <motion.div
@@ -174,14 +174,14 @@ export default function TrustStatsSection() {
                   animate={isInView ? { scale: 1, rotate: 0 } : {}}
                   transition={{ duration: 0.6, delay: index * 0.15 + 0.3, type: 'spring' }}
                 >
-                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
-                    <stat.icon className="w-8 h-8 text-white" />
+                    <div className={`inline-flex p-3 md:p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                    <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </motion.div>
 
                 {/* Value */}
                 <div className="mb-3">
-                  <div className="text-6xl font-bold text-white">
+                  <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-white">
                     {stat.value < 100 && stat.value > 1 ? (
                       <Counter end={stat.value} />
                     ) : (
@@ -192,7 +192,7 @@ export default function TrustStatsSection() {
                 </div>
 
                 {/* Label */}
-                <div className="text-neutral-400 font-medium text-lg">{stat.label}</div>
+                <div className="text-neutral-400 font-medium text-sm sm:text-base md:text-lg leading-snug">{stat.label}</div>
 
                 {/* Floating Particles */}
                 {[...Array(3)].map((_, i) => (
@@ -224,7 +224,7 @@ export default function TrustStatsSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-20 flex flex-wrap items-center justify-center gap-12"
+          className="hidden md:flex mt-20 flex-wrap items-center justify-center gap-12"
         >
           {trustBadges.map(
             (trust, i) => (

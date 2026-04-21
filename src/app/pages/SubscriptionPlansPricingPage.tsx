@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import * as LucideIcons from "lucide-react";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import api from "@/app/utils/api";
 import { toast } from "sonner";
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
@@ -35,7 +35,7 @@ function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title:
   );
 }
 
-function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying: string | null; onChoose: (id: string) => void; currentPlanId?: string | null }) {
+function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying: string | null; onChoose: (id: string, name?: string) => void; currentPlanId?: string | null }) {
   const isBuying = buying === plan._id;
   const isCurrentPlan = currentPlanId && String(currentPlanId) === String(plan._id);
 
@@ -172,7 +172,7 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
         whileHover={!isCurrentPlan ? { scale: 1.02 } : {}}
         whileTap={!isCurrentPlan ? { scale: 0.98 } : {}}
         disabled={!!buying || isCurrentPlan}
-        onClick={() => onChoose(plan._id)}
+        onClick={() => onChoose(plan._id, plan.name)}
         className={`w-full rounded-[20px] px-5 py-4 text-sm font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
             isCurrentPlan
             ? "bg-white/10 text-slate-400 border border-white/10 cursor-default"
@@ -204,6 +204,8 @@ export default function SubscriptionPlansPricingPage() {
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [pendingPlanChange, setPendingPlanChange] = useState<{ planId: string; planName: string } | null>(null);
   const settings = useSiteSettings();
 
   useEffect(() => {
@@ -214,6 +216,9 @@ export default function SubscriptionPlansPricingPage() {
             const userData = JSON.parse(localUser);
             if (userData.subscription_details?.plan_id) {
                 setCurrentPlanId(userData.subscription_details.plan_id);
+            }
+            if (userData.subscription_details?.plan_name) {
+                setCurrentPlanName(userData.subscription_details.plan_name);
             }
         } catch (e) {}
     }
@@ -234,6 +239,7 @@ export default function SubscriptionPlansPricingPage() {
                 const sub = subRes.data.subscription;
                 const planId = sub.plan_id?._id || sub.plan_id;
                 setCurrentPlanId(planId);
+                setCurrentPlanName(sub.plan_name || sub.plan_id?.name || null);
             }
         }
       } catch (error) {
@@ -245,7 +251,7 @@ export default function SubscriptionPlansPricingPage() {
     fetchData();
   }, []);
 
-  const handleChoosePlan = async (planId: string) => {
+  const proceedChoosePlan = async (planId: string) => {
     try {
       setBuying(planId);
       const res = await api.post('/payment/initiate', { planId });
@@ -259,6 +265,14 @@ export default function SubscriptionPlansPricingPage() {
     } finally {
       setBuying(null);
     }
+  };
+
+  const handleChoosePlan = async (planId: string, planName?: string) => {
+    if (currentPlanId && String(currentPlanId) !== String(planId)) {
+      setPendingPlanChange({ planId, planName: planName || 'this new plan' });
+      return;
+    }
+    await proceedChoosePlan(planId);
   };
 
   const groupedPlans = plans.reduce((acc: any, plan: any) => {
@@ -478,7 +492,7 @@ export default function SubscriptionPlansPricingPage() {
                       <div className="text-xs font-black uppercase tracking-widest text-[#F24C20] mb-2">Yearly Price</div>
                       <div className="text-4xl font-black text-white italic">₹{plan.price.toLocaleString()}</div>
                       <button 
-                        onClick={() => handleChoosePlan(plan._id)}
+                        onClick={() => handleChoosePlan(plan._id, plan.name)}
                         disabled={!!buying || isCurrentPlan}
                         className={`mt-6 w-full rounded-2xl px-6 py-4 text-sm font-black uppercase tracking-widest text-white transition flex items-center justify-center gap-2 ${
                           isCurrentPlan 
@@ -567,6 +581,63 @@ export default function SubscriptionPlansPricingPage() {
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {pendingPlanChange && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+            onClick={() => setPendingPlanChange(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0b0d14] p-6 shadow-2xl"
+            >
+              <div className="flex items-start gap-4">
+                <div className="rounded-2xl bg-[#F24C20]/10 p-3">
+                  <DynamicIcon name="Crown" className="h-6 w-6 text-[#F24C20]" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white">Confirm Plan Change</h3>
+                  <p className="mt-3 text-sm leading-6 text-slate-300">
+                    You already have an active subscription{currentPlanName ? ` (${currentPlanName})` : ''}. If you switch to <span className="font-bold text-white">{pendingPlanChange.planName}</span>, your current package benefits and remaining points or limits will be removed, and only the new plan points or limits will be updated.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+                This replaces the current package. Old benefits do not carry over into the new plan.
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  onClick={() => setPendingPlanChange(null)}
+                  className="rounded-2xl border border-white/15 px-5 py-3 font-bold text-slate-300 transition-all hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    const nextPlan = pendingPlanChange;
+                    setPendingPlanChange(null);
+                    if (nextPlan) {
+                      await proceedChoosePlan(nextPlan.planId);
+                    }
+                  }}
+                  className="rounded-2xl bg-[#F24C20] px-5 py-3 font-bold text-white transition-all hover:bg-[#d4431b]"
+                >
+                  Continue Upgrade
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>

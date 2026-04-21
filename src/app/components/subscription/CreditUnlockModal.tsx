@@ -10,9 +10,21 @@ interface CreditUnlockModalProps {
   targetId: string;
   targetType: 'project' | 'freelancer';
   onUnlocked: () => void;
+  customTitle?: string;
+  customDescription?: string;
+  confirmLabel?: string;
 }
 
-export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnlocked }: CreditUnlockModalProps) {
+export function CreditUnlockModal({
+  isOpen,
+  onClose,
+  targetId,
+  targetType,
+  onUnlocked,
+  customTitle,
+  customDescription,
+  confirmLabel
+}: CreditUnlockModalProps) {
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
   const [subStatus, setSubStatus] = useState<any>(null);
@@ -110,12 +122,12 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
                 <Lock className="w-10 h-10 text-[#F24C20]" />
               </div>
               <h3 className="text-2xl font-bold text-[#044071] dark:text-white mb-2">
-                {isGuest ? 'Sign in to Unlock' : 'Content Locked'}
+                {isGuest ? 'Sign in to Unlock' : (customTitle || 'Content Locked')}
               </h3>
               <p className="text-neutral-500 text-sm leading-relaxed px-4">
                 {isGuest 
                   ? `Please sign in or create an account to view complete ${targetType} details and protected contact info.`
-                  : `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details by using 1 credit.`
+                  : (customDescription || `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details by using 1 credit.`)
                 }
               </p>
             </div>
@@ -188,7 +200,7 @@ export function CreditUnlockModal({ isOpen, onClose, targetId, targetType, onUnl
                       ) : (
                         <>
                           <CheckCircle className="w-5 h-5" />
-                          Use 1 Credit
+                          {confirmLabel || 'Use 1 Credit'}
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </>
                       )}

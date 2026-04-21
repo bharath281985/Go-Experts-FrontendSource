@@ -165,7 +165,7 @@ export default function HeroSection() {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at top, #1a0a0a 0%, #0a0505 50%, #000000 100%)',
+        background: 'linear-gradient(180deg, #170a0a 0%, #120808 55%, #0f0606 100%)',
       }}
     >
       {/* Background Image if available */}
@@ -176,7 +176,7 @@ export default function HeroSection() {
             alt="Hero Background"
             className="w-full h-full object-cover opacity-20 mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-[#120808]/35" />
         </div>
       )}
 
@@ -201,23 +201,17 @@ export default function HeroSection() {
 
         {/* Mesh Pattern */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(242, 76, 32, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(242, 76, 32, 0.3) 1px, transparent 1px)
+              linear-gradient(rgba(242, 76, 32, 0.5) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(242, 76, 32, 0.5) 1px, transparent 1px)
             `,
-            backgroundSize: '80px 80px',
+            backgroundSize: '40px 40px',
           }}
         />
 
-        {/* Noise Texture */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' /%3E%3C/svg%3E")`,
-          }}
-        />
+        {/* Noise Texture Removed for highlighted grid */}
 
         {/* Radial Spotlights */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-radial from-[#F24C20]/20 to-transparent blur-3xl rounded-full" />
@@ -415,9 +409,9 @@ export default function HeroSection() {
               className="mx-auto w-64 h-64 rounded-full relative"
               animate={{
                 boxShadow: [
-                  '0 0 60px 20px rgba(242, 76, 32, 0.3)',
+                  '0 0 60px 20px rgba(242, 76, 32, 0.5)',
                   '0 0 100px 40px rgba(242, 76, 32, 0.5)',
-                  '0 0 60px 20px rgba(242, 76, 32, 0.3)',
+                  '0 0 60px 20px rgba(242, 76, 32, 0.5)',
                 ],
               }}
               transition={{ duration: 4, repeat: Infinity }}

@@ -8,6 +8,34 @@ import { useTheme } from '@/app/components/ThemeProvider';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
 import api, { getImgUrl } from '@/app/utils/api';
 
+function getStoredAuthState() {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+
+  if (!token || !user) {
+    return {
+      isLoggedIn: false,
+      userName: '',
+      userRole: null as string | null
+    };
+  }
+
+  try {
+    const userData = JSON.parse(user);
+    return {
+      isLoggedIn: true,
+      userName: userData.full_name || 'User',
+      userRole: userData.role || (userData.roles ? userData.roles[0] : 'freelancer')
+    };
+  } catch (e) {
+    console.error('Error parsing user data:', e);
+    return {
+      isLoggedIn: false,
+      userName: '',
+      userRole: null as string | null
+    };
+  }
+}
 
 export default function Header() {
   const location = useLocation();
@@ -16,8 +44,9 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showRegistration, setShowRegistration] = useState(false);
   const { header_logo, site_logo, site_name } = useSiteSettings();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const initialAuthState = getStoredAuthState();
+  const [isLoggedIn, setIsLoggedIn] = useState(initialAuthState.isLoggedIn);
+  const [userName, setUserName] = useState(initialAuthState.userName);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -29,21 +58,6 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    // Check login status
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    if (token && user) {
-      setIsLoggedIn(true);
-      try {
-        const userData = JSON.parse(user);
-        setUserName(userData.full_name || 'User');
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-      }
-    }
   }, []);
 
   const handleLogout = () => {
@@ -71,22 +85,24 @@ export default function Header() {
   };
 
   const [navLinks, setNavLinks] = useState<{ path: string; label: string; open_in_new_tab?: boolean }[]>([]);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(initialAuthState.userRole);
 
   useEffect(() => {
-    // Check login status and role
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    if (token && user) {
-      setIsLoggedIn(true);
-      try {
-        const userData = JSON.parse(user);
-        setUserName(userData.full_name || 'User');
-        setUserRole(userData.role || (userData.roles ? userData.roles[0] : 'freelancer'));
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-      }
-    }
+    const syncAuthState = () => {
+      const authState = getStoredAuthState();
+      setIsLoggedIn(authState.isLoggedIn);
+      setUserName(authState.userName);
+      setUserRole(authState.userRole);
+    };
+
+    syncAuthState();
+    window.addEventListener('storage', syncAuthState);
+    window.addEventListener('userUpdate', syncAuthState as EventListener);
+
+    return () => {
+      window.removeEventListener('storage', syncAuthState);
+      window.removeEventListener('userUpdate', syncAuthState as EventListener);
+    };
   }, []);
 
   useEffect(() => {
