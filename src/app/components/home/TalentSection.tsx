@@ -31,7 +31,7 @@ export default function TalentSection() {
         if (res.data.success && res.data.data.length > 0) {
           // Filter out current user
           const filtered = res.data.data.filter((t: any) => t._id !== currentUserId);
-          
+
           // Check if more than 4 exist
           if (filtered.length > 4) {
             setHasMore(true);
@@ -245,19 +245,21 @@ export default function TalentSection() {
                     </div>
 
                     {/* Footer Area - Price (Fixed at bottom) */}
-                    <div className="pt-6 border-t border-neutral-800/50 mt-auto flex items-end justify-between gap-4 text-left">
-                      <div className="text-2xl font-black text-[#F24C20] mb-0.5 tracking-tight">₹{talent.hourly_rate || '1200'}/hr</div>
-                      <div className="text-[10px] uppercase tracking-widest font-bold text-neutral-500">Starting from</div>
-                    </div>
-                    <motion.div
-                      className="opacity-80 group-hover:opacity-100 transition-opacity"
-                      initial={{ x: -6 }}
-                      whileHover={{ x: 0 }}
-                    >
-                      <div className="w-11 h-11 rounded-full bg-[#F24C20] flex items-center justify-center shadow-lg shadow-[#F24C20]/30">
-                        <ArrowRight className="w-5 h-5 text-white" />
+                    <div className="pt-6 border-t border-neutral-800/50 mt-auto flex items-center justify-between gap-3">
+                      <div className="flex flex-col text-left">
+                        <div className="text-[10px] italic tracking-widest font-bold text-neutral-500 mb-1">Service Starts From</div>
+                        <div className="text-2xl font-black text-[#F24C20] tracking-tight leading-none">₹{talent.hourly_rate}</div>
                       </div>
-                    </motion.div>
+                      <motion.div
+                        className="opacity-80 group-hover:opacity-100 transition-opacity"
+                        initial={{ x: -6 }}
+                        whileHover={{ x: 0 }}
+                      >
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center shadow-lg shadow-[#F24C20]/20">
+                          <ArrowRight className="w-5 h-5 text-white" />
+                        </div>
+                      </motion.div>
+                    </div>
                   </div>
                 </motion.div>
               </Link>

@@ -49,7 +49,9 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
     useOfFunds: "",
     milestones: "",
     ndaRequired: "No",
-    tags: [] as string[]
+    tags: [] as string[],
+    stage: "Idea",
+    neededRoles: [] as string[]
   });
 
   const [tagInput, setTagInput] = useState("");
@@ -143,6 +145,11 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
                 </h2>
                 <p className="mt-2 text-[10px] font-bold text-neutral-500 uppercase tracking-[0.3em]">Igniting the future of innovation.</p>
             </div>
+            {/* Stage Indicator */}
+            <div className={`hidden md:flex flex-col items-end`}>
+                <span className="text-[10px] font-black text-neutral-600 uppercase tracking-widest mb-1">Current Trajectory</span>
+                <span className="text-xl font-black text-[#F24C20] italic uppercase">{formData.stage}</span>
+            </div>
             <button onClick={onCancel} className="absolute top-6 right-6 p-2 md:p-3 rounded-2xl bg-neutral-900 text-neutral-500 hover:text-white transition-all">
                 <X className="w-5 h-5 md:w-6 md:h-6" />
             </button>
@@ -210,15 +217,41 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
                                     {categories.map(c => <option key={c._id} value={c.name} className="bg-neutral-950">{c.name}</option>)}
                                 </select>
                             </div>
+                            <div className="group">
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Development Stage</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {['Idea', 'Prototype', 'MVP', 'Scaling'].map(s => (
+                                        <button 
+                                            key={s}
+                                            onClick={() => setFormData({...formData, stage: s})}
+                                            className={`py-4 rounded-2xl border-2 transition-all font-black uppercase tracking-widest text-[10px] ${
+                                                formData.stage === s ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'bg-neutral-900 border-neutral-900 text-neutral-700 hover:text-white'
+                                            }`}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <div className="space-y-6">
                              <div className="group h-full flex flex-col">
-                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">The Elevator Pitch</label>
-                                <textarea 
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">The Elevator Pitch (Short)</label>
+                                <input 
+                                    type="text"
                                     value={formData.shortDescription}
                                     onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
                                     placeholder="Your startup in one sentence..."
-                                    className="flex-1 w-full bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-base font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none"
+                                    className="w-full bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-5 text-sm font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700"
+                                />
+                            </div>
+                            <div className="group h-full flex flex-col mt-4">
+                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Deep Dive Description</label>
+                                <textarea 
+                                    value={formData.detailedDescription}
+                                    onChange={(e) => setFormData({...formData, detailedDescription: e.target.value})}
+                                    placeholder="Provide a comprehensive breakdown of your venture..."
+                                    className="flex-1 w-full bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-sm font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none min-h-[150px]"
                                 />
                             </div>
                         </div>
@@ -285,6 +318,42 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
                             </div>
                         </div>
                         <div className="group">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Competitive Landscape & Barriers to Entry</label>
+                            <textarea 
+                                value={formData.competitorAnalysis}
+                                onChange={(e) => setFormData({...formData, competitorAnalysis: e.target.value})}
+                                placeholder="Analyze your competitors and explain why you'll win..."
+                                className="w-full h-32 bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-sm font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none"
+                            />
+                        </div>
+                        <div className="group">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Specialist Roles Needed (Talent Required)</label>
+                            <div className="flex flex-wrap gap-2.5 p-6 bg-neutral-900/50 border-2 border-neutral-900 rounded-[2.5rem] min-h-[100px] items-center">
+                                {[
+                                    'Product Designer', 'Growth Marketer', 'Fullstack Dev', 'Backend Architect',
+                                    'Mobile Dev', 'Industry Advisor', 'Operational Manager', 'Sales Hunter'
+                                ].map(role => {
+                                    const selected = formData.neededRoles.includes(role);
+                                    return (
+                                        <button 
+                                            key={role}
+                                            type="button"
+                                            onClick={() => {
+                                                if (selected) setFormData({...formData, neededRoles: formData.neededRoles.filter(r => r !== role)});
+                                                else setFormData({...formData, neededRoles: [...formData.neededRoles, role]});
+                                            }}
+                                            className={`px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                                                selected ? 'bg-[#F24C20] border-[#F24C20] text-white shadow-lg shadow-orange-500/20' : 'bg-neutral-950 border-neutral-900 text-neutral-600 hover:text-neutral-400'
+                                            }`}
+                                        >
+                                            {role}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="group">
                             <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Search Keywords / Tags</label>
                             <div className="flex flex-wrap gap-3 p-5 bg-neutral-900/50 border-2 border-neutral-900 rounded-[2.5rem] focus-within:border-[#F24C20] transition-all min-h-[100px] items-center">
                                 {formData.tags.map(tag => (
@@ -341,12 +410,21 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
                             </div>
                         </div>
                         <div className="group">
-                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Use of Funds & Growth Milestones</label>
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Allocation Strategy (Use of Funds)</label>
                             <textarea 
                                 value={formData.useOfFunds}
                                 onChange={(e) => setFormData({...formData, useOfFunds: e.target.value})}
-                                placeholder="Where will you invest the capital?"
-                                className="w-full h-64 bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-base font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none"
+                                placeholder="Breakdown of how the capital will be deployed..."
+                                className="w-full h-32 bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-sm font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none"
+                            />
+                        </div>
+                        <div className="group mt-6">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20] mb-3 ml-1">Execution Roadmap (Milestones)</label>
+                            <textarea 
+                                value={formData.milestones}
+                                onChange={(e) => setFormData({...formData, milestones: e.target.value})}
+                                placeholder="Key achievements and future targets..."
+                                className="w-full h-32 bg-neutral-900/50 border-2 border-neutral-900 rounded-3xl p-6 text-sm font-bold text-white outline-none focus:border-[#F24C20] transition-all placeholder:text-neutral-700 resize-none"
                             />
                         </div>
                     </div>

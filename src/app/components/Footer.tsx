@@ -138,7 +138,7 @@ export default function Footer() {
                     target.src = logoFallback;
                   }
                 }}
-                className="h-12 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity duration-300"
+                className="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
               />
             </div>
             <p className="text-neutral-400 mb-6 leading-relaxed">

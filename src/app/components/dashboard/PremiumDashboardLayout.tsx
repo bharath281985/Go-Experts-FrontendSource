@@ -164,13 +164,19 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
-    { label: 'Subscription', icon: Settings, path: '/dashboard/subscription' },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet' },
+    { label: 'Subscription', icon: UserCircle2, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
   ];
 
   // Navigation items for Freelancer
   const freelancerNavItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    {
+      label: 'Find Experts',
+      icon: Users,
+      path: '/dashboard/talent'
+    },
     {
       label: 'Manage Projects',
       icon: FolderKanban,
@@ -191,7 +197,8 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     { label: 'Disputes', icon: AlertCircle, path: '/dashboard/disputes', badge: disputeCount > 0 ? disputeCount : undefined },
     { label: 'Saved Items', icon: Bookmark, path: '/dashboard/saved' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
-    { label: 'Subscription', icon: Settings, path: '/dashboard/subscription' },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard/wallet' },
+    { label: 'Subscription', icon: UserCircle2, path: '/dashboard/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard/settings' }
   ];
 
@@ -214,6 +221,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     },
     { label: 'Meetings', icon: Calendar, path: '/dashboard-investor/meetings' },
     { label: 'Messages', icon: MessageSquare, path: '/dashboard-investor/messages', badge: unreadMessageCount > 0 ? unreadMessageCount : undefined },
+    { label: 'Earnings & Referrals', icon: Wallet, path: '/dashboard-investor/wallet' },
     { label: 'Subscription', icon: UserCircle2, path: '/dashboard-investor/subscription' },
     { label: 'Settings', icon: Settings, path: '/dashboard-investor/settings' }
   ];
@@ -363,18 +371,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
             </div>
           </div>
           <div className="flex items-center gap-2 lg:gap-3">
-            {userType === 'freelancer' && subscriptionSummary && (
-              <div className={`hidden lg:flex items-center gap-3 px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-neutral-800/60 border-neutral-700 text-white' : 'bg-white border-neutral-200 text-neutral-900'}`}>
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold">Current Plan</div>
-                  <div className="max-w-[160px] truncate text-sm font-bold">{subscriptionSummary.planName}</div>
-                </div>
-                <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold ${isDarkMode ? 'bg-neutral-900 text-neutral-300' : 'bg-neutral-100 text-neutral-700'}`}>
-                  <Calendar className="w-3.5 h-3.5 text-[#F24C20]" />
-                  {subscriptionSummary.daysLeft === null ? 'Active' : `${subscriptionSummary.daysLeft} days left`}
-                </div>
-              </div>
-            )}
+
             <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>

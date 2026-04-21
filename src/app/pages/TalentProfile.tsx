@@ -247,11 +247,11 @@ export default function TalentProfile() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}&intent=hire`)}
+                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}${localStorage.getItem('userType') === 'client' ? '&intent=hire' : ''}`)}
                   className={`flex-1 md:flex-none px-8 py-4 ${isUnlocked ? 'bg-[#F24C20] hover:bg-[#d9431b]' : 'bg-neutral-800 hover:bg-neutral-700'} text-white rounded-2xl font-bold transition-all shadow-lg shadow-[#F24C20]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2`}
                 >
                   {!isUnlocked && <Lock className="w-5 h-5" />}
-                  Hire Specialist
+                  {localStorage.getItem('userType') === 'freelancer' ? 'Collaborate' : 'Hire Specialist'}
                 </button>
                 <button
                   onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}`)}
@@ -274,7 +274,7 @@ export default function TalentProfile() {
         {/* Dynamic Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {[
-            { icon: IndianRupee, label: 'Hourly Rate', value: `₹${talent.hourly_rate || '0'}`, color: 'text-green-400' },
+            { icon: IndianRupee, label: 'Starts From', value: `₹${talent.hourly_rate || '0'}`, color: 'text-green-400' },
             { icon: Briefcase, label: 'Experience', value: talent.experience_level || 'Professional', color: 'text-[#F24C20]' },
             { icon: Clock, label: 'Response', value: talent.responseTime, color: 'text-blue-400' },
             { icon: Star, label: 'Rating', value: talent.rating, color: 'text-yellow-400' },

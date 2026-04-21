@@ -10,6 +10,7 @@ import {
   IndianRupee,
   X,
   MapPin,
+  Award,
   Clock,
   Briefcase,
   AlertTriangle,
@@ -208,7 +209,7 @@ export default function Settings() {
           full_name: user.full_name || '',
           email: user.email || '',
           phone_number: user.phone_number || '',
-          bio: (user.bio || '').slice(0, 500),
+          bio: user.bio || '',
           profile_image: user.profile_image || '',
           categories: user.categories || [],
           skills: user.skills || [],
@@ -678,12 +679,11 @@ export default function Settings() {
                         </div>
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium mb-2">Description</label>
-                          <textarea rows={3} value={project.description} maxLength={500} onChange={(e) => {
+                          <textarea rows={3} value={project.description} onChange={(e) => {
                             const newPortfolio = [...formData.portfolio];
-                            newPortfolio[pIndex].description = e.target.value.slice(0, 500);
+                            newPortfolio[pIndex].description = e.target.value;
                             setFormData({ ...formData, portfolio: newPortfolio });
                           }} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700 text-white' : 'bg-white border-neutral-300 text-neutral-900'} outline-none focus:border-[#F24C20] resize-none`} />
-                          <p className="mt-2 text-xs text-right text-neutral-500">{(project.description || '').length}/500 characters</p>
                         </div>
                         <div className="md:col-span-2">
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -837,6 +837,83 @@ export default function Settings() {
                   ))}
                 </div>
               </div>
+
+              {/* Education Section */}
+              <div className="space-y-6 pt-12 border-t border-neutral-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Education</h2>
+                    <p className="text-sm text-neutral-500 mt-1">Add your academic background.</p>
+                  </div>
+                  <button onClick={handleAddEducation} className="flex items-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors">
+                    <Plus className="w-5 h-5" />
+                    Add Education
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  {formData.education_details?.map((edu: any, idx: number) => {
+                    const { start, end, isCurrent } = parseYearRange(edu.year_range);
+                    return (
+                      <div key={idx} className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-bold text-sm uppercase tracking-wider text-[#F24C20]">Education #{idx + 1}</h3>
+                          <button onClick={() => handleRemoveEducation(idx)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold mb-1 uppercase opacity-50">From (Month & Year)</label>
+                              <input type="month" value={labelToMonthInput(start)} onChange={(e) => {
+                                const newEdu = [...formData.education_details];
+                                const currentRange = parseYearRange(newEdu[idx].year_range);
+                                newEdu[idx].year_range = buildYearRange(monthInputToLabel(e.target.value), currentRange.end, currentRange.isCurrent);
+                                setFormData({ ...formData, education_details: newEdu });
+                              }} className={monthInputClassName} />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-bold mb-1 uppercase opacity-50">To (Month & Year)</label>
+                              <div className="flex flex-col gap-2">
+                                <input type="month" value={isCurrent ? '' : labelToMonthInput(end)} disabled={isCurrent} onChange={(e) => {
+                                  const newEdu = [...formData.education_details];
+                                  const currentRange = parseYearRange(newEdu[idx].year_range);
+                                  newEdu[idx].year_range = buildYearRange(currentRange.start, monthInputToLabel(e.target.value), false);
+                                  setFormData({ ...formData, education_details: newEdu });
+                                }} className={monthInputClassName} />
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input type="checkbox" checked={isCurrent} onChange={(e) => {
+                                    const newEdu = [...formData.education_details];
+                                    const currentRange = parseYearRange(newEdu[idx].year_range);
+                                    newEdu[idx].year_range = buildYearRange(currentRange.start, currentRange.end, e.target.checked);
+                                    setFormData({ ...formData, education_details: newEdu });
+                                  }} />
+                                  <span className="text-[10px] uppercase font-bold opacity-70">Currently Studying</span>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Degree / Qualification</label>
+                            <input type="text" placeholder="e.g. B.Tech in Computer Science" value={edu.title} onChange={(e) => {
+                              const newEdu = [...formData.education_details];
+                              newEdu[idx].title = e.target.value;
+                              setFormData({ ...formData, education_details: newEdu });
+                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-xs font-bold mb-1 uppercase opacity-50">Institution Name</label>
+                            <input type="text" value={edu.institution} onChange={(e) => {
+                              const newEdu = [...formData.education_details];
+                              newEdu[idx].institution = e.target.value;
+                              setFormData({ ...formData, education_details: newEdu });
+                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="pt-6 border-t border-neutral-100 dark:border-neutral-800">
                 <button onClick={handleUpdateProfile} disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#055a99] disabled:opacity-50 shadow-lg shadow-[#044071]/20">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Details'}
@@ -904,16 +981,63 @@ export default function Settings() {
               ) : null}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                  <h3 className="font-bold mb-4 flex items-center gap-2"><User className="w-5 h-5 text-[#F24C20]" /> Identity Proof</h3>
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-neutral-400">PAN Card</label>
-                    <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30">
-                      {formData.kyc_details.pan_card ? (
-                        <div className="flex justify-between items-center"><span className="text-xs">Uploaded</span><button onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs">View</button></div>
+                  <h3 className="font-bold mb-6 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#F24C20]" /> Identity Verification</h3>
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-xs font-bold mb-2 uppercase opacity-50">PAN Card</label>
+                      <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                        {formData.kyc_details.pan_card ? (
+                          <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                        ) : (
+                          <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload PAN Card Image/PDF</p></div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold mb-2 uppercase opacity-50">Aadhar Card</label>
+                      <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                        {formData.kyc_details.aadhar_card ? (
+                          <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                        ) : (
+                          <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('aadhar_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Aadhar Card Image/PDF</p></div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                  <h3 className="font-bold mb-6 flex items-center gap-2"><Briefcase className="w-5 h-5 text-[#F24C20]" /> Professional Proof</h3>
+                  <div>
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Experience Letter / Relieving Letter</label>
+                    <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                      {formData.documents.experience_letter ? (
+                        <div className="flex justify-between items-center"><span className="text-xs font-medium">Letter Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
                       ) : (
-                        <div className="flex flex-col items-center py-2"><Upload className="w-6 h-6 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Click to upload</p></div>
+                        <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('experience_letter', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Professional Proof</p></div>
                       )}
                     </div>
+                  </div>
+                </div>
+
+                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'} md:col-span-2`}>
+                  <h3 className="font-bold mb-6 flex items-center gap-2"><Award className="w-5 h-5 text-[#F24C20]" /> Academic Certificates</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {formData.documents.educational?.map((doc: string, idx: number) => (
+                      <div key={idx} className="relative group p-4 rounded-xl border border-neutral-700 bg-neutral-950 flex flex-col items-center gap-2 transition-all hover:border-[#F24C20]/50">
+                        <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center"><FileText className="w-6 h-6 text-[#F24C20]" /></div>
+                        <span className="text-[10px] font-bold text-neutral-400 truncate w-full text-center uppercase">Degree #{idx + 1}</span>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(doc), title: `Academic Doc #${idx + 1}` })} className="text-[10px] text-blue-500 font-bold uppercase hover:underline">View</button>
+                          <button type="button" onClick={() => handleRemoveFile('educational', idx)} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Remove</button>
+                        </div>
+                      </div>
+                    ))}
+                    <label className="border-2 border-dashed border-neutral-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-[#F24C20]/50 transition-all cursor-pointer min-h-[120px] group">
+                      <Plus className="w-6 h-6 text-neutral-500 group-hover:text-[#F24C20] transition-colors" />
+                      <span className="text-[10px] text-neutral-500 font-bold uppercase group-hover:text-neutral-300">Add Academic Doc</span>
+                      <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])} />
+                    </label>
                   </div>
                 </div>
               </div>
@@ -1006,7 +1130,7 @@ export default function Settings() {
                 {isFreelancer && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20">
                     <div className="md:col-span-2"><h3 className="font-bold text-sm uppercase text-[#F24C20] mb-4">Work Preferences</h3></div>
-                    <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Hourly Rate (₹)</label><input type="number" value={formData.hourly_rate || ''} onChange={e => setFormData({ ...formData, hourly_rate: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none" /></div>
+                    <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Service Price Starts From (₹)</label><input type="number" value={formData.hourly_rate || ''} onChange={e => setFormData({ ...formData, hourly_rate: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none" /></div>
                     <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Availability</label><select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-neutral-950 outline-none"><option value="">Select</option><option value="full-time">Full Time</option><option value="part-time">Part Time</option></select></div>
                   </div>
                 )}

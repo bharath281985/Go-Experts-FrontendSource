@@ -1,5 +1,5 @@
 import { motion, useInView, AnimatePresence } from 'motion/react';
-import { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, forwardRef } from 'react';
 import { ChevronDown, HelpCircle, User, Briefcase } from 'lucide-react';
 import api from '../../utils/api';
 
@@ -152,9 +152,10 @@ export default function FAQSection() {
   );
 }
 
-function FAQItem({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen: boolean, onToggle: () => void, index: number }) {
+const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen: boolean, onToggle: () => void, index: number }, ref: React.Ref<HTMLDivElement>) => {
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, scale: 0.95, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -190,4 +191,4 @@ function FAQItem({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen: boolean, 
       </button>
     </motion.div>
   );
-}
+});

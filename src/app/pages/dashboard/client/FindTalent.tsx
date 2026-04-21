@@ -54,7 +54,13 @@ export default function FindTalent() {
     }
   };
 
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const userType = localStorage.getItem('userType');
+
   const filteredTalents = talents.filter(t => {
+    // Hide self from results
+    if (t._id === currentUser?._id) return false;
+
     const matchesSearch = t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          t.bio?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || 
@@ -87,10 +93,12 @@ export default function FindTalent() {
             <span className="text-[10px] sm:text-sm font-bold tracking-wider uppercase">Talent Pool</span>
           </div>
           <h1 className={`text-2xl sm:text-3xl md:text-4xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-            Find Talent
+            {userType === 'freelancer' ? 'Expert Networking' : 'Find Talent'}
           </h1>
           <p className={`mt-2 text-sm sm:text-base max-w-xl ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
-            Browse our curated list of world-class freelancers and hire the perfect match for your project.
+            {userType === 'freelancer' 
+              ? 'Connect with fellow experts, discover potential collaborators, and grow your professional network.'
+              : 'Browse our curated list of world-class freelancers and hire the perfect match for your project.'}
           </p>
         </motion.div>
 
@@ -251,8 +259,8 @@ export default function FindTalent() {
 
                 <div className="flex items-center justify-between pt-6 border-t border-neutral-800/50">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Hourly Rate</span>
-                    <span className="text-xl font-black text-[#F24C20]">₹{talent.hourly_rate || '1200'}<span className="text-xs text-neutral-500 font-bold">/hr</span></span>
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Starts From</span>
+                    <span className="text-xl font-black text-[#F24C20]">₹{talent.hourly_rate || '1200'}</span>
                   </div>
                   <Link
                     to={`/f/${talent.username || talent._id}`}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import api from '../utils/api';
+import api, { getImgUrl } from '../utils/api';
 import { SiteSettingsContext, defaultSiteSettings, type SiteSettings } from '../context/SiteSettingsContext';
 
 interface Props {
@@ -31,7 +31,7 @@ export default function SiteSettingsProvider({ children }: Props) {
                             link.rel = 'icon';
                             document.head.appendChild(link);
                         }
-                        link.href = s.site_favicon;
+                        link.href = getImgUrl(s.site_favicon);
                     }
 
                     // ── 3. Meta Description ────────────────────────────────
@@ -56,11 +56,23 @@ export default function SiteSettingsProvider({ children }: Props) {
                         meta.content = s.meta_keywords;
                     }
 
-                    // ── 5. OG Title & Description ──────────────────────────
-                    const ogTitle = document.querySelector<HTMLMetaElement>('meta[property="og:title"]');
-                    if (ogTitle) ogTitle.content = s.meta_title || s.site_name;
-                    const ogDesc = document.querySelector<HTMLMetaElement>('meta[property="og:description"]');
-                    if (ogDesc) ogDesc.content = s.meta_description;
+                    // ── 5. OG Tags ────────────────────────────────────────
+                    const setOgTag = (property: string, content: string) => {
+                        let meta = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+                        if (!meta) {
+                            meta = document.createElement('meta');
+                            meta.setAttribute('property', property);
+                            document.head.appendChild(meta);
+                        }
+                        meta.content = content;
+                    };
+
+                    setOgTag('og:title', s.meta_title || s.site_name || 'Go Experts');
+                    setOgTag('og:description', s.meta_description || 'Hire the best freelancers.');
+                    if (s.site_logo || s.site_favicon) {
+                        setOgTag('og:image', getImgUrl(s.site_logo || s.site_favicon));
+                    }
+                    setOgTag('og:url', window.location.href);
 
                     // ── 6. Maintenance Mode ────────────────────────────────
                     if (s.maintenance_mode) {

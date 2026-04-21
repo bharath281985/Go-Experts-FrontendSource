@@ -254,13 +254,13 @@ export default function FreelancerOnboarding() {
               <textarea
                 rows={5}
                 value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value.slice(0, 500) })}
-                maxLength={500}
+                onChange={(e) => setFormData({ ...formData, bio: e.target.value.slice(0, 5000) })}
+                maxLength={5000}
                 placeholder="Tell us about your experience, what you do, and what makes you unique..."
                 className="w-full px-4 py-4 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors resize-none"
               />
               <p className="mt-2 text-xs text-right text-neutral-500">
-                {formData.bio.length}/500 characters
+                {formData.bio.length}/5000 characters
               </p>
             </div>
 

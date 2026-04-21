@@ -604,15 +604,31 @@ export default function SubscriptionCredits() {
               </div>
 
               {plan.current ? (
-                <button
-                  disabled
-                  className={`w-full py-3 rounded-xl font-medium ${isDarkMode
-                    ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                  }`}
-                >
-                  Current Plan Live
-                </button>
+                <div className="space-y-2">
+                  {/* Expiry warning when ≤ 10 days left */}
+                  {currentPlanData.daysRemaining <= 10 && currentPlanData.daysRemaining > 0 && (
+                    <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold ${
+                      currentPlanData.daysRemaining <= 3
+                        ? isDarkMode ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 'bg-red-50 text-red-600 border border-red-200'
+                        : isDarkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30' : 'bg-orange-50 text-orange-700 border border-orange-200'
+                    }`}>
+                      <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                      Expires in {currentPlanData.daysRemaining} day{currentPlanData.daysRemaining !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                  <button
+                    disabled={buying !== null}
+                    onClick={() => handleChoosePlan(plan.id)}
+                    className="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500 hover:text-white active:scale-[0.98]"
+                  >
+                    {buying === plan.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Renew This Plan
+                      </>
+                    )}
+                  </button>
+                </div>
               ) : (
                 <button 
                   disabled={buying !== null}

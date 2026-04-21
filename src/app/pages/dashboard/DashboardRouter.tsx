@@ -16,18 +16,14 @@ import FindTalent from '@/app/pages/dashboard/client/FindTalent';
 import FreelancerDashboardHome from '@/app/pages/dashboard/freelancer/FreelancerDashboardHome';
 import FindClients from '@/app/pages/dashboard/freelancer/FindClients';
 // import MyGigs from '@/app/pages/dashboard/freelancer/MyGigs';
-import WalletWithdraw from '@/app/pages/dashboard/freelancer/WalletWithdraw';
-
 // Shared Pages
 import MyProjects from '@/app/pages/dashboard/shared/MyProjects';
-// import GigOrders from '@/app/pages/dashboard/shared/GigOrders';
-// import FindGigs from '@/app/pages/dashboard/shared/FindGigs';
 import StartupIdeas from '@/app/pages/dashboard/shared/StartupIdeas';
 import Disputes from '@/app/pages/dashboard/shared/Disputes';
 import Invoices from '@/app/pages/dashboard/shared/Invoices';
 import SavedItems from '@/app/pages/dashboard/shared/SavedItems';
 import Messages from '@/app/pages/dashboard/shared/Messages';
-import AccountBalance from '@/app/pages/dashboard/shared/AccountBalance';
+import Wallet from '@/app/pages/dashboard/shared/Wallet';
 import SubscriptionCredits from '@/app/pages/dashboard/shared/SubscriptionCredits';
 import Settings from '@/app/pages/dashboard/shared/Settings';
 import ExploreStartupIdeas from './shared/ExploreStartupIdeas';
@@ -120,7 +116,7 @@ export default function DashboardRouter() {
           {/* Talent/Clients */}
           <Route
             path="talent"
-            element={userType === 'client' ? <FindTalent /> : <Navigate to="/dashboard" />}
+            element={<FindTalent />}
           />
           <Route
             path="clients"
@@ -128,10 +124,9 @@ export default function DashboardRouter() {
           />
 
           {/* Wallet & Withdraw (Freelancer Only) */}
-          <Route
-            path="wallet"
-            element={userType === 'freelancer' ? <WalletWithdraw /> : <Navigate to="/dashboard/balance" />}
-          />
+          {/* Wallet & Referrals */}
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="balance" element={<Wallet />} />
 
           {/* Startup Ideas - Personal Pitches Only */}
           <Route path="startup-ideas" element={<StartupIdeas />} />
@@ -143,7 +138,7 @@ export default function DashboardRouter() {
           <Route path="invoices" element={<Invoices />} />
           <Route path="saved" element={<SavedItems />} />
           <Route path="messages" element={<Messages />} />
-          <Route path="balance" element={<AccountBalance />} />
+
           <Route path="subscription" element={<SubscriptionCredits />} />
           <Route path="settings" element={<Settings />} />
 

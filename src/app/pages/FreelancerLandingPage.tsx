@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Lock,
   Globe,
+  X,
   Share2,
   Linkedin,
   Github,
@@ -98,6 +99,12 @@ export default function FreelancerLandingPage() {
   const [unlocking, setUnlocking] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
+  const [initialMessage, setInitialMessage] = useState('');
+  const [isSendingChat, setIsSendingChat] = useState(false);
+  const [selectedPortfolioItem, setSelectedPortfolioItem] = useState<any | null>(null);
+  const [isPortfolioModalOpen, setIsPortfolioModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     fetchTalentDetails();
@@ -223,7 +230,7 @@ export default function FreelancerLandingPage() {
           handleUnlockProfile();
           return;
         }
-        navigate(`/dashboard/messages?user=${id}&intent=hire`);
+        setIsChatDrawerOpen(true);
       }
     },
   ];
@@ -389,7 +396,7 @@ export default function FreelancerLandingPage() {
                         </div>
                         <div className="flex items-center gap-2 px-4 py-1.5 bg-[#F24C20]/10 border border-[#F24C20]/20 rounded-full">
                           <IndianRupee className="w-3 h-3 text-[#F24C20]" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20]">Starting{talent.hourly_rate || '1200'} / hr</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20]">Starts from ₹{talent.hourly_rate || '1200'}</span>
                         </div>
                       </div>
                     </div>
@@ -654,14 +661,16 @@ export default function FreelancerLandingPage() {
                                   </a>
                                 ))}
                               </div>
-                              <button
-                                onClick={() => {
-                                  // We could open a full screen gallery here
-                                }}
-                                className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20] hover:border-[#F24C20] transition-all"
-                              >
-                                View Full Case Study
-                              </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedPortfolioItem(item);
+                                    setIsPortfolioModalOpen(true);
+                                    setCurrentImageIndex(0);
+                                  }}
+                                  className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20] hover:border-[#F24C20] transition-all"
+                                >
+                                  View Full Case Study
+                                </button>
                             </div>
                           </div>
 
@@ -669,9 +678,11 @@ export default function FreelancerLandingPage() {
                           <div className="p-8">
                             <div className="flex items-center justify-between mb-3">
                               <h4 className="text-xl font-black uppercase text-white truncate">{item.title}</h4>
-                              <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20] px-2 py-0.5 bg-[#F24C20]/10 rounded-md">
-                                {item.duration_days > 0 ? `${item.duration_days} Days` : 'Fixed'}
-                              </span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[#F24C20] px-2 py-0.5 bg-[#F24C20]/10 rounded-md">
+                                  {item.duration_days > 0 ? `${item.duration_days} Days` : 'Fixed'}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-neutral-500 text-sm leading-relaxed line-clamp-2 font-medium">{item.description}</p>
                           </div>
@@ -699,7 +710,7 @@ export default function FreelancerLandingPage() {
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Contact</h2>
-                <h3 className="text-4xl lg:text-5xl font-black uppercase relative z-10">Get In <span className="text-[#F24C20]">Touch</span></h3>
+                <h3 className="text-4xl lg:text-5xl font-black uppercase relative z-10">Get In <span className="text-[#F24C20]">Touch With Talent</span></h3>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
@@ -824,6 +835,248 @@ export default function FreelancerLandingPage() {
           )}
         </AnimatePresence>
       </main>
+      {/* Portfolio Item Modal */}
+      <AnimatePresence>
+        {isPortfolioModalOpen && selectedPortfolioItem && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsPortfolioModalOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4 lg:p-12"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#111] w-full max-w-6xl max-h-full overflow-y-auto rounded-[3rem] border border-white/10 shadow-2xl relative custom-scrollbar"
+              >
+                <button
+                  onClick={() => setIsPortfolioModalOpen(false)}
+                  className="absolute top-8 right-8 w-12 h-12 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full flex items-center justify-center text-white z-10 transition-all"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  {/* Image Gallery Slider */}
+                  <div className="p-8 lg:p-12 space-y-6">
+                    <div className="relative aspect-video rounded-[2rem] overflow-hidden border border-white/10 bg-neutral-900 shadow-2xl group/slider">
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={currentImageIndex}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          className="w-full h-full"
+                        >
+                          <ImageWithFallback
+                            src={getImgUrl(selectedPortfolioItem.images?.[currentImageIndex] || selectedPortfolioItem.image)}
+                            className="w-full h-full object-cover"
+                            alt={`${selectedPortfolioItem.title} - Image ${currentImageIndex + 1}`}
+                          />
+                        </motion.div>
+                      </AnimatePresence>
+
+                      {/* Navigation Controls */}
+                      {selectedPortfolioItem.images?.length > 1 && (
+                        <>
+                          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center z-10 opacity-0 group-hover/slider:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setCurrentImageIndex(prev => (prev === 0 ? selectedPortfolioItem.images.length - 1 : prev - 1))}
+                              className="w-12 h-12 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-[#F24C20] transition-all"
+                            >
+                              <ChevronRight className="w-6 h-6 rotate-180" />
+                            </button>
+                            <button
+                              onClick={() => setCurrentImageIndex(prev => (prev === selectedPortfolioItem.images.length - 1 ? 0 : prev + 1))}
+                              className="w-12 h-12 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-[#F24C20] transition-all"
+                            >
+                              <ChevronRight className="w-6 h-6" />
+                            </button>
+                          </div>
+
+                          {/* Dots / Counter */}
+                          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10">
+                            {selectedPortfolioItem.images.map((_: any, idx: number) => (
+                              <button
+                                key={idx}
+                                onClick={() => setCurrentImageIndex(idx)}
+                                className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-[#F24C20] w-6' : 'bg-white/30 hover:bg-white/50'}`}
+                              />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Thumbnails */}
+                    {selectedPortfolioItem.images?.length > 1 && (
+                      <div className="grid grid-cols-4 gap-4">
+                        {selectedPortfolioItem.images.map((img: string, idx: number) => (
+                           <div 
+                             key={idx} 
+                             onClick={() => setCurrentImageIndex(idx)}
+                             className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${idx === currentImageIndex ? 'border-[#F24C20] scale-[0.98]' : 'border-white/10 grayscale hover:grayscale-0 hover:border-white/30'}`}
+                           >
+                              <ImageWithFallback src={getImgUrl(img)} className="w-full h-full object-cover" alt="Thumbnail" />
+                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-8 lg:p-12 lg:pl-0 flex flex-col justify-center">
+                    <div className="flex items-center gap-4 mb-6">
+                       <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                          <span className="text-xs font-black uppercase tracking-widest text-[#F24C20]">
+                             {selectedPortfolioItem.duration_days > 0 ? `${selectedPortfolioItem.duration_days} Days Duration` : 'Flexible Duration'}
+                          </span>
+                       </div>
+                       {selectedPortfolioItem.completion_date && (
+                         <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                            <span className="text-xs font-black uppercase tracking-widest text-neutral-400">
+                               Completed {new Date(selectedPortfolioItem.completion_date).getFullYear()}
+                            </span>
+                         </div>
+                       )}
+                    </div>
+
+                    <h3 className="text-4xl lg:text-6xl font-black uppercase text-white mb-8 leading-tight">
+                      {selectedPortfolioItem.title}
+                    </h3>
+
+                    <div className="prose prose-invert max-w-none mb-12">
+                      <p className="text-neutral-400 text-lg leading-relaxed whitespace-pre-wrap font-medium">
+                        {selectedPortfolioItem.description}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4">
+                      {selectedPortfolioItem.links?.map((link: string, idx: number) => (
+                        <a
+                          key={idx}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-8 py-4 bg-[#F24C20] hover:bg-orange-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-[#F24C20]/20"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Visit Project
+                        </a>
+                      ))}
+                      <button
+                         onClick={() => setIsPortfolioModalOpen(false)}
+                         className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-widest transition-all"
+                      >
+                         Back to Portfolio
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Aside Drawer */}
+      <AnimatePresence>
+        {isChatDrawerOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsChatDrawerOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-[#111] border-l border-white/10 z-[101] shadow-2xl flex flex-col"
+            >
+              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#161616]">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#F24C20]">
+                    <ImageWithFallback src={getImgUrl(talent.profile_image)} alt={talent.full_name} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="font-black uppercase text-sm">{talent.full_name}</h4>
+                    <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Typically replies in 24h</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsChatDrawerOpen(false)}
+                  className="p-2 hover:bg-white/5 rounded-full text-neutral-500 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="bg-[#F24C20]/5 border border-[#F24C20]/10 rounded-2xl p-6">
+                  <MessageCircle className="w-8 h-8 text-[#F24C20] mb-4" />
+                  <h5 className="text-sm font-bold uppercase mb-2">Instant Inquiry</h5>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    Start a conversation with {talent.full_name.split(' ')[0]} directly. Your message will be sent to their dashboard and email.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                   <label className="text-[10px] uppercase font-black tracking-widest text-neutral-500">Your Message</label>
+                   <textarea
+                     value={initialMessage}
+                     onChange={(e) => setInitialMessage(e.target.value)}
+                     placeholder={`Hi ${talent.full_name.split(' ')[0]}, I'm interested in working with you...`}
+                     className="w-full h-40 bg-[#161616] border border-white/10 rounded-2xl p-6 text-sm outline-none focus:border-[#F24C20] transition-all resize-none"
+                   />
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-white/5 bg-[#161616]">
+                <button
+                  disabled={isSendingChat || !initialMessage.trim()}
+                  onClick={async () => {
+                    setIsSendingChat(true);
+                    try {
+                      const res = await api.post('/messages', {
+                        receiverId: talent._id,
+                        content: initialMessage,
+                        intent: 'hire'
+                      });
+                      if (res.data.success) {
+                        toast.success('Message sent! You can continue in your dashboard.');
+                        setIsChatDrawerOpen(false);
+                        setInitialMessage('');
+                      }
+                    } catch (err: any) {
+                      toast.error(err.response?.data?.message || 'Failed to send message');
+                    } finally {
+                      setIsSendingChat(false);
+                    }
+                  }}
+                  className="w-full py-4 bg-[#F24C20] rounded-xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+                >
+                  {isSendingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {isSendingChat ? 'Sending...' : 'Send Message Now'}
+                </button>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <ShieldCheck className="w-3 h-3 text-neutral-600" />
+                  <span className="text-[9px] uppercase font-bold text-neutral-600">Secure Professional Communication</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

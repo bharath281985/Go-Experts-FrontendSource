@@ -23,8 +23,8 @@ export default function ResetPasswordPage() {
             return;
         }
 
-        if (password.length < 6) {
-            toast.error('Password must be at least 6 characters');
+        if (password.length < 8) {
+            toast.error('Password must be at least 8 characters');
             return;
         }
 
@@ -41,6 +41,7 @@ export default function ResetPasswordPage() {
             }
         } catch (error: any) {
             console.error('Reset password error:', error);
+            toast.error(error.response?.data?.message || 'Failed to reset password');
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +60,7 @@ export default function ResetPasswordPage() {
                     </div>
                     <h1 className="text-3xl font-bold mb-2 text-white">Choose new password</h1>
                     <p className="text-neutral-400">
-                        Create a new password that is at least 6 characters long.
+                        Create a new password that is at least 8 characters long.
                     </p>
                 </div>
 
@@ -73,7 +74,7 @@ export default function ResetPasswordPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="Minimum 6 characters"
+                                    placeholder="Minimum 8 characters"
                                     required
                                     className="w-full pl-12 pr-12 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
                                 />

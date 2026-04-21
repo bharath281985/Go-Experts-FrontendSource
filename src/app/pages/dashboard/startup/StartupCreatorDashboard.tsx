@@ -24,7 +24,8 @@ import {
   Eye,
   Heart,
   ChevronRight,
-  DollarSign
+  DollarSign,
+  Rocket
 } from "lucide-react";
 import PremiumDashboardLayout from "@/app/components/dashboard/PremiumDashboardLayout";
 import ChatWindow from "@/app/components/dashboard/ChatWindow";
@@ -82,43 +83,70 @@ function StatCard({ label, value, icon: Icon, trend }: { label: string; value: s
 function IdeaCard({ idea }: { idea: any }) {
     const { isDarkMode } = useTheme();
     return (
-        <div className={`group rounded-3xl border p-6 transition-all hover:shadow-2xl ${isDarkMode ? 'bg-neutral-900/40 border-neutral-800 hover:border-[#F24C20]/50' : 'bg-white border-neutral-200 hover:border-[#F24C20]/30 shadow-sm'}`}>
+        <div className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-500 overflow-hidden min-h-[480px] ${
+            isDarkMode 
+            ? 'bg-[#0b0d14] border-neutral-800' 
+            : 'bg-white border-neutral-200'
+          }`}
+        >
+          {/* Subtle Aura Border */}
+          <div className="absolute inset-0 border border-[#F24C20]/0 group-hover:border-[#F24C20]/20 rounded-[2.5rem] transition-all pointer-events-none" />
+
+          <div className="p-8 pb-0">
             <div className="flex items-center justify-between mb-6">
-                <div className="p-3 rounded-2xl bg-gradient-to-br from-[#F24C20] to-orange-600">
-                    <Lightbulb className="w-6 h-6 text-white" />
-                </div>
-                <Badge variant={idea.status === 'approved' ? 'success' : idea.status === 'pending' ? 'warning' : 'default'}>
-                    {idea.status}
-                </Badge>
-            </div>
-            
-            <h4 className={`text-xl font-black truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h4>
-            <p className="mt-2 text-xs font-bold text-neutral-500 uppercase tracking-tight">{idea.category}</p>
-
-            <div className={`mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2`}>
-                <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-50'} text-center`}>
-                    <span className="block text-[10px] text-neutral-500 uppercase font-black">Views</span>
-                    <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.views}</span>
-                </div>
-                <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-50'} text-center`}>
-                    <span className="block text-[10px] text-neutral-500 uppercase font-black">Leads</span>
-                    <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.contacts?.length || 0}</span>
-                </div>
-                <div className={`p-3 rounded-2xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-50'} text-center col-span-2 sm:col-span-1`}>
-                    <span className="block text-[10px] text-neutral-500 uppercase font-black">Ask</span>
-                    <span className="text-sm font-bold text-[#F24C20]">{idea.fundingAmount ? `$${idea.fundingAmount/1000}k` : 'N/A'}</span>
-                </div>
+              <div className="flex flex-col gap-2">
+                 <span className="px-3 py-1 bg-white/5 border border-white/10 text-[#F24C20] text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
+                   {idea.category}
+                 </span>
+                 <span className="px-3 py-1 bg-white/5 border border-white/10 text-neutral-400 text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
+                   {idea.stage || 'Market MVP'}
+                 </span>
+              </div>
+              <Badge variant={idea.status === 'approved' ? 'success' : idea.status === 'pending' ? 'warning' : 'default'}>
+                  {idea.status}
+              </Badge>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-neutral-800 flex items-center justify-between">
+            <h4 className={`text-2xl font-black mb-3 leading-tight group-hover:text-[#F24C20] transition-colors line-clamp-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h4>
+            <p className="text-slate-400 text-sm leading-relaxed line-clamp-2 mb-8 font-medium">
+              {idea.shortDescription}
+            </p>
+
+            {/* Performance Stats Row */}
+            <div className="grid grid-cols-3 gap-3 mb-8">
+               {[
+                  { label: 'Views', value: idea.views || '0', color: isDarkMode ? 'text-white' : 'text-neutral-900' },
+                  { label: 'Leads', value: idea.contacts?.length || '0', color: isDarkMode ? 'text-white' : 'text-neutral-900' },
+                  { label: 'Ask', value: idea.fundingAmount ? `$${idea.fundingAmount/1000}k` : 'N/A', color: 'text-[#F24C20]' }
+               ].map((stat, i) => (
+                 <div key={i} className={`rounded-2xl p-4 text-center border ${isDarkMode ? 'bg-white/5 border-white/5' : 'bg-neutral-50 border-neutral-100'}`}>
+                    <div className={`text-base font-black ${stat.color}`}>{stat.value}</div>
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{stat.label}</div>
+                 </div>
+               ))}
+            </div>
+
+            {/* Specialist Badges */}
+            <div className="flex flex-wrap gap-2 mb-8">
+               {(idea.neededRoles || ['Talent Search Active']).slice(0, 2).map((role: string, i: number) => (
+                 <span key={i} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-tighter border ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-slate-300' : 'bg-neutral-100 border-neutral-200 text-neutral-600'}`}>
+                    {role}
+                 </span>
+               ))}
+            </div>
+          </div>
+
+          <div className={`mt-auto p-8 pt-0 border-t ${isDarkMode ? 'border-white/5 bg-white/5' : 'border-neutral-100 bg-neutral-50/50'}`}>
+            <div className="flex items-center justify-between mt-6">
                 <div className="flex items-center gap-2 text-[10px] font-bold text-neutral-500 uppercase">
-                    <Clock className="w-3 h-3" />
-                    Updated {new Date(idea.updatedAt).toLocaleDateString()}
+                    <Clock className="w-3.5 h-3.5" />
+                    Live since {new Date(idea.createdAt).toLocaleDateString()}
                 </div>
-                <button className="p-2 rounded-xl bg-neutral-800 text-neutral-400 hover:bg-[#F24C20] hover:text-white transition-all shadow-lg">
+                <button className="p-3 rounded-2xl bg-[#F24C20] text-white hover:scale-110 transition-all shadow-xl shadow-[#F24C20]/20">
                     <ArrowUpRight className="w-4 h-4" />
                 </button>
             </div>
+          </div>
         </div>
     );
 }
@@ -244,6 +272,38 @@ export default function StartupCreatorDashboard() {
                     Global pitch oversight and investor lead intelligence.
                 </p>
             </motion.div>
+
+            {/* Dynamic Sliding Marquee for Founder Dashboard */}
+            <div className={`hidden xl:flex flex-1 overflow-hidden relative rounded-2xl border h-14 items-center max-w-xl ${isDarkMode ? 'bg-neutral-900/30 border-neutral-800' : 'bg-neutral-50 border-neutral-100'}`}>
+              <div className="absolute left-0 top-0 bottom-0 px-3 bg-[#F24C20] text-white flex items-center z-10 skew-x-[-12deg] -ml-2">
+                 <div className="skew-x-[12deg] flex items-center gap-2">
+                    <Rocket className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-tighter">GLOBAL PULSE</span>
+                 </div>
+              </div>
+              <div className="flex w-full overflow-hidden ml-16">
+                 <motion.div 
+                   animate={{ x: ["100%", "-200%"] }}
+                   transition={{ 
+                     repeat: Infinity, 
+                     duration: 35, 
+                     ease: "linear" 
+                   }}
+                   className="flex items-center gap-12 whitespace-nowrap"
+                 >
+                    {ideas.length > 0 ? ideas.slice(0, 5).map((idea, i) => (
+                      <div key={idea._id || i} className="flex items-center gap-3">
+                         <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
+                         <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category}</span>
+                      </div>
+                    )) : (
+                      <span className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Scanning global marketplace...</span>
+                    )}
+                 </motion.div>
+              </div>
+           </div>
+
             <div className="flex items-center gap-3">
                 <button 
                    onClick={fetchData}

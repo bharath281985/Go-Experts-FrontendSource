@@ -63,6 +63,9 @@ interface RegistrationData {
   email: string;
   fullName: string;
   password: string;
+  referralCode: string;
+  latitude?: number;
+  longitude?: number;
   [key: string]: any;
 }
 
@@ -111,6 +114,9 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     fullName: '',
     email: '',
     password: '',
+    referralCode: '',
+    latitude: undefined,
+    longitude: undefined,
   });
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
@@ -124,6 +130,14 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [allSkills, setAllSkills] = useState<any[]>([]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      setData(prev => ({ ...prev, referralCode: ref.toUpperCase() }));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchFlowData = async () => {
@@ -239,6 +253,47 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     fetchPlans();
   }, [data.accountType]);
 
+  // Polling for email verification status once registered
+  useEffect(() => {
+    let pollInterval: any;
+    
+    if (isSuccess) {
+      pollInterval = setInterval(async () => {
+        try {
+          // Check current user status
+          const response = await api.get('/auth/me', { skipToast: true } as any);
+          
+          if (response.data.success && response.data.user.is_email_verified) {
+            clearInterval(pollInterval);
+            
+            // Success! Update local state
+            const user = response.data.user;
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('userName', user.full_name);
+            localStorage.setItem('userType', user.role || (user.roles && user.roles[0]));
+            
+            toast.success('Email verified! Redirecting to your dashboard...');
+            
+            // Redirect after a short delay for feedback
+            setTimeout(() => {
+              const destination = getDashboardRedirect();
+              // Use window.location.href for a full reload to ensure fresh global state
+              window.location.href = destination;
+            }, 1500);
+          }
+        } catch (error) {
+          // Ignore polling errors (might happen if token isn't ready or server is blipping)
+          console.debug('Verification polling error:', error);
+        }
+      }, 3000); // Check every 3 seconds
+    }
+
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [isSuccess]);
+
   const visibleSteps = dynamicSteps.filter(step => {
     // Stage 1: Always show Account Type
     if (step.field === 'accountType') return true;
@@ -257,8 +312,8 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
   const totalSteps = visibleSteps.length;
 
   const updateData = (field: keyof RegistrationData, value: any) => {
-    setData(prev => ({ ...prev, [field]: value }));
     if (field === 'location') {
+      setData(prev => ({ ...prev, location: value, latitude: undefined, longitude: undefined }));
       if (typeof value === 'string' && value.trim().length > 1) {
         const filtered = commonLocations.filter(loc =>
           loc.toLowerCase().includes(value.toLowerCase())
@@ -269,6 +324,8 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
         setSuggestions([]);
         setShowSuggestions(false);
       }
+    } else {
+      setData(prev => ({ ...prev, [field]: value }));
     }
   };
 
@@ -281,7 +338,10 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
     if (step.validation?.required === false) return true;
 
     if (step.type === 'account-creation') {
-      return !!(data.fullName && data.email && data.password);
+      const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+      const isEmailValid = emailRegex.test(data.email);
+      const isPasswordValid = data.password.length >= 8;
+      return !!(data.fullName && isEmailValid && isPasswordValid);
     }
 
     if (step.type === 'subscription-plan') {
@@ -322,6 +382,7 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
+          setData(prev => ({ ...prev, latitude, longitude }));
           const response = await fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyBNVn5j-M6F4VHkaOluoOcVY3K5r2-NlPk`
           );
@@ -376,7 +437,10 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
         work_preference: data.workPreference,
         experience_level: data.experienceLevel,
         budget_range: data.budgetRange,
-        subscription_plan: data.subscriptionPlan
+        subscription_plan: data.subscriptionPlan,
+        referral_code: data.referralCode,
+        latitude: data.latitude,
+        longitude: data.longitude
       };
 
       const response = await api.post('/auth/register', payload);
@@ -745,8 +809,8 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                                 type={showPassword ? "text" : "password"}
                                 value={data.password}
                                 onChange={(e) => updateData('password', e.target.value)}
-                                placeholder="Create password"
-                                className="w-full pl-12 pr-12 py-4 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white text-lg placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                                placeholder="Min. 8 characters"
+                                className={`w-full pl-12 pr-12 py-4 bg-neutral-950 border-2 rounded-xl text-white text-lg placeholder:text-neutral-500 focus:outline-none transition-colors ${data.password && data.password.length < 8 ? 'border-red-500/50 focus:border-red-500' : 'border-neutral-800 focus:border-[#F24C20]'}`}
                               />
                               <button
                                 type="button"
@@ -756,6 +820,9 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                               </button>
                             </div>
+                            {data.password && data.password.length < 8 && (
+                                <p className="mt-1 text-xs text-red-400">Password must be at least 8 characters</p>
+                            )}
                           </div>
                         </div>
 
@@ -766,12 +833,12 @@ export default function RegistrationWizard({ onClose }: RegistrationWizardProps)
                             <input
                               type="email"
                               value={data.email}
-                              onChange={(e) => updateData('email', e.target.value)}
-                              placeholder="Email"
-                              className="w-full pl-12 pr-4 py-4 bg-neutral-950 border-2 border-neutral-800 rounded-xl text-white text-lg placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                              onChange={(e) => updateData('email', e.target.value.toLowerCase())}
+                              placeholder="small-letters@example.com"
+                              className={`w-full pl-12 pr-4 py-4 bg-neutral-950 border-2 rounded-xl text-white text-lg placeholder:text-neutral-500 focus:outline-none transition-colors ${data.email && !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(data.email) ? 'border-red-500/50 focus:border-red-500' : 'border-neutral-800 focus:border-[#F24C20]'}`}
                             />
                           </div>
-                          <p className="mt-2 text-xs text-neutral-500">We will send a verification link to this email after registration.</p>
+                          <p className="mt-2 text-xs text-neutral-500">Only small letters allowed. We'll send a verification link to this email.</p>
                         </div>
                       </div>
                     )}

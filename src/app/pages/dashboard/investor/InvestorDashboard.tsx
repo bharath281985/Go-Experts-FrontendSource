@@ -31,7 +31,8 @@ import {
   Mail,
   User as UserIcon,
   Phone,
-  Globe
+  Globe,
+  Rocket
 } from "lucide-react";
 import PremiumDashboardLayout from "@/app/components/dashboard/PremiumDashboardLayout";
 import ChatWindow from "@/app/components/dashboard/ChatWindow";
@@ -99,44 +100,59 @@ function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
     };
     
     return (
-        <div onClick={handleViewRoom} className={`group cursor-pointer rounded-2xl border p-5 transition-all hover:shadow-xl ${isDarkMode ? 'bg-neutral-900/40 border-neutral-800 hover:border-[#F24C20]/50' : 'bg-white border-neutral-200 hover:border-[#F24C20]/30 shadow-sm'}`}>
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center text-[#F24C20] font-bold">
-                        {idea.title?.[0] || 'S'}
-                    </div>
-                    <div>
-                        <h4 className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title || 'Untitled Startup'}</h4>
-                        <p className="text-xs text-neutral-500">{idea.category || 'Tech/AI'}</p>
-                    </div>
-                </div>
-                <Badge variant={deal.status === 'shortlisted' ? 'info' : deal.status === 'interested' ? 'success' : 'default'}>
-                    {deal.status}
-                </Badge>
-            </div>
-            
-            <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-500">Ask Amount</span>
-                    <span className={`font-semibold ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>{idea.fundingAmount || 'N/A'}</span>
-                </div>
-                <div className="w-full bg-neutral-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="h-full bg-[#F24C20]" style={{ width: `${deal.score || 45}%` }} />
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-neutral-500">
-                    <span>Investment Score</span>
-                    <span>{deal.score || 45}%</span>
-                </div>
-            </div>
+        <div 
+            onClick={handleViewRoom} 
+            className={`group relative cursor-pointer rounded-[2.5rem] border p-6 transition-all duration-500 overflow-hidden ${
+                isDarkMode 
+                ? 'bg-[#0b0d14] border-neutral-800 hover:border-[#F24C20]/50 hover:shadow-2xl hover:shadow-[#F24C20]/10' 
+                : 'bg-white border-neutral-200 hover:border-[#F24C20]/30 shadow-sm'
+            }`}
+        >
+            {/* Subtle Aura */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F24C20]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-            <div className="mt-5 pt-4 border-t border-neutral-800 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-neutral-500">
-                    <Clock className="w-3 h-3" />
-                    {new Date(deal.updatedAt).toLocaleDateString()}
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#F24C20]/10 flex items-center justify-center text-[#F24C20] font-black text-xl border border-[#F24C20]/20 group-hover:rotate-6 transition-transform">
+                            {idea.title?.[0] || 'S'}
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className={`font-black truncate tracking-tight text-lg ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title || 'Untitled Startup'}</h4>
+                            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">{idea.category || 'Tech/AI'}</p>
+                        </div>
+                    </div>
                 </div>
-                <button className="text-xs font-bold text-[#F24C20] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    View Data Room <ChevronRight className="w-3 h-3"/>
-                </button>
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Growth Ask</span>
+                        <span className={`text-sm font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>${idea.fundingAmount ? `${idea.fundingAmount/1000}k` : 'N/A'}</span>
+                    </div>
+                    <div className="space-y-2">
+                        <div className="w-full bg-neutral-900 rounded-full h-2 overflow-hidden border border-white/5">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${deal.score || 45}%` }}
+                                className="h-full bg-gradient-to-r from-[#F24C20] to-orange-500" 
+                            />
+                        </div>
+                        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-neutral-500">
+                            <span>Venture Fit Score</span>
+                            <span className="text-[#F24C20]">{deal.score || 45}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-neutral-500 uppercase tracking-tight">
+                        <Clock className="w-3.5 h-3.5" />
+                        Updated {new Date(deal.updatedAt).toLocaleDateString()}
+                    </div>
+                    <Badge variant={deal.status === 'shortlisted' ? 'info' : deal.status === 'interested' ? 'success' : 'default'}>
+                        {deal.status}
+                    </Badge>
+                </div>
             </div>
         </div>
     );
@@ -144,35 +160,44 @@ function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
 
 function StartupDiscoverCard({ idea }: { idea: any }) {
     const { isDarkMode } = useTheme();
+    const navigate = useNavigate();
     return (
-        <div className={`rounded-2xl border overflow-hidden group ${isDarkMode ? 'bg-neutral-900/40 border-neutral-800' : 'bg-white border-neutral-200'}`}>
-            <div className="relative h-32 bg-gradient-to-br from-[#F24C20]/20 to-orange-500/5 p-4 flex items-end">
-                 <div className="absolute top-3 right-3">
-                     <button className="p-2 rounded-lg bg-black/20 backdrop-blur-md text-white hover:bg-[#F24C20] transition-colors">
-                        <Plus className="w-4 h-4" />
-                     </button>
+        <div 
+            onClick={() => navigate(`/dashboard-investor/explore-ideas`)}
+            className={`rounded-3xl border overflow-hidden group transition-all duration-500 cursor-pointer ${
+                isDarkMode 
+                ? 'bg-[#0b0d14] border-neutral-800 hover:border-[#F24C20]/30' 
+                : 'bg-white border-neutral-200 shadow-sm'
+            }`}
+        >
+            <div className="relative h-28 bg-gradient-to-br from-[#F24C20]/20 to-orange-500/5 p-5 flex items-end overflow-hidden">
+                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                    <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Explore Concept</span>
                  </div>
-                 <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1 text-[10px] font-bold text-white uppercase tracking-tight">
-                    {idea.status}
+                 <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-2.5 py-1 text-[8px] font-black text-white uppercase tracking-widest">
+                    {idea.category}
                  </div>
             </div>
-            <div className="p-5">
-                <h4 className={`font-bold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400">{idea.category}</span>
-                </div>
-                <p className="mt-3 text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+            <div className="p-6">
+                <h4 className={`font-black text-base truncate transition-colors group-hover:text-[#F24C20] ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h4>
+                <p className="mt-3 text-[11px] text-neutral-500 line-clamp-2 leading-relaxed font-medium">
                     {idea.shortDescription}
                 </p>
                 
-                <div className="mt-5 flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3 text-[#F24C20]" />
-                        <span className="text-sm font-bold text-[#F24C20]">{idea.fundingAmount || 'Hidden'}</span>
+                <div className="mt-6 flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-neutral-600 uppercase tracking-widest">Target Ask</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-sm font-black text-[#F24C20] tracking-tight">${idea.fundingAmount ? `${idea.fundingAmount/1000}k` : 'Hidden'}</span>
+                        </div>
                     </div>
-                    <button className={`p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
-                        <ExternalLink className="w-4 h-4" />
-                    </button>
+                    <div className="flex -space-x-2">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="w-6 h-6 rounded-full border-2 border-[#0b0d14] bg-neutral-800 overflow-hidden">
+                                <img src={`https://images.unsplash.com/photo-${1500 + i}?w=50`} alt="" className="w-full h-full object-cover" />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
@@ -613,6 +638,38 @@ export default function InvestorDashboard() {
                     Real-time venture intelligence and deal management.
                 </p>
             </div>
+
+            {/* Dynamic Sliding Marquee for Investor Dashboard */}
+            <div className={`hidden xl:flex flex-1 overflow-hidden relative rounded-2xl border h-14 items-center max-w-xl ${isDarkMode ? 'bg-neutral-900/30 border-neutral-800' : 'bg-neutral-50 border-neutral-100'}`}>
+              <div className="absolute left-0 top-0 bottom-0 px-3 bg-[#F24C20] text-white flex items-center z-10 skew-x-[-12deg] -ml-2">
+                 <div className="skew-x-[12deg] flex items-center gap-2">
+                    <Rocket className="w-4 h-4" />
+                    <span className="text-[10px] font-black uppercase tracking-tighter">MARKET PULSE</span>
+                 </div>
+              </div>
+              <div className="flex w-full overflow-hidden ml-16">
+                 <motion.div 
+                   animate={{ x: ["100%", "-200%"] }}
+                   transition={{ 
+                     repeat: Infinity, 
+                     duration: 35, 
+                     ease: "linear" 
+                   }}
+                   className="flex items-center gap-12 whitespace-nowrap"
+                 >
+                    {discoverIdeas.length > 0 ? discoverIdeas.slice(0, 5).map((idea, i) => (
+                      <div key={idea._id || i} className="flex items-center gap-3">
+                         <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
+                         <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category || 'Tech'}</span>
+                      </div>
+                    )) : (
+                      <span className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Scanning latest submissions...</span>
+                    )}
+                 </motion.div>
+              </div>
+           </div>
+
             <div className="flex items-center gap-2 sm:gap-3 w-full md:w-auto">
                 <button 
                    onClick={fetchData}
