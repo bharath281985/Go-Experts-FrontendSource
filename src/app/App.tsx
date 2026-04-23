@@ -22,6 +22,7 @@ import ContactPage from './pages/ContactPage';
 import FAQsPage from './pages/FAQsPage';
 import StaticPageView from './pages/StaticPageView';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import MobileVerifyPage from './pages/MobileVerifyPage';
 import SubscriptionPlans from './pages/SubscriptionPlans';
 import PaymentStatus from './pages/PaymentStatus';
 import ExploreIdeasPage from './pages/ExploreIdeasPage';
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+            <Route path="/mobile-verify/:token" element={<MobileVerifyPage />} />
             <Route path="/onboarding/freelancer" element={<FreelancerOnboarding />} />
             <Route path="/onboarding/client" element={<ClientOnboarding />} />
             {/* Protected: requires auth + verified email + role check */}

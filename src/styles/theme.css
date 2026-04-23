@@ -2,6 +2,7 @@
 
 :root {
   --font-size: 16px;
+  --app-font-family: 'Inter', sans-serif;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -122,10 +123,12 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    font-family: var(--app-font-family);
   }
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--app-font-family);
   }
 
   /**
@@ -135,6 +138,7 @@
 
   html {
     font-size: var(--font-size);
+    font-family: var(--app-font-family);
   }
 
   h1 {
@@ -177,5 +181,21 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+
+  textarea,
+  select,
+  option,
+  input,
+  button,
+  label,
+  p,
+  span,
+  div,
+  a,
+  li,
+  td,
+  th {
+    font-family: var(--app-font-family);
   }
 }

@@ -211,8 +211,6 @@ export default function HeroSection() {
           }}
         />
 
-        {/* Noise Texture Removed for highlighted grid */}
-
         {/* Radial Spotlights */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-radial from-[#F24C20]/20 to-transparent blur-3xl rounded-full" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-radial from-orange-800/20 to-transparent blur-3xl rounded-full" />
@@ -257,7 +255,7 @@ export default function HeroSection() {
         >
           <div className="w-2 h-2 bg-[#F24C20] rounded-full animate-pulse" />
           <span className="text-sm font-medium text-neutral-300">
-            Trusted by 50,000+ professionals worldwide
+            Working With You..For You...
           </span>
         </motion.div>
 
@@ -266,7 +264,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4 }}
-          className="text-6xl md:text-8xl font-bold mb-8 leading-tight"
+          className="text-[42px] sm:text-5xl md:text-8xl font-bold mb-8 leading-tight tracking-tight"
         >
           <span className="block text-white mb-2">
             {activeBanner.title.split(' ').slice(0, -1).join(' ')}{' '}
@@ -312,7 +310,7 @@ export default function HeroSection() {
             {/* Glow Effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-[#F24C20]/50 to-orange-600/50 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
 
-            <form 
+            <form
               onSubmit={handleSearch}
               className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-3xl border border-neutral-800"
             >

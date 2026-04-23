@@ -15,6 +15,15 @@ import {
 import { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
+function shuffleArray<T>(items: T[]) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 const defaultCategories = [
   {
     icon: <Palette className="w-8 h-8 text-white" />,
@@ -110,14 +119,14 @@ export default function CategoriesSection() {
               bgGlow: `bg-${colors[i % colors.length].split('-')[1]}-500/20`,
               imageError: false
             }));
-            setCategories(mapped);
+            setCategories(shuffleArray(mapped));
           } else {
-            setCategories(defaultCategories);
+            setCategories(shuffleArray(defaultCategories));
           }
         }
       } catch (err) {
         console.error('Failed to fetch categories:', err);
-        setCategories(defaultCategories);
+        setCategories(shuffleArray(defaultCategories));
       } finally {
         setLoading(false);
       }

@@ -31,6 +31,7 @@ export default function SiteSettingsProvider({ children }: Props) {
                             link.rel = 'icon';
                             document.head.appendChild(link);
                         }
+                        link.type = 'image/png';
                         link.href = getImgUrl(s.site_favicon);
                     }
 

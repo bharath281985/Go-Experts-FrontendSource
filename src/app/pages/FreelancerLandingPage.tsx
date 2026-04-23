@@ -243,9 +243,12 @@ export default function FreelancerLandingPage() {
               }
               setActiveSection(item.id as any);
             }}
-            className={`group relative w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 ${activeSection === item.id ? 'bg-[#F24C20]' : 'bg-[#2b2b2b] hover:bg-[#F24C20]'
+            className={`group relative w-12 h-12 rounded-full flex items-center justify-center border transition-all duration-500 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.35)] ${activeSection === item.id
+              ? 'bg-[#F24C20]/95 border-[#ff8a66] shadow-[0_10px_30px_rgba(242,76,32,0.4)]'
+              : 'bg-[#F24C20]/20 border-[#F24C20]/35 hover:bg-[#F24C20]/80 hover:border-[#ff8a66] shadow-[0_10px_30px_rgba(242,76,32,0.18)]'
               }`}
           >
+            <div className="absolute inset-[1px] rounded-full bg-gradient-to-br from-white/30 via-white/10 to-transparent opacity-90 pointer-events-none" />
             <item.icon className="relative z-10 w-5 h-5 text-white" />
             <span className="absolute right-0 top-0 h-full px-8 bg-[#F24C20] rounded-full flex items-center text-xs font-black uppercase tracking-widest text-white opacity-0 group-hover:opacity-100 group-hover:-translate-x-0 translate-x-full transition-all duration-500 pointer-events-none -z-10 overflow-hidden pr-16">
               {item.label}
@@ -391,9 +394,9 @@ export default function FreelancerLandingPage() {
                     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 lg:gap-6 w-full sm:w-auto max-w-sm mx-auto lg:mx-0">
                       <button
                         onClick={() => setActiveSection('about')}
-                        className="group relative flex h-14 w-full sm:w-[270px] items-center bg-transparent border-2 border-[#F24C20] rounded-full font-black uppercase text-sm tracking-[0.12em] overflow-hidden transition-all duration-300"
+                        className="group relative flex h-14 w-full sm:w-[310px] lg:w-[330px] items-center bg-transparent border-2 border-[#F24C20] rounded-full font-black text-sm tracking-[0.12em] overflow-hidden transition-all duration-300"
                       >
-                        <span className="relative z-10 flex-1 pl-8 pr-16 whitespace-nowrap text-left group-hover:text-white transition-colors duration-300">
+                        <span className="relative z-10 block w-[calc(100%-56px)] pl-8 pr-6 whitespace-nowrap text-left group-hover:text-white transition-colors duration-300">
                           More About Me
                         </span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-[#F24C20] rounded-full flex items-center justify-center z-20 transition-transform group-hover:scale-110">
@@ -404,9 +407,9 @@ export default function FreelancerLandingPage() {
 
                       <button
                         onClick={handleHireMeNow}
-                        className="group relative flex h-14 w-full sm:w-[240px] items-center bg-[#F24C20] rounded-full font-black uppercase text-sm tracking-[0.12em] overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
+                        className="group relative flex h-14 w-full sm:w-[280px] lg:w-[370px] items-center bg-[#F24C20] rounded-full font-black text-sm tracking-[0.12em] overflow-hidden transition-all duration-300 shadow-lg shadow-[#F24C20]/20 hover:scale-105"
                       >
-                        <span className="flex-1 pl-8 pr-16 whitespace-nowrap text-left text-white">
+                        <span className="relative z-10 block w-[calc(100%-56px)] pl-8 pr-8 whitespace-nowrap text-left text-white">
                           Hire Me Now
                         </span>
                         <div className="absolute top-0 right-0 h-full w-14 bg-black/10 rounded-full flex items-center justify-center">
@@ -426,10 +429,10 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-20"
             >
               <div className="text-center mb-20 relative">
-                <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Resume</h2>
+                <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Shortly</h2>
                 <h3 className="text-4xl lg:text-5xl font-black uppercase relative z-10">About <span className="text-[#F24C20]">Me</span></h3>
               </div>
 
@@ -554,7 +557,7 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-20"
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Works</h2>
@@ -568,16 +571,16 @@ export default function FreelancerLandingPage() {
                   <p className="text-neutral-500 max-w-md mx-auto mb-8">
                     To view project gallery and case studies, please unlock this freelancer's details using your subscription credits.
                   </p>
-                    <button
-                      onClick={() => promptUnlock('portfolio')}
-                      className="px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-50"
-                    >
-                      <ShieldCheck className="w-5 h-5 text-white" />
-                      Unlock Full Profile
-                    </button>
+                  <button
+                    onClick={() => promptUnlock('portfolio')}
+                    className="px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-50"
+                  >
+                    <ShieldCheck className="w-5 h-5 text-white" />
+                    Unlock Full Profile
+                  </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                   {talent.portfolio?.length > 0 ? (
                     talent.portfolio.map((item: any, pIdx: number) => {
                       const allImages = [
@@ -635,9 +638,9 @@ export default function FreelancerLandingPage() {
                                   setIsPortfolioModalOpen(true);
                                   setCurrentImageIndex(0);
                                 }}
-                                className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20] hover:border-[#F24C20] transition-all"
+                                className="w-full py-3 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-black uppercase tracking-[0.2em] hover:bg-[#F24C20]/20 hover:border-[#F24C20]/20 transition-all"
                               >
-                                View Full Case Study
+                                Detailed Case Study
                               </button>
                             </div>
                           </div>
@@ -674,7 +677,7 @@ export default function FreelancerLandingPage() {
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
-              className="max-w-7xl mx-auto px-6 pt-20 pb-32 lg:py-32"
+              className="max-w-7xl mx-auto px-6 pt-18 pb-32 lg:py-10"
             >
               <div className="text-center mb-20 relative">
                 <h2 className="text-6xl lg:text-9xl font-black text-white/5 uppercase select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full">Contact</h2>
@@ -725,12 +728,12 @@ export default function FreelancerLandingPage() {
                       <Lock className="w-12 h-12 text-[#F24C20] mb-4 opacity-40" />
                       <h5 className="text-xl font-bold uppercase mb-2">Message feature is locked</h5>
                       <p className="text-sm text-neutral-500 mb-6">Unlock this freelancer's profile to send them a direct email inquiry.</p>
-                        <button
-                          onClick={() => promptUnlock('chat')}
-                          className="px-8 py-3 bg-[#F24C20] text-white rounded-full font-bold uppercase text-xs tracking-widest"
-                        >
-                          Unlock to Contact
-                        </button>
+                      <button
+                        onClick={() => promptUnlock('chat')}
+                        className="px-8 py-3 bg-[#F24C20] text-white rounded-full font-bold uppercase text-xs tracking-widest"
+                      >
+                        Unlock to Contact
+                      </button>
                     </div>
                   ) : (
                     <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={async (e) => {
@@ -774,20 +777,20 @@ export default function FreelancerLandingPage() {
                           placeholder="YOUR SUBJECT"
                           value={formData.subject}
                           onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                          className="w-full bg-[#212121] border border-transparent rounded-full px-8 py-4 text-sm focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all" required />
+                          className="w-full bg-[#212121] border border-transparent rounded-full px-8 py-3 text-sm focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all" required />
                       </div>
                       <div className="md:col-span-2">
                         <textarea
                           placeholder="YOUR MESSAGE"
                           value={formData.message}
                           onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                          className="w-full bg-[#212121] border border-transparent rounded-[2rem] px-8 py-6 text-sm focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all h-60 resize-none" required></textarea>
+                          className="w-full bg-[#212121] border border-transparent rounded-[2rem] px-8 py-5 text-sm focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all h-44 resize-none" required></textarea>
                       </div>
                       <div className="md:col-span-2">
                         <button
                           type="submit"
                           disabled={isSending}
-                          className="group px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm flex items-center gap-4 hover:bg-white hover:text-black transition-all disabled:opacity-50"
+                          className="group px-10 py-2 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm flex items-center gap-4 hover:bg-white hover:text-black transition-all disabled:opacity-50"
                         >
                           {isSending ? 'Sending...' : 'Send Message'}
                           <div className="w-10 h-10 bg-black/10 rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all">

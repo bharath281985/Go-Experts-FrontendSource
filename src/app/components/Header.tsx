@@ -139,7 +139,8 @@ export default function Header() {
         );
       } else if (userRole === 'freelancer') {
         links.push(
-          { path: '/projects', label: 'Go Projects' }
+          { path: '/projects', label: 'Go Projects' },
+          { path: '/talent', label: 'Go Talent' }
         );
       } else if (userRole === 'client') {
         links.push(

@@ -9,7 +9,7 @@ const ICON_MAP: Record<string, any> = {
 
 const defaultStats = [
   { icon: Star, value: 4.9, suffix: '/5', label: 'Average Rating', color: 'from-yellow-500 to-orange-500' },
-  { icon: Briefcase, value: 12500, suffix: '+', label: 'Active Projects', color: 'from-blue-500 to-cyan-500' },
+  { icon: Briefcase, value: 500, suffix: '+', label: 'Active Projects', color: 'from-blue-500 to-cyan-500' },
   { icon: Award, value: 1665, suffix: '', label: 'Expert Skills', color: 'from-purple-500 to-pink-500' },
   { icon: TrendingUp, value: 98, suffix: '%', label: 'Success Rate', color: 'from-green-500 to-emerald-500' },
 ];
@@ -26,7 +26,7 @@ function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
     const step = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
-      
+
       setCount(Math.floor(progress * end));
 
       if (progress < 1) {
@@ -45,12 +45,12 @@ export default function TrustStatsSection() {
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const settings = useSiteSettings();
 
-  const stats = settings.home_stats && settings.home_stats.length > 0 
+  const stats = settings.home_stats && settings.home_stats.length > 0
     ? settings.home_stats.map((s, i) => ({
-        ...s,
-        icon: ICON_MAP[s.label.split(' ')[0]] || [Star, Briefcase, Award, TrendingUp][i % 4],
-        color: ['from-yellow-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'][i % 4]
-      }))
+      ...s,
+      icon: ICON_MAP[s.label.split(' ')[0]] || [Star, Briefcase, Award, TrendingUp][i % 4],
+      color: ['from-yellow-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-purple-500 to-pink-500', 'from-green-500 to-emerald-500'][i % 4]
+    }))
     : defaultStats;
 
   const trustBadges = settings.trust_badges && settings.trust_badges.length > 0
@@ -58,9 +58,9 @@ export default function TrustStatsSection() {
     : ['Featured on TechCrunch', 'Backed by Y Combinator', 'ISO 27001 Certified', 'SOC 2 Compliant'];
 
   return (
-    <section 
-      ref={ref} 
-      className="relative py-32 overflow-hidden"
+    <section
+      ref={ref}
+      className="relative py-28 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #000000 0%, #0a0505 50%, #000000 100%)',
       }}
@@ -70,7 +70,7 @@ export default function TrustStatsSection() {
         {/* Radial Glows */}
         <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#F24C20]/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-orange-800/10 rounded-full blur-3xl" />
-        
+
         {/* Animated Lines */}
         <svg className="absolute inset-0 w-full h-full opacity-10">
           <defs>
@@ -120,13 +120,13 @@ export default function TrustStatsSection() {
               <span className="text-sm font-medium text-[#F24C20]">Trusted Globally</span>
             </div>
           </motion.div>
-          
+
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
             <span className="text-white">Numbers That </span>
             <span className="text-[#F24C20]">Define Excellence</span>
           </h2>
-          
-          <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
+
+          <p className="text-xl text-neutral-400 max-w-4xl mx-auto">
             Join thousands of satisfied clients and verified experts building the future of work together
           </p>
         </motion.div>
@@ -174,7 +174,7 @@ export default function TrustStatsSection() {
                   animate={isInView ? { scale: 1, rotate: 0 } : {}}
                   transition={{ duration: 0.6, delay: index * 0.15 + 0.3, type: 'spring' }}
                 >
-                    <div className={`inline-flex p-3 md:p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
+                  <div className={`inline-flex p-3 md:p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg`}>
                     <stat.icon className="w-6 h-6 md:w-8 md:h-8 text-white" />
                   </div>
                 </motion.div>

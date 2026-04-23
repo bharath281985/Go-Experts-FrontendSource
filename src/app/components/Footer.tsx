@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Github, Twitter, Linkedin, Mail, Smartphone, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Github, Twitter, Linkedin, Mail, Facebook, Instagram, Youtube } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/app/context/SiteSettingsContext';
@@ -17,6 +17,21 @@ export default function Footer() {
     </svg>
   );
 
+  const AppleStoreIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M15.77 12.95c.02 2.24 1.96 2.99 1.98 3-.02.05-.31 1.07-1.02 2.12-.61.91-1.25 1.81-2.25 1.83-.98.02-1.29-.58-2.41-.58-1.12 0-1.47.56-2.39.6-.97.04-1.71-.98-2.33-1.88-1.26-1.83-2.22-5.16-.93-7.4.64-1.11 1.78-1.81 3.02-1.83.94-.02 1.82.63 2.39.63.57 0 1.64-.78 2.77-.66.47.02 1.79.19 2.64 1.44-.07.04-1.57.92-1.55 2.73ZM14 4.5c.51-.62.86-1.48.77-2.34-.73.03-1.61.48-2.13 1.09-.47.54-.88 1.41-.77 2.24.81.06 1.63-.42 2.13-.99Z" />
+    </svg>
+  );
+
+  const PlayStoreIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M4.7 3.8c-.29.3-.45.73-.45 1.28v13.84c0 .55.16.98.45 1.28l.07.06 7.78-7.78v-.19L4.77 3.74l-.07.06Z" />
+      <path d="M15.14 14.97 12.55 12.38v-.19l2.59-2.59.06.03 3.07 1.74c.88.5.88 1.31 0 1.81l-3.07 1.74-.06.05Z" />
+      <path d="M15.2 14.92 12.55 12.27 4.7 20.12c.46.47 1.18.53 1.99.08l8.5-4.83" />
+      <path d="M15.2 9.56 6.69 4.73c-.81-.46-1.53-.39-1.99.08l7.85 7.85 2.65-2.65Z" />
+    </svg>
+  );
+
   const socialLinks = [
     { Icon: Github, url: settings.social_github },
     { Icon: XIcon, url: settings.social_twitter },
@@ -27,6 +42,13 @@ export default function Footer() {
     { Icon: Mail, url: settings.contact_email ? `mailto:${settings.contact_email}` : '' }
   ].filter(link => link.url);
 
+  const orderFooterColumns = (cols: any[]) => {
+    const company = cols.find((col: any) => col.title?.toLowerCase().includes('company'));
+    const investors = cols.find((col: any) => col.title?.toLowerCase().includes('investor'));
+    const others = cols.filter((col: any) => col !== company && col !== investors);
+    return [...others, ...(investors ? [investors] : []), ...(company ? [company] : [])];
+  };
+
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
@@ -34,7 +56,7 @@ export default function Footer() {
     if (userStr) {
       try {
         setUser(JSON.parse(userStr));
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -49,15 +71,20 @@ export default function Footer() {
         { label: 'Client Dashboard', path: user ? '/dashboard' : '/signin' },
       ]
     };
-    
+
     const freelancerCol = {
       title: 'For Freelancers',
       links: [
         { label: 'Go Projects', path: '/projects' },
         { label: 'Freelancer Dashboard', path: user ? '/dashboard' : '/signin' },
-        { label: 'Service Gigs', path: '/gigs' },
+        // { label: 'Service Gigs', path: '/gigs' },
       ]
     };
+
+
+
+
+
 
     const companyCol = {
       title: 'Company',
@@ -68,17 +95,28 @@ export default function Footer() {
       ]
     };
 
-    const defaultCols = user?.role === 'freelancer' 
-      ? [freelancerCol, clientCol, companyCol]
-      : [clientCol, freelancerCol, companyCol];
-    
+
+
+    const investorCol = {
+      title: 'For Investors',
+      links: [
+        { label: 'Invest in Projects', path: '/investments' },
+        { label: 'Investor Dashboard', path: user ? '/dashboard' : '/signin' },
+        // { label: 'Service Gigs', path: '/gigs' },
+      ]
+    };
+
+    const defaultCols = user?.role === 'freelancer'
+      ? [freelancerCol, clientCol, investorCol, companyCol]
+      : [clientCol, freelancerCol, investorCol, companyCol];
+
     const fetchMenus = async () => {
       try {
         const res = await api.get('/cms/menus');
         if (res.data.success && res.data.menus) {
           const allFooter = res.data.menus.filter((m: any) => m.location === 'footer' && m.is_active);
           const topLevel = allFooter.filter((m: any) => !m.parent).sort((a: any, b: any) => a.order - b.order);
-          
+
           if (topLevel.length > 0) {
             const cols = topLevel.map((parent: any) => {
               const subs = allFooter
@@ -87,7 +125,7 @@ export default function Footer() {
                   return pId === parent._id;
                 })
                 .sort((a: any, b: any) => a.order - b.order);
-              
+
               return {
                 title: parent.label,
                 links: subs.map((sub: any) => ({
@@ -97,16 +135,18 @@ export default function Footer() {
                 }))
               };
             });
-            setFooterColumns(cols);
+
+            const hasInvestor = cols.some((col: any) => col.title?.toLowerCase().includes('investor'));
+            setFooterColumns(orderFooterColumns(hasInvestor ? cols : [...cols, investorCol]));
           } else {
-            setFooterColumns(defaultCols);
+            setFooterColumns(orderFooterColumns(defaultCols));
           }
         } else {
-          setFooterColumns(defaultCols);
+          setFooterColumns(orderFooterColumns(defaultCols));
         }
       } catch (err) {
         console.warn('Failed to fetch footer menus', err);
-        setFooterColumns(defaultCols);
+        setFooterColumns(orderFooterColumns(defaultCols));
       }
     };
     fetchMenus();
@@ -124,8 +164,8 @@ export default function Footer() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-[#F24C20]/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+      <div className="relative z-10 w-full px-6 md:px-10 xl:px-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -152,9 +192,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, y: -2 }}
-                  className="w-10 h-10 rounded-xl bg-neutral-900 hover:bg-[#F24C20]/20 border border-neutral-800 hover:border-[#F24C20]/50 flex items-center justify-center transition-all duration-300"
+                  className="w-9 h-9 rounded-xl bg-neutral-900 hover:bg-[#F24C20]/20 border border-neutral-800 hover:border-[#F24C20]/50 flex items-center justify-center transition-all duration-300"
                 >
-                  <Icon className="w-5 h-5 text-neutral-400 hover:text-[#F24C20] transition-colors duration-300" />
+                  <Icon className="w-4 h-4 text-neutral-400 hover:text-[#F24C20] transition-colors duration-300" />
                 </motion.a>
               ))}
             </div>
@@ -187,16 +227,16 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h4 className="text-white font-semibold mb-2">Get the Go Experts App</h4>
-              <p className="text-neutral-500 text-sm">Available on iOS and Android</p>
+              <p className="text-neutral-500 text-sm">Available Shortly on Android and iOS Platform</p>
             </div>
             <div className="flex gap-4">
               <motion.a
                 href="#"
                 whileHover={{ scale: 1.05, y: -2 }}
-                className="px-6 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3 transition-all duration-300"
+                className="px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300"
               >
-                <Smartphone className="w-6 h-6 text-[#F24C20]" />
-                <div>
+                <AppleStoreIcon className="w-6 h-6 shrink-0 text-[#F24C20]" />
+                <div className="min-w-[144px] leading-tight">
                   <div className="text-xs text-neutral-500">Download on</div>
                   <div className="font-semibold text-white">App Store</div>
                 </div>
@@ -204,10 +244,10 @@ export default function Footer() {
               <motion.a
                 href="#"
                 whileHover={{ scale: 1.05, y: -2 }}
-                className="px-6 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3 transition-all duration-300"
+                className="px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300"
               >
-                <Smartphone className="w-6 h-6 text-[#F24C20]" />
-                <div>
+                <PlayStoreIcon className="w-6 h-6 shrink-0 text-[#F24C20]" />
+                <div className="min-w-[144px] leading-tight">
                   <div className="text-xs text-neutral-500">Get it on</div>
                   <div className="font-semibold text-white">Google Play</div>
                 </div>

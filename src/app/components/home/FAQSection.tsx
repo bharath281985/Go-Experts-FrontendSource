@@ -46,7 +46,7 @@ export default function FAQSection() {
   }, [categories, activeTab]);
 
   const filteredFaqs = useMemo(() => {
-    return faqs.filter(f => f.category === activeTab).sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0));
+    return faqs.filter(f => f.category === activeTab).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   }, [faqs, activeTab]);
 
   // Divide into 2 columns
@@ -54,7 +54,7 @@ export default function FAQSection() {
   const secondCol = filteredFaqs.filter((_, i) => i % 2 !== 0);
 
   const getTabIcon = (cat: string) => {
-    switch(cat) {
+    switch (cat) {
       case 'General': return <HelpCircle className="w-5 h-5" />;
       case 'Freelancers': return <Briefcase className="w-5 h-5" />;
       case 'Clients': return <User className="w-5 h-5" />;
@@ -65,7 +65,7 @@ export default function FAQSection() {
   return (
     <section
       ref={ref}
-      className="relative py-32 overflow-hidden bg-black"
+      className="relative py-15 overflow-hidden bg-black"
     >
       {/* Decorative background atoms */}
       <div className="absolute inset-0 pointer-events-none">
@@ -97,11 +97,10 @@ export default function FAQSection() {
             <button
               key={cat}
               onClick={() => { setActiveTab(cat); setOpenId(null); }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
-                activeTab === cat 
-                ? 'bg-[#F24C20] border-[#F24C20] text-white shadow-lg' 
-                : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${activeTab === cat
+                  ? 'bg-[#F24C20] border-[#F24C20] text-white shadow-lg'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
+                }`}
             >
               {getTabIcon(cat)}
               {cat}
@@ -115,10 +114,10 @@ export default function FAQSection() {
           <div className="space-y-6">
             <AnimatePresence mode="popLayout">
               {firstCol.map((faq, idx) => (
-                <FAQItem 
-                  key={faq._id} 
-                  faq={faq} 
-                  isOpen={openId === faq._id} 
+                <FAQItem
+                  key={faq._id}
+                  faq={faq}
+                  isOpen={openId === faq._id}
                   onToggle={() => setOpenId(openId === faq._id ? null : faq._id)}
                   index={idx}
                 />
@@ -130,10 +129,10 @@ export default function FAQSection() {
           <div className="space-y-6">
             <AnimatePresence mode="popLayout">
               {secondCol.map((faq, idx) => (
-                <FAQItem 
-                  key={faq._id} 
-                  faq={faq} 
-                  isOpen={openId === faq._id} 
+                <FAQItem
+                  key={faq._id}
+                  faq={faq}
+                  isOpen={openId === faq._id}
                   onToggle={() => setOpenId(openId === faq._id ? null : faq._id)}
                   index={idx}
                 />
@@ -144,7 +143,7 @@ export default function FAQSection() {
 
         {!isLoading && filteredFaqs.length === 0 && (
           <div className="text-center py-20 bg-neutral-900/50 rounded-[40px] border border-neutral-800">
-             <p className="text-neutral-500 font-medium text-lg italic">No questions in this section yet.</p>
+            <p className="text-neutral-500 font-medium text-lg italic">No questions in this section yet.</p>
           </div>
         )}
       </div>
@@ -160,9 +159,8 @@ const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ delay: index * 0.05 }}
-      className={`rounded-[32px] border transition-all overflow-hidden ${
-        isOpen ? 'bg-neutral-900 border-[#F24C20]/50 shadow-2xl' : 'bg-neutral-900/40 border-neutral-800 hover:border-neutral-700'
-      }`}
+      className={`rounded-[32px] border transition-all overflow-hidden ${isOpen ? 'bg-neutral-900 border-[#F24C20]/50 shadow-2xl' : 'bg-neutral-900/40 border-neutral-800 hover:border-neutral-700'
+        }`}
     >
       <button
         onClick={onToggle}
@@ -172,9 +170,8 @@ const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen
           <h3 className={`text-xl font-bold transition-colors ${isOpen ? 'text-[#F24C20]' : 'text-white'}`}>
             {faq.question}
           </h3>
-          <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${
-            isOpen ? 'bg-[#F24C20] border-[#F24C20] text-white rotate-180' : 'bg-neutral-800 border-neutral-700 text-neutral-400'
-          }`}>
+          <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${isOpen ? 'bg-[#F24C20] border-[#F24C20] text-white rotate-180' : 'bg-neutral-800 border-neutral-700 text-neutral-400'
+            }`}>
             <ChevronDown className="w-6 h-6" />
           </div>
         </div>

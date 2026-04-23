@@ -11,16 +11,26 @@ export default function VerifyEmailPage() {
     const [message, setMessage] = useState('Verifying your email...');
     const [countdown, setCountdown] = useState(3);
 
+    const queryParams = new URLSearchParams(window.location.search);
+    const platform = queryParams.get('platform');
+
     useEffect(() => {
         const verify = async () => {
             try {
                 const response = await api.get(`/auth/verify-email/${token}`);
                 if (response.data.success) {
                     setStatus('success');
-                    setMessage(response.data.message);
+                    
+                    if (platform === 'mobile') {
+                        setMessage('Account Verified! You can now return to your mobile app and log in safely.');
+                    } else {
+                        setMessage(response.data.message);
+                    }
 
                     // Mark email as verified in stored user object
                     const userStr = localStorage.getItem('user');
+
+
                     if (userStr) {
                         try {
                             const storedUser = JSON.parse(userStr);
@@ -49,13 +59,14 @@ export default function VerifyEmailPage() {
     }, [token, navigate]);
 
     useEffect(() => {
-        if (status === 'success' && countdown > 0) {
+        if (status === 'success' && countdown > 0 && platform !== 'mobile') {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
-        } else if (status === 'success' && countdown === 0) {
+        } else if (status === 'success' && countdown === 0 && platform !== 'mobile') {
             handleTargetRedirect();
         }
-    }, [status, countdown, navigate]);
+    }, [status, countdown, navigate, platform]);
+
 
     const handleTargetRedirect = () => {
         const userStr = localStorage.getItem('user');
@@ -129,23 +140,31 @@ export default function VerifyEmailPage() {
 
                 <p className="text-neutral-400 mb-8 leading-relaxed">
                     {message}
-                    {status === 'success' && (
+                    {status === 'success' && platform !== 'mobile' && (
                         <span className="block mt-4 text-[#F24C20] font-semibold animate-pulse">
                             Redirecting to your dashboard in {countdown}s...
                         </span>
                     )}
                 </p>
 
+
                 <div className="space-y-4">
                     {status === 'success' ? (
-                        <button
-                            onClick={handleTargetRedirect}
-                            className="w-full py-4 rounded-xl bg-gradient-to-r from-[#F24C20] to-orange-600 text-white font-bold hover:shadow-lg hover:shadow-[#F24C20]/20 transition-all flex items-center justify-center gap-2 group"
-                        >
-                            Go to Dashboard
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                        platform === 'mobile' ? (
+                            <div className="p-4 rounded-xl bg-neutral-800/50 border border-neutral-700 text-neutral-300 text-sm">
+                                You can now close this tab and log in to the Go Experts app.
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleTargetRedirect}
+                                className="w-full py-4 rounded-xl bg-gradient-to-r from-[#F24C20] to-orange-600 text-white font-bold hover:shadow-lg hover:shadow-[#F24C20]/20 transition-all flex items-center justify-center gap-2 group"
+                            >
+                                Go to Dashboard
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        )
                     ) : status === 'error' ? (
+
                         <>
                             <Link
                                 to="/signup"

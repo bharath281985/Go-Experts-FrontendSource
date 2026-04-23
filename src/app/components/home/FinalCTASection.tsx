@@ -8,9 +8,9 @@ export default function FinalCTASection() {
   const isInView = useInView(ref, { once: true });
 
   return (
-    <section 
-      ref={ref} 
-      className="relative py-40 overflow-hidden"
+    <section
+      ref={ref}
+      className="relative py-18 overflow-hidden"
       style={{
         background: 'radial-gradient(ellipse at center, #1a0505 0%, #000000 100%)',
       }}
@@ -105,7 +105,7 @@ export default function FinalCTASection() {
             className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/30 mb-10 backdrop-blur-sm"
           >
             <Sparkles className="w-5 h-5 text-[#F24C20]" />
-            <span className="text-sm font-semibold text-neutral-300">Join 50,000+ Professionals Worldwide</span>
+            <span className="text-sm font-semibold text-neutral-300">Welcome To Professionals World</span>
             <Zap className="w-5 h-5 text-[#F24C20]" />
           </motion.div>
 
@@ -114,7 +114,7 @@ export default function FinalCTASection() {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight"
+            className="text-6xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight"
           >
             <span className="block text-white mb-3">
               Ready to{' '}
@@ -172,19 +172,19 @@ export default function FinalCTASection() {
               <motion.button
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                className="group px-12 py-5 bg-gradient-to-r from-[#F24C20] to-orange-600 hover:from-[#F24C20]/90 hover:to-orange-600/90 text-white rounded-2xl font-bold transition-all duration-300 flex items-center gap-3 shadow-2xl shadow-[#F24C20]/50 text-lg"
+                className="group px-12 py-3  bg-gradient-to-r from-[#F24C20] to-orange-600 hover:from-[#F24C20]/90 hover:to-orange-600/90 text-white rounded-2xl font-bold transition-all duration-300 flex items-center gap-3 shadow-2xl shadow-[#F24C20]/50 text-lg"
               >
-                <span>Get Started Now</span>
+                <span href="/signup">Get Started Now</span>
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </motion.button>
             </Link>
-            
+
             <Link to="/projects">
               <motion.button
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-12 py-5 bg-neutral-900/80 hover:bg-neutral-800 border-2 border-neutral-800 hover:border-[#F24C20]/50 text-white rounded-2xl font-bold transition-all duration-300 backdrop-blur-xl text-lg"
-              >
+                className="px-12 py-3 bg-neutral-900/80 hover:bg-neutral-800 border-2 border-neutral-800 hover:border-[#F24C20]/50 text-white rounded-2xl font-bold transition-all duration-300 backdrop-blur-xl text-lg"
+                href="/projects">
                 Browse Projects
               </motion.button>
             </Link>
@@ -195,12 +195,12 @@ export default function FinalCTASection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 1 }}
-            className="flex flex-wrap items-center justify-center gap-8 text-sm text-neutral-500"
+            className="flex flex-wrap items-center justify-center gap-8 text-xl text-neutral-500"
           >
             {[
-              { icon: '✓', text: 'No credit card required' },
-              { icon: '✓', text: 'Free to join' },
-              { icon: '✓', text: 'Cancel anytime' },
+              { icon: '✓', text: 'No Commissions' },
+              { icon: '✓', text: 'No Bidding System' },
+              { icon: '✓', text: 'One & Only SubScription Platform' },
             ].map((item, i) => (
               <motion.div
                 key={item.text}
@@ -242,7 +242,7 @@ export default function FinalCTASection() {
         <motion.svg
           className="absolute top-1/2 right-1/4 w-24 h-24 text-[#F24C20] opacity-15"
           viewBox="0 0 100 100"
-          animate={{ 
+          animate={{
             scale: [1, 1.2, 1],
             rotate: [0, 180, 360]
           }}

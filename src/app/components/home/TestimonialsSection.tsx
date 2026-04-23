@@ -51,9 +51,9 @@ export default function TestimonialsSection() {
   const activeTestimonial = testimonials[activeIndex] || defaultTestimonials[0];
 
   return (
-    <section 
-      ref={ref} 
-      className="relative py-32 overflow-hidden"
+    <section
+      ref={ref}
+      className="relative py-18 overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #000000 0%, #0a0505 50%, #000000 100%)',
       }}
@@ -85,12 +85,12 @@ export default function TestimonialsSection() {
               <span className="text-sm font-medium text-[#F24C20]">Trust Stories</span>
             </div>
           </motion.div>
-          
+
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
             <span className="text-white">Loved by </span>
             <span className="text-[#F24C20]">Thousands</span>
           </h2>
-          
+
           <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
             Real stories from real people building amazing things together
           </p>
@@ -180,7 +180,7 @@ export default function TestimonialsSection() {
                       <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center text-5xl shadow-2xl shadow-[#F24C20]/50 border-4 border-neutral-900">
                         {activeTestimonial.avatar}
                       </div>
-                      
+
                       {/* Pulse Ring */}
                       <motion.div
                         className="absolute inset-0 rounded-full border-2 border-[#F24C20]"
@@ -228,11 +228,10 @@ export default function TestimonialsSection() {
                   className="group"
                 >
                   <motion.div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === activeIndex 
-                        ? 'w-12 bg-[#F24C20]' 
-                        : 'w-2 bg-neutral-700 group-hover:bg-neutral-600'
-                    }`}
+                    className={`h-2 rounded-full transition-all duration-300 ${index === activeIndex
+                      ? 'w-12 bg-[#F24C20]'
+                      : 'w-2 bg-neutral-700 group-hover:bg-neutral-600'
+                      }`}
                     whileHover={{ scale: 1.2 }}
                   />
                 </button>
@@ -262,11 +261,10 @@ export default function TestimonialsSection() {
               key={testimonial.name}
               onClick={() => setActiveIndex(index)}
               whileHover={{ y: -5, scale: 1.02 }}
-              className={`p-6 rounded-2xl border transition-all duration-300 text-left ${
-                index === activeIndex
-                  ? 'bg-neutral-900/90 border-[#F24C20]/50'
-                  : 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-700'
-              }`}
+              className={`p-6 rounded-2xl border transition-all duration-300 text-left ${index === activeIndex
+                ? 'bg-neutral-900/90 border-[#F24C20]/50'
+                : 'bg-neutral-900/50 border-neutral-800 hover:border-neutral-700'
+                }`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center text-2xl">
