@@ -99,9 +99,19 @@ export default function StartupIdeaForm({ onSuccess, onCancel }: StartupIdeaForm
         }
       });
 
-      // Append files
+      // Backward-compatible split so startup-ideas upload matches the backend contract.
       selectedFiles.forEach(file => {
-        data.append('attachments', file);
+        const extension = file.name.split('.').pop()?.toLowerCase() || '';
+        const isDeck = ['pdf', 'ppt', 'pptx'].includes(extension);
+        const isImage = file.type.startsWith('image/');
+
+        if (isDeck) {
+          data.append('pitchDeck', file);
+        } else if (isImage) {
+          data.append('ideaImages', file);
+        } else {
+          data.append('attachments', file);
+        }
       });
 
       const res = await api.post("/startup-ideas", data, {

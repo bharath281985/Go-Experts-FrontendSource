@@ -39,6 +39,7 @@ import {
 import { useState, useEffect, useRef } from 'react';
 import api, { getImgUrl } from '@/app/utils/api';
 import { toast } from 'sonner';
+import KYCSettings from '@/app/components/dashboard/KYCSettings';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -130,7 +131,12 @@ export default function Settings() {
       dribbble: '',
       youtube: ''
     },
-    landing_page_image: ''
+    landing_page_image: '',
+    whatsapp_number: '',
+    whatsapp_country_code: '+91',
+    country_code: '+91',
+    business_or_alternative_number: '',
+    business_or_alternative_country_code: '+91'
   });
 
   const [dbSkills, setDbSkills] = useState<any[]>([]);
@@ -140,7 +146,12 @@ export default function Settings() {
   const [catSearchQuery, setCatSearchQuery] = useState('');
   const [showCatDropdown, setShowCatDropdown] = useState(false);
 
-  const getDocumentUrl = (path: string) => `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${path}`;
+  const getDocumentUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
+    return `${baseUrl}/${String(path).replace(/^\/+/, '').replace(/\\/g, '/')}`;
+  };
   const isPdfDocument = (url: string) => url.toLowerCase().includes('.pdf');
 
   useEffect(() => {
@@ -235,7 +246,12 @@ export default function Settings() {
             facebook: '', twitter: '', linkedin: '', instagram: '',
             github: '', behance: '', dribbble: '', youtube: ''
           },
-          landing_page_image: user.landing_page_image || ''
+          landing_page_image: user.landing_page_image || '',
+          whatsapp_number: user.whatsapp_number || '',
+          whatsapp_country_code: user.whatsapp_country_code || '+91',
+          country_code: user.country_code || '+91',
+          business_or_alternative_number: user.business_or_alternative_number || '',
+          business_or_alternative_country_code: user.business_or_alternative_country_code || '+91'
         });
       }
     } catch (error) {
@@ -272,6 +288,7 @@ export default function Settings() {
         toast.success('Profile photo updated!');
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         localStorage.setItem('user', JSON.stringify({ ...storedUser, profile_image: response.data.user.profile_image }));
+        window.dispatchEvent(new Event('userUpdate'));
         await fetchProfile();
       }
     } catch (error) {
@@ -297,7 +314,15 @@ export default function Settings() {
         };
       });
 
-      Object.entries(formData).forEach(([key, value]) => {
+      const finalFormData = {
+        ...formData,
+        business_or_alternative_number: formData.business_or_alternative_number || formData.whatsapp_number,
+        business_or_alternative_country_code: formData.business_or_alternative_number 
+          ? formData.business_or_alternative_country_code 
+          : formData.whatsapp_country_code
+      };
+
+      Object.entries(finalFormData).forEach(([key, value]) => {
         if (key === 'portfolio') {
           updateData.append(key, JSON.stringify(sanitizedPortfolio));
         } else if (key === 'kyc_details' || key === 'documents' || key === 'social_links' || Array.isArray(value)) {
@@ -323,6 +348,7 @@ export default function Settings() {
         const updatedUser = response.data.user;
         const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
         localStorage.setItem('user', JSON.stringify({ ...storedUser, ...updatedUser }));
+        window.dispatchEvent(new Event('userUpdate'));
 
         formData.portfolio.forEach(p => {
           if (p.previews) p.previews.forEach((url: string) => URL.revokeObjectURL(url));
@@ -967,80 +993,90 @@ export default function Settings() {
             <div className="space-y-8">
               <div>
                 <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Verification & KYC</h2>
-                <p className="text-sm text-neutral-500 mt-1">Verify your identity to earn the "Verified Expert" badge.</p>
+                <p className="text-sm text-neutral-500 mt-1">Complete your identity verification to unlock full platform features.</p>
               </div>
-              {formData.kyc_details.is_verified ? (
-                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-3">
-                  <ShieldCheck className="w-6 h-6 text-green-500" />
-                  <div className="text-sm"><p className="font-bold text-green-500">Account Verified</p></div>
-                </div>
-              ) : formData.kyc_status === 'pending' ? (
-                <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
-                  <Clock className="w-6 h-6 text-orange-500" /><p className="text-sm font-bold text-orange-500">Review in Progress</p>
-                </div>
-              ) : null}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                  <h3 className="font-bold mb-6 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#F24C20]" /> Identity Verification</h3>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-xs font-bold mb-2 uppercase opacity-50">PAN Card</label>
-                      <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
-                        {formData.kyc_details.pan_card ? (
-                          <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
-                        ) : (
-                          <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload PAN Card Image/PDF</p></div>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold mb-2 uppercase opacity-50">Aadhar Card</label>
-                      <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
-                        {formData.kyc_details.aadhar_card ? (
-                          <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
-                        ) : (
-                          <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('aadhar_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Aadhar Card Image/PDF</p></div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                  <h3 className="font-bold mb-6 flex items-center gap-2"><Briefcase className="w-5 h-5 text-[#F24C20]" /> Professional Proof</h3>
-                  <div>
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Experience Letter / Relieving Letter</label>
-                    <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
-                      {formData.documents.experience_letter ? (
-                        <div className="flex justify-between items-center"><span className="text-xs font-medium">Letter Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
-                      ) : (
-                        <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('experience_letter', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Professional Proof</p></div>
-                      )}
+              {formData.roles.includes('investor') || formData.roles.includes('startup_creator') ? (
+                <KYCSettings userRole={formData.roles.includes('investor') ? 'investor' : 'startup_creator'} />
+              ) : (
+                <>
+                  {formData.kyc_details.is_verified ? (
+                    <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-3">
+                      <ShieldCheck className="w-6 h-6 text-green-500" />
+                      <div className="text-sm"><p className="font-bold text-green-500">Account Verified</p></div>
                     </div>
-                  </div>
-                </div>
-
-                <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'} md:col-span-2`}>
-                  <h3 className="font-bold mb-6 flex items-center gap-2"><Award className="w-5 h-5 text-[#F24C20]" /> Academic Certificates</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {formData.documents.educational?.map((doc: string, idx: number) => (
-                      <div key={idx} className="relative group p-4 rounded-xl border border-neutral-700 bg-neutral-950 flex flex-col items-center gap-2 transition-all hover:border-[#F24C20]/50">
-                        <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center"><FileText className="w-6 h-6 text-[#F24C20]" /></div>
-                        <span className="text-[10px] font-bold text-neutral-400 truncate w-full text-center uppercase">Degree #{idx + 1}</span>
-                        <div className="flex gap-2">
-                          <button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(doc), title: `Academic Doc #${idx + 1}` })} className="text-[10px] text-blue-500 font-bold uppercase hover:underline">View</button>
-                          <button type="button" onClick={() => handleRemoveFile('educational', idx)} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Remove</button>
+                  ) : formData.kyc_status === 'pending' ? (
+                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center gap-3">
+                      <Clock className="w-6 h-6 text-orange-500" /><p className="text-sm font-bold text-orange-500">Review in Progress</p>
+                    </div>
+                  ) : null}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                      <h3 className="font-bold mb-6 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#F24C20]" /> Identity Verification</h3>
+                      <div className="space-y-6">
+                        <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">PAN Card</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                            {formData.kyc_details.pan_card ? (
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                            ) : (
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload PAN Card Image/PDF</p></div>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Aadhar Card</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                            {formData.kyc_details.aadhar_card ? (
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                            ) : (
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('aadhar_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Aadhar Card Image/PDF</p></div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                    <label className="border-2 border-dashed border-neutral-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-[#F24C20]/50 transition-all cursor-pointer min-h-[120px] group">
-                      <Plus className="w-6 h-6 text-neutral-500 group-hover:text-[#F24C20] transition-colors" />
-                      <span className="text-[10px] text-neutral-500 font-bold uppercase group-hover:text-neutral-300">Add Academic Doc</span>
-                      <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])} />
-                    </label>
+                    </div>
+
+                    {!formData.roles.includes('client') && (
+                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
+                        <h3 className="font-bold mb-6 flex items-center gap-2"><Briefcase className="w-5 h-5 text-[#F24C20]" /> Professional Proof</h3>
+                        <div>
+                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Experience Letter / Relieving Letter</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                            {formData.documents.experience_letter ? (
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Letter Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                            ) : (
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('experience_letter', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Professional Proof</p></div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'} md:col-span-2`}>
+                      <h3 className="font-bold mb-6 flex items-center gap-2"><Award className="w-5 h-5 text-[#F24C20]" /> Academic Certificates</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {formData.documents.educational?.map((doc: string, idx: number) => (
+                          <div key={idx} className="relative group p-4 rounded-xl border border-neutral-700 bg-neutral-950 flex flex-col items-center gap-2 transition-all hover:border-[#F24C20]/50">
+                            <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center"><FileText className="w-6 h-6 text-[#F24C20]" /></div>
+                            <span className="text-[10px] font-bold text-neutral-400 truncate w-full text-center uppercase">Degree #{idx + 1}</span>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(doc), title: `Academic Doc #${idx + 1}` })} className="text-[10px] text-blue-500 font-bold uppercase hover:underline">View</button>
+                              <button type="button" onClick={() => handleRemoveFile('educational', idx)} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Remove</button>
+                            </div>
+                          </div>
+                        ))}
+                        <label className="border-2 border-dashed border-neutral-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-[#F24C20]/50 transition-all cursor-pointer min-h-[120px] group">
+                          <Plus className="w-6 h-6 text-neutral-500 group-hover:text-[#F24C20] transition-colors" />
+                          <span className="text-[10px] text-neutral-500 font-bold uppercase group-hover:text-neutral-300">Add Academic Doc</span>
+                          <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])} />
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           )}
 
@@ -1095,13 +1131,15 @@ export default function Settings() {
                 </div>
                 <div className="flex flex-wrap justify-center gap-3">
                   <button onClick={() => fileInputRef.current?.click()} className="px-6 py-2 bg-[#044071] text-white rounded-lg text-sm font-medium hover:bg-[#044071]/90">Change Photo</button>
-                  <button onClick={async () => {
-                    setIsSaving(true);
-                    try {
-                      const response = await api.put('/auth/update-profile', { profile_image: '' });
-                      if (response.data.success) { setFormData(prev => ({ ...prev, profile_image: '' })); toast.success('Photo removed'); }
-                    } catch (err) { } finally { setIsSaving(false); }
-                  }} className={`px-6 py-2 rounded-lg text-sm font-medium border ${isDarkMode ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'}`}>Remove</button>
+                  {formData.profile_image && (
+                    <button onClick={async () => {
+                      setIsSaving(true);
+                      try {
+                        const response = await api.put('/auth/update-profile', { profile_image: '' });
+                        if (response.data.success) { setFormData(prev => ({ ...prev, profile_image: '' })); toast.success('Photo removed'); }
+                      } catch (err) { } finally { setIsSaving(false); }
+                    }} className={`px-6 py-2 rounded-lg text-sm font-medium border ${isDarkMode ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'}`}>Remove</button>
+                  )}
                 </div>
               </div>
 
@@ -1121,19 +1159,76 @@ export default function Settings() {
                     <label className="block text-xs font-bold mb-2 uppercase opacity-50">Email Address</label>
                     <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 font-mono opacity-50 cursor-not-allowed' : 'bg-white border-neutral-200'} outline-none`} disabled />
                   </div>
-                  <div>
+                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold mb-2 uppercase opacity-50">Location</label>
                     <div className="relative"><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" /><input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="City, Country" className="w-full pl-11 pr-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none focus:border-[#F24C20]" /></div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">WhatsApp Number</label>
+                    <div className={`flex items-center rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} focus-within:border-[#F24C20] overflow-hidden`}>
+                      <input 
+                        type="text" 
+                        placeholder="+91" 
+                        value={formData.whatsapp_country_code} 
+                        onChange={e => setFormData({ ...formData, whatsapp_country_code: e.target.value })} 
+                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-700/30 text-center font-mono text-sm"
+                      />
+                      <input 
+                        type="tel" 
+                        placeholder="9876543210" 
+                        value={formData.whatsapp_number} 
+                        onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })} 
+                        className="flex-1 px-4 py-3 bg-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Business or Alternative Number</label>
+                    <div className={`flex items-center rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} focus-within:border-[#F24C20] overflow-hidden`}>
+                      <input 
+                        type="text" 
+                        placeholder="+91" 
+                        value={formData.business_or_alternative_country_code} 
+                        onChange={e => setFormData({ ...formData, business_or_alternative_country_code: e.target.value })} 
+                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-700/30 text-center font-mono text-sm"
+                      />
+                      <input 
+                        type="tel" 
+                        placeholder="9876543210" 
+                        value={formData.business_or_alternative_number} 
+                        onChange={e => setFormData({ ...formData, business_or_alternative_number: e.target.value })} 
+                        className="flex-1 px-4 py-3 bg-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Languages Spoken</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. English, Hindi, Telugu" 
+                      value={formData.languages?.join(', ') || ''} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        const langArray = val.split(',').map(s => s.trim());
+                        setFormData({ ...formData, languages: langArray });
+                      }} 
+                      className={`w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none focus:border-[#F24C20] ${isDarkMode ? 'text-white' : 'text-neutral-900'}`} 
+                    />
+                    <p className="text-[10px] text-neutral-500 mt-2 uppercase tracking-widest">Separate multiple languages with commas</p>
                   </div>
                 </div>
 
                 {isFreelancer && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20 mb-6">
                     <div className="md:col-span-2"><h3 className="font-bold text-sm uppercase text-[#F24C20] mb-4">Work Preferences</h3></div>
                     <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Service Price Starts From (₹)</label><input type="number" value={formData.hourly_rate || ''} onChange={e => setFormData({ ...formData, hourly_rate: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none" /></div>
                     <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Availability</label><select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-neutral-950 outline-none"><option value="">Select</option><option value="full-time">Full Time</option><option value="part-time">Part Time</option></select></div>
                   </div>
                 )}
+
 
                 <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 transition-all shadow-lg shadow-[#044071]/20">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Profile Changes'}

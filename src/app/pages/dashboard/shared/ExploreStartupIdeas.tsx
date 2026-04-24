@@ -5,7 +5,7 @@ import {
   Filter, ChevronRight, Info, TrendingUp, Target, DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { toast } from 'sonner';
 
@@ -59,7 +59,10 @@ export default function ExploreStartupIdeas() {
     try {
       const res = await api.get('/startup-categories');
       if (res.data.success) {
-        setCategories(res.data.data);
+        const sortedCategories = [...res.data.data].sort((a: any, b: any) =>
+          (a.name || '').localeCompare(b.name || '')
+        );
+        setCategories(sortedCategories);
       }
     } catch (err) {
       console.error('Failed to fetch categories:', err);
@@ -529,9 +532,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
 
   const images = React.useMemo(() => {
      if (idea.attachments?.length > 0) {
-        return idea.attachments.map((a: string) => 
-           a.startsWith('http') ? a : `${import.meta.env.VITE_API_URL}${a}`
-        );
+        return idea.attachments.map((a: string) => getImgUrl(a));
      }
      return [
        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80",
@@ -717,7 +718,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
               <div className="flex items-center gap-5">
                 <div className="relative">
                    {idea.creator?.profile_image ? (
-                        <img src={idea.creator.profile_image} className="w-16 h-16 rounded-3xl object-cover border border-[#F24C20]/30 shadow-xl shadow-[#F24C20]/10" />
+                        <img src={getImgUrl(idea.creator.profile_image)} className="w-16 h-16 rounded-3xl object-cover border border-[#F24C20]/30 shadow-xl shadow-[#F24C20]/10" />
                    ) : (
                         <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-white/10 flex items-center justify-center text-2xl font-black text-[#F24C20]">
                              {idea.creator?.full_name?.charAt(0)}

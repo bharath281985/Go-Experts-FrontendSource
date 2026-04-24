@@ -25,14 +25,16 @@ function getStoredAuthState() {
     return {
       isLoggedIn: true,
       userName: userData.full_name || 'User',
-      userRole: userData.role || (userData.roles ? userData.roles[0] : 'freelancer')
+      userRole: userData.role || (userData.roles ? userData.roles[0] : 'freelancer'),
+      profileImage: userData.profile_image || ''
     };
   } catch (e) {
     console.error('Error parsing user data:', e);
     return {
       isLoggedIn: false,
       userName: '',
-      userRole: null as string | null
+      userRole: null as string | null,
+      profileImage: ''
     };
   }
 }
@@ -47,6 +49,7 @@ export default function Header() {
   const initialAuthState = getStoredAuthState();
   const [isLoggedIn, setIsLoggedIn] = useState(initialAuthState.isLoggedIn);
   const [userName, setUserName] = useState(initialAuthState.userName);
+  const [profileImage, setProfileImage] = useState(initialAuthState.profileImage);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
 
@@ -93,6 +96,7 @@ export default function Header() {
       setIsLoggedIn(authState.isLoggedIn);
       setUserName(authState.userName);
       setUserRole(authState.userRole);
+      setProfileImage(authState.profileImage);
     };
 
     syncAuthState();
@@ -288,11 +292,19 @@ export default function Header() {
                 {isLoggedIn ? (
                   <div className="flex items-center gap-2">
                     <Link
-                      to="/dashboard"
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#044071] hover:bg-[#055a99] text-white border border-[#044071] hover:border-[#055a99] transition-all duration-300 font-medium group"
+                      to={userRole === 'investor' ? '/dashboard-investor' : userRole === 'startup_creator' ? '/dashboard-startup' : '/dashboard'}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#F24C20]/30 transition-all duration-300 font-medium group"
                     >
-                      <User className="w-4 h-4" />
-                      <span>{userName}</span>
+                      {profileImage ? (
+                        <img 
+                          src={getImgUrl(profileImage)} 
+                          alt={userName} 
+                          className="w-8 h-8 rounded-lg object-cover border border-white/10 group-hover:border-[#F24C20]/50 transition-all"
+                        />
+                      ) : (
+                        <User className="w-4 h-4 text-neutral-400 group-hover:text-[#F24C20] transition-colors" />
+                      )}
+                      <span className="hidden sm:inline text-sm">{userName}</span>
                     </Link>
                     <button
                       onClick={handleLogout}

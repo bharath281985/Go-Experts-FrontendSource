@@ -22,9 +22,10 @@ import {
   ExternalLink,
   UploadCloud,
   Trash2,
-  X
+  X,
+  Clock
 } from 'lucide-react';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 import { toast } from 'sonner';
 import { useSiteSettings } from "@/app/context/SiteSettingsContext";
 
@@ -38,12 +39,12 @@ export default function StartupIdeas() {
   const [recommendedPlan, setRecommendedPlan] = useState<any>(null);
   const [ndaAccepted, setNdaAccepted] = useState(false);
   const [categories, setCategories] = useState<string[]>([
-    "Startup Idea",
     "Business Expansion",
-    "Tech / App Idea",
-    "Service Concept",
     "Franchise Idea",
+    "Service Concept",
     "Social Impact Idea",
+    "Startup Idea",
+    "Tech / App Idea",
   ]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,13 +67,34 @@ export default function StartupIdeas() {
     milestones: "",
     ndaRequired: "No",
     signedNDAFile: null as File | null,
-    attachments: null,
+    pitchDeckFile: null as File | null,
+    youtubeUrl: "",
+    ideaImages: [] as File[],
   });
 
   useEffect(() => {
     fetchIdeas();
     fetchRecommendedPlan();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    const fetchStartupCategories = async () => {
+      try {
+        const res = await api.get('/startup-categories');
+        if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          const sortedCategories = res.data.data
+            .map((item: any) => item.name)
+            .filter(Boolean)
+            .sort((a: string, b: string) => a.localeCompare(b));
+          setCategories(sortedCategories);
+        }
+      } catch (err) {
+        console.error('Error fetching startup categories:', err);
+      }
+    };
+
+    fetchStartupCategories();
+  }, []);
 
   const fetchRecommendedPlan = async () => {
     try {
@@ -171,6 +193,10 @@ export default function StartupIdeas() {
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'signedNDAFile') {
             if (value) data.append('signednda', value as File);
+        } else if (key === 'pitchDeckFile') {
+            if (value) data.append('pitchDeck', value as File);
+        } else if (key === 'ideaImages') {
+            (value as File[]).forEach((file) => data.append('ideaImages', file));
         } else if (value !== null) {
             data.append(key, value as string);
         }
@@ -198,7 +224,9 @@ export default function StartupIdeas() {
             milestones: "",
             ndaRequired: "No",
             signedNDAFile: null,
-            attachments: null,
+            pitchDeckFile: null,
+            youtubeUrl: "",
+            ideaImages: [],
         });
       }
     } catch (err: any) {
@@ -225,7 +253,6 @@ export default function StartupIdeas() {
     }
   };
 
-// Add this function inside the component to check limits
   const handleStartSubmission = async () => {
     try {
       setLoading(true);
@@ -501,6 +528,94 @@ export default function StartupIdeas() {
                                             </div>
                                         </motion.div>
                                     )}
+
+                                    <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-800 space-y-6">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <div className="w-1.5 h-6 bg-[#F24C20] rounded-full" />
+                                                <h4 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider">Pitch Materials</h4>
+                                            </div>
+                                            <p className="text-sm text-neutral-500 mb-4">
+                                                Upload only your pitch deck, add a separate YouTube video link, and include supporting images.
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-semibold mb-2">Pitch Deck (PPT / PPTX / PDF)</label>
+                                                <input
+                                                    type="file"
+                                                    id="pitch-deck-upload"
+                                                    className="hidden"
+                                                    accept=".ppt,.pptx,.pdf"
+                                                    onChange={(e) => updateField('pitchDeckFile', e.target.files?.[0] || null)}
+                                                />
+                                                {!formData.pitchDeckFile ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => document.getElementById('pitch-deck-upload')?.click()}
+                                                        className="w-full flex flex-col items-center gap-3 p-8 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-[24px] hover:border-[#F24C20]/50 hover:bg-[#F24C20]/5 transition-all text-neutral-400 font-medium"
+                                                    >
+                                                        <UploadCloud className="w-10 h-10 text-neutral-300 dark:text-neutral-700" />
+                                                        <span className="text-sm">Upload pitch deck</span>
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex items-center justify-between w-full px-5 py-4 bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800 rounded-[20px]">
+                                                        <div>
+                                                            <p className="text-sm font-bold text-neutral-900 dark:text-white truncate max-w-[220px]">{formData.pitchDeckFile.name}</p>
+                                                            <p className="text-xs text-neutral-500">{(formData.pitchDeckFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                        </div>
+                                                        <button type="button" onClick={() => updateField('pitchDeckFile', null)} className="p-2.5 text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all">
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <FormInput
+                                                label="YouTube Video URL"
+                                                value={formData.youtubeUrl}
+                                                onChange={(val: string) => updateField('youtubeUrl', val)}
+                                                placeholder="https://www.youtube.com/watch?v=..."
+                                            />
+
+                                            <div>
+                                                <label className="block text-sm font-semibold mb-2">Idea Images</label>
+                                                <input
+                                                    type="file"
+                                                    id="idea-images-upload"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    multiple
+                                                    onChange={(e) => updateField('ideaImages', Array.from(e.target.files || []))}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => document.getElementById('idea-images-upload')?.click()}
+                                                    className="w-full flex flex-col items-center gap-3 p-8 border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-[24px] hover:border-[#F24C20]/50 hover:bg-[#F24C20]/5 transition-all text-neutral-400 font-medium"
+                                                >
+                                                    <UploadCloud className="w-10 h-10 text-neutral-300 dark:text-neutral-700" />
+                                                    <span className="text-sm">Upload idea images</span>
+                                                </button>
+                                                {formData.ideaImages.length > 0 && (
+                                                    <div className="mt-3 space-y-2">
+                                                        {formData.ideaImages.map((file, index) => (
+                                                            <div key={`${file.name}-${index}`} className="flex items-center justify-between px-4 py-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/40">
+                                                                <span className="text-sm font-medium truncate max-w-[220px]">{file.name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateField('ideaImages', formData.ideaImages.filter((_, fileIndex) => fileIndex !== index))}
+                                                                    className="p-2 text-neutral-400 hover:text-red-500"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -514,6 +629,9 @@ export default function StartupIdeas() {
                                 <SummaryItem label="Category" value={formData.category} />
                                 <SummaryItem label="NDA Required" value={formData.ndaRequired} />
                                 <SummaryItem label="Signed NDA" value={formData.signedNDAFile ? 'Uploaded' : (formData.ndaRequired === 'Yes' ? 'Pending' : 'Not Required')} />
+                                <SummaryItem label="Pitch Deck" value={formData.pitchDeckFile ? 'Uploaded' : 'Not Added'} />
+                                <SummaryItem label="YouTube URL" value={formData.youtubeUrl || 'Not Added'} />
+                                <SummaryItem label="Images" value={formData.ideaImages.length ? `${formData.ideaImages.length} uploaded` : 'Not Added'} />
                                 <SummaryItem label="Funding" value={formData.fundingAmount || 'N/A'} />
                             </div>
                             <div className="p-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/30 rounded-xl text-sm text-orange-800 dark:text-orange-300">
@@ -642,7 +760,7 @@ export default function StartupIdeas() {
                         </p>
                         
                         <div className="flex items-center gap-3 mb-6 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl">
-                            <img src={idea.creator?.profile_image || 'https://via.placeholder.com/100'} className="w-10 h-10 rounded-full object-cover" />
+                            <img src={getImgUrl(idea.creator?.profile_image) || 'https://via.placeholder.com/100'} className="w-10 h-10 rounded-full object-cover" />
                             <div className="flex-1 overflow-hidden">
                                 <div className="text-xs text-neutral-400">Founded by</div>
                                 <div className="font-bold text-sm truncate">{idea.creator?.full_name}</div>
@@ -654,10 +772,10 @@ export default function StartupIdeas() {
                                 Investment: <span className="text-neutral-900 dark:text-white font-bold">{idea.fundingAmount || 'NDA'}</span>
                             </div>
                             <Link 
-                                to={`/dashboard/startup-ideas/${idea._id}`}
+                                to={window.location.pathname.includes('investor') ? `/dashboard-investor/explore-ideas/${idea._id}` : `/dashboard-startup/ideas/${idea._id}`}
                                 className="px-5 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-bold hover:bg-[#F24C20] dark:hover:bg-[#F24C20] dark:hover:text-white transition-all flex items-center gap-2"
                             >
-                                View Analytics
+                                View Details
                             </Link>
                         </div>
                     </div>

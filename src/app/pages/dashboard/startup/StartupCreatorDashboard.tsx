@@ -34,6 +34,7 @@ import StartupIdeaForm from "@/app/components/dashboard/StartupIdeaForm";
 import SubscriptionCredits from "@/app/pages/dashboard/shared/SubscriptionCredits";
 import ExploreStartupIdeas from "@/app/pages/dashboard/shared/ExploreStartupIdeas";
 import StartupIdeaDashboardDetail from "@/app/pages/dashboard/shared/StartupIdeaDashboardDetail";
+import Settings from "@/app/pages/dashboard/shared/Settings";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -82,6 +83,11 @@ function StatCard({ label, value, icon: Icon, trend }: { label: string; value: s
 
 function IdeaCard({ idea }: { idea: any }) {
     const { isDarkMode } = useTheme();
+    const ideaTitle = idea?.title || idea?.name || 'Untitled Idea';
+    const ideaCategory = typeof idea?.category === 'object'
+      ? (idea.category?.name || idea.category?.title || 'Uncategorized')
+      : (idea?.category || 'Uncategorized');
+
     return (
         <div className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-500 overflow-hidden min-h-[480px] ${
             isDarkMode 
@@ -96,7 +102,7 @@ function IdeaCard({ idea }: { idea: any }) {
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col gap-2">
                  <span className="px-3 py-1 bg-white/5 border border-white/10 text-[#F24C20] text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
-                   {idea.category}
+                   {ideaCategory}
                  </span>
                  <span className="px-3 py-1 bg-white/5 border border-white/10 text-neutral-400 text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
                    {idea.stage || 'Market MVP'}
@@ -107,7 +113,7 @@ function IdeaCard({ idea }: { idea: any }) {
               </Badge>
             </div>
 
-            <h4 className={`text-2xl font-black mb-3 leading-tight group-hover:text-[#F24C20] transition-colors line-clamp-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h4>
+            <h4 className={`text-2xl font-black mb-3 leading-tight group-hover:text-[#F24C20] transition-colors line-clamp-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{ideaTitle}</h4>
             <p className="text-slate-400 text-sm leading-relaxed line-clamp-2 mb-8 font-medium">
               {idea.shortDescription}
             </p>
@@ -142,7 +148,11 @@ function IdeaCard({ idea }: { idea: any }) {
                     <Clock className="w-3.5 h-3.5" />
                     Live since {new Date(idea.createdAt).toLocaleDateString()}
                 </div>
-                <button className="p-3 rounded-2xl bg-[#F24C20] text-white hover:scale-110 transition-all shadow-xl shadow-[#F24C20]/20">
+                <button 
+                    onClick={() => navigate(`/dashboard-startup/ideas/${idea._id}`)}
+                    className="p-3 rounded-2xl bg-[#F24C20] text-white hover:scale-110 transition-all shadow-xl shadow-[#F24C20]/20"
+                    title={`Open ${ideaTitle}`}
+                >
                     <ArrowUpRight className="w-4 h-4" />
                 </button>
             </div>
@@ -186,6 +196,12 @@ export default function StartupCreatorDashboard() {
   const { isDarkMode } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const getIdeaTitle = (idea: any) => idea?.title || idea?.name || 'Untitled Idea';
+  const getIdeaCategory = (idea: any) => {
+    if (!idea?.category) return 'Uncategorized';
+    if (typeof idea.category === 'object') return idea.category.name || idea.category.title || 'Uncategorized';
+    return idea.category;
+  };
 
   // Data State
   const [loading, setLoading] = useState(true);
@@ -294,8 +310,8 @@ export default function StartupCreatorDashboard() {
                     {ideas.length > 0 ? ideas.slice(0, 5).map((idea, i) => (
                       <div key={idea._id || i} className="flex items-center gap-3">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
-                         <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
-                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category}</span>
+                         <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{getIdeaTitle(idea)}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{getIdeaCategory(idea)}</span>
                       </div>
                     )) : (
                       <span className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Scanning global marketplace...</span>
@@ -404,6 +420,19 @@ export default function StartupCreatorDashboard() {
                             onCancel={() => handleNav('ideas')}
                         />
                     </div>
+                 ) : activeSubId ? (
+                    <div className="space-y-8">
+                         <div className="flex items-center gap-4">
+                            <button 
+                                onClick={() => handleNav('ideas')}
+                                className="p-3 rounded-2xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-all shadow-xl"
+                            >
+                                <ChevronRight className="w-5 h-5 rotate-180" />
+                            </button>
+                            <h2 className={`text-2xl font-black italic tracking-tighter ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Concept <span className="text-[#F24C20]">Intelligence</span></h2>
+                        </div>
+                        <StartupIdeaDashboardDetail ideaId={activeSubId} />
+                    </div>
                  ) : (
                     <>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -460,7 +489,7 @@ export default function StartupCreatorDashboard() {
                     <div className="space-y-6">
                          <div className={`p-8 rounded-[3rem] border ${isDarkMode ? 'bg-[#F24C20]/10 border-[#F24C20]/30' : 'bg-orange-50 border-orange-200'}`}>
                             <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#F24C20] mb-4">Top Performing Pitch</h5>
-                            <h3 className="text-2xl font-black text-white">{ideas[0]?.title || 'N/A'}</h3>
+                            <h3 className="text-2xl font-black text-white">{ideas[0] ? getIdeaTitle(ideas[0]) : 'N/A'}</h3>
                             <div className="mt-6 flex items-center gap-6">
                                 <div>
                                     <span className="text-[8px] font-black uppercase text-neutral-500">Total Views</span>
@@ -539,21 +568,10 @@ export default function StartupCreatorDashboard() {
         )}
         {/* MARKETPLACE ACCESS REMOVED - ONLY INVESTOR ACCESS */}
 
-        {/* --- SECTION: DETAILS --- */}
-        {activeMenuId === 'startup-ideas' && (
-             <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
-                <StartupIdeaDashboardDetail />
-            </div>
-        )}
-
         {/* --- SECTION: SETTINGS --- */}
         {activeMenuId === 'settings' && (
-            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500 max-w-4xl">
-                 <div className="mb-10">
-                    <h2 className={`text-4xl font-black italic tracking-tighter ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Profile Governance</h2>
-                    <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest mt-2 px-1">Manage your identity and business credentials.</p>
-                </div>
-                <KYCSettings userRole="startup_creator" />
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <Settings />
             </div>
         )}
 

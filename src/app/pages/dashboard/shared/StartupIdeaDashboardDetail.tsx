@@ -5,9 +5,10 @@ import {
   TrendingUp, Target, Globe, Clock, MessageCircle, Heart, Share2, DollarSign, User
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '@/app/utils/api';
+import api, { getImgUrl } from '@/app/utils/api';
 import { useTheme } from '@/app/components/ThemeProvider';
 import { toast } from 'sonner';
+import { FileText, Image as ImageIcon, ExternalLink, Info } from 'lucide-react';
 
 export default function StartupIdeaDashboardDetail({ ideaId }: { ideaId?: string }) {
   const params = useParams();
@@ -291,6 +292,42 @@ export default function StartupIdeaDashboardDetail({ ideaId }: { ideaId?: string
                       ))}
                    </div>
                </SectionBox>
+
+               {idea.attachments && idea.attachments.length > 0 && (
+                 <SectionBox title="Concept Assets & Media" icon={<ImageIcon className="w-5 h-5" />}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                       {idea.attachments.map((file: string, i: number) => {
+                          const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(file);
+                          return (
+                            <div key={i} className={`group/file p-4 rounded-2xl border transition-all ${isDarkMode ? 'bg-neutral-800/30 border-neutral-800 hover:border-[#F24C20]/30' : 'bg-neutral-50 border-neutral-200 hover:border-[#F24C20]/30'}`}>
+                               <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-3">
+                                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-neutral-800 text-neutral-400' : 'bg-white text-neutral-500 shadow-sm'}`}>
+                                        {isImage ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                                     </div>
+                                     <div className="overflow-hidden">
+                                        <p className="text-[10px] font-black uppercase text-neutral-500 tracking-widest">Document {i+1}</p>
+                                        <p className={`text-xs font-bold truncate max-w-[120px] ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{file.split('/').pop()}</p>
+                                     </div>
+                                  </div>
+                                  <button 
+                                    onClick={() => window.open(getImgUrl(file), '_blank')}
+                                    className="p-2 rounded-lg bg-[#F24C20]/10 text-[#F24C20] hover:bg-[#F24C20] hover:text-white transition-all"
+                                  >
+                                     <ExternalLink className="w-4 h-4" />
+                                  </button>
+                               </div>
+                               {isImage && (
+                                 <div className="aspect-video rounded-xl overflow-hidden border border-neutral-800">
+                                    <img src={getImgUrl(file)} alt="attachment" className="w-full h-full object-cover group-hover/file:scale-110 transition-all duration-500" />
+                                 </div>
+                               )}
+                            </div>
+                          );
+                       })}
+                    </div>
+                 </SectionBox>
+               )}
             </div>
 
             {/* Right Contact / Action Column */}
@@ -415,8 +452,3 @@ function StatItem({ label, value, icon }: any) {
    );
 }
 
-function Info(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-  );
-}

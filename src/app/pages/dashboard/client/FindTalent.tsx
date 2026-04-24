@@ -44,7 +44,11 @@ export default function FindTalent() {
         setTalents(apiTalents.length > 0 ? apiTalents : mockTalents);
       }
       if (catsRes.data.success) {
-        setCategories(catsRes.data.data.filter((c: any) => c.is_active));
+        const activeCategories = (catsRes.data.data || []).filter((c: any) => c.is_active);
+        const sortedCategories = activeCategories.sort((a: any, b: any) => 
+          (a.name || '').localeCompare(b.name || '')
+        );
+        setCategories(sortedCategories);
       }
     } catch (error) {
       console.error('Error fetching data:', error);

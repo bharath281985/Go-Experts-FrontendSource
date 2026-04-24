@@ -41,6 +41,7 @@ import SubscriptionCredits from "@/app/pages/dashboard/shared/SubscriptionCredit
 import ExploreStartupIdeas from "@/app/pages/dashboard/shared/ExploreStartupIdeas";
 import StartupIdeaDashboardDetail from "@/app/pages/dashboard/shared/StartupIdeaDashboardDetail";
 import FindTalent from "@/app/pages/dashboard/client/FindTalent";
+import Settings from "@/app/pages/dashboard/shared/Settings";
 import { useTheme } from "@/app/components/ThemeProvider";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -867,7 +868,9 @@ export default function InvestorDashboard() {
         
         {/* --- SECTION: SETTINGS --- */}
         {activeMenuId === 'settings' && (
-            <InvestorSettings isDarkMode={isDarkMode} />
+            <div className="animate-in fade-in slide-in-from-bottom-5 duration-500">
+                <Settings />
+            </div>
         )}
 
         {/* --- SECTION: SUBSCRIPTION --- */}

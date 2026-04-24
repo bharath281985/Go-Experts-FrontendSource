@@ -74,7 +74,10 @@ export default function ExploreProjects() {
           api.get('/users/favorites')
         ]);
         if (catRes.data.success) {
-          setCategories(catRes.data.categories || catRes.data.data || []);
+          const sortedCategories = (catRes.data.categories || catRes.data.data || []).sort((a: any, b: any) => 
+            (a.name || '').localeCompare(b.name || '')
+          );
+          setCategories(sortedCategories);
         }
         if (stepsRes.data.success) {
           const steps = stepsRes.data.data;

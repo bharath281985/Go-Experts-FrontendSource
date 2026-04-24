@@ -1,6 +1,16 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
+const protectedRoutePrefixes = ['/dashboard', '/dashboard-investor', '/dashboard-startup'];
+
+const clearStoredAuth = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userName');
+};
+
 const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`,
 });
@@ -35,10 +45,18 @@ api.interceptors.response.use(
                 return Promise.reject(error);
             }
 
-            // Don't toast for login attempts, only for protected routes
-            if (!error.config.url?.includes('/auth/login')) {
-                // localStorage.clear(); // Removing this as it's too aggressive for guest checks
+            const currentPath = window.location.pathname;
+            const isProtectedRoute = protectedRoutePrefixes.some(prefix => currentPath.startsWith(prefix));
+            const hasStoredToken = !!localStorage.getItem('token');
+            const hasAuthHeader = !!error.config?.headers?.Authorization;
+
+            // Don't redirect public pages for guest-safe failures or stale tokens.
+            if (!error.config.url?.includes('/auth/login') && hasStoredToken && hasAuthHeader && isProtectedRoute) {
+                clearStoredAuth();
                 window.location.href = '/signin';
+            } else if (hasStoredToken && hasAuthHeader) {
+                clearStoredAuth();
+                window.dispatchEvent(new Event('userUpdate'));
             }
         }
 

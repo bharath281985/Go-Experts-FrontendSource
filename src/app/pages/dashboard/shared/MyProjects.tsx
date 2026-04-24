@@ -15,6 +15,7 @@ export default function MyProjects() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'completed' | 'cancelled'>('all');
   const [projects, setProjects] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = localStorage.getItem('userType') || (user?.role === 'client' ? 'client' : 'freelancer');
@@ -23,6 +24,21 @@ export default function MyProjects() {
   useEffect(() => {
     fetchProjects();
   }, [userType]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/cms/categories');
+      if (res.data.success) {
+        setCategories(res.data.categories || res.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching project categories:', error);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -121,6 +137,15 @@ export default function MyProjects() {
         return { label: status || 'Pending', cls: 'bg-neutral-500/15 text-neutral-400 border border-neutral-500/30', dot: 'bg-neutral-400' };
     }
   };
+
+  const resolveCategoryName = (category: any) => {
+    if (!category) return '';
+    if (typeof category === 'object') return category.name || category.title || category.label || '';
+    const matchedCategory = categories.find((item) => item._id === category || item.id === category || item.name === category);
+    return matchedCategory?.name || category;
+  };
+
+  const getProjectTitle = (project: any) => project?.title || project?.name || 'Untitled Project';
 
   if (loading) {
     return (
@@ -245,7 +270,7 @@ export default function MyProjects() {
                       <div className="flex-shrink-0 relative">
                         <img
                           src={project.image || `https://images.unsplash.com/photo-1603985585179-3d71c35a537c?w=400&q=80`}
-                          alt={project.title}
+                          alt={getProjectTitle(project)}
                           className={`w-full lg:w-44 h-28 object-cover rounded-xl shadow-md border ${isDarkMode ? 'border-neutral-700/50' : 'border-neutral-200'}`}
                         />
                         {isOngoing && (
@@ -262,9 +287,9 @@ export default function MyProjects() {
                       <div className="flex-1 min-w-0">
                         {/* Title row */}
                         <div className="flex flex-wrap items-start gap-2 mb-2">
-                          {project.category && (
+                          {resolveCategoryName(project.category) && (
                             <span className="px-2.5 py-0.5 bg-[#F24C20]/10 text-[#F24C20] text-[11px] font-semibold rounded-full border border-[#F24C20]/20">
-                              {project.category}
+                              {resolveCategoryName(project.category)}
                             </span>
                           )}
                           <span className={`flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded-full ${badge.cls}`}>
@@ -274,7 +299,7 @@ export default function MyProjects() {
                         </div>
 
                         <h3 className={`text-lg font-bold mb-3 leading-snug ${isDarkMode ? 'text-white' : 'text-neutral-900'} line-clamp-2`}>
-                          {project.title}
+                          {getProjectTitle(project)}
                         </h3>
 
                         {/* Hired Freelancer Info — shown for ongoing client projects */}

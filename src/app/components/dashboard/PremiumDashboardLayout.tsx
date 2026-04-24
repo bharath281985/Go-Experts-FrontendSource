@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { io, Socket } from 'socket.io-client';
@@ -62,6 +62,15 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   const [disputeCount, setDisputeCount] = useState(0);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [incomingMessagePopup, setIncomingMessagePopup] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const notificationsRef = useRef<HTMLDivElement | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const getDashboardBase = () => {
     if (userType === 'investor') return '/dashboard-investor';
@@ -70,7 +79,6 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   };
 
   const dashboardBase = getDashboardBase();
-  const useHoverProfileMenu = userType === 'client' || userType === 'freelancer';
   const logoUrl = getImgUrl(header_logo || site_logo) || logoFallback;
 
   useEffect(() => {
@@ -78,8 +86,57 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   }, [userType]);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const userId = user._id || user.id;
+    const syncUserFromStorage = () => {
+      try {
+        setCurrentUser(JSON.parse(localStorage.getItem('user') || '{}'));
+      } catch {
+        setCurrentUser({});
+      }
+    };
+
+    const refreshCurrentUser = async () => {
+      syncUserFromStorage();
+      try {
+        const res = await api.get('/auth/me', { skipToast: true } as any);
+        if (res.data?.success && res.data.user) {
+          const nextUser = { ...currentUser, ...res.data.user };
+          localStorage.setItem('user', JSON.stringify(nextUser));
+          setCurrentUser(nextUser);
+        }
+      } catch {
+        syncUserFromStorage();
+      }
+    };
+
+    refreshCurrentUser();
+    window.addEventListener('userUpdate', refreshCurrentUser);
+    window.addEventListener('storage', syncUserFromStorage);
+
+    return () => {
+      window.removeEventListener('userUpdate', refreshCurrentUser);
+      window.removeEventListener('storage', syncUserFromStorage);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (notificationsRef.current && !notificationsRef.current.contains(target)) {
+        setShowNotifications(false);
+      }
+
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    const userId = currentUser?._id || currentUser?.id;
     if (!userId) return;
 
     const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
@@ -89,7 +146,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
     return () => {
       newSocket.close();
     };
-  }, []);
+  }, [currentUser?._id, currentUser?.id]);
 
   useEffect(() => {
     if (!socket) return;
@@ -307,17 +364,16 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   };
 
   const getProfileImage = () => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user.profile_image) return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80";
-      let imgPath = user.profile_image;
-      if (imgPath.startsWith('http')) return imgPath;
-      if (!imgPath.startsWith('/')) imgPath = '/' + imgPath;
-      imgPath = imgPath.replace(/\\/g, '/');
-      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imgPath}`;
-    } catch {
-      return "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80";
+    return getImgUrl(currentUser?.profile_image) || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80";
+  };
+
+  const getCurrentUserName = () => {
+    const name = currentUser?.full_name || currentUser?.name || 'User';
+    if (name.includes('@')) {
+      const part = name.split('@')[0];
+      return part.charAt(0).toUpperCase() + part.slice(1);
     }
+    return name;
   };
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -474,7 +530,10 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
             <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <div className="relative">
+            <div
+              ref={notificationsRef}
+              className="relative"
+            >
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`relative p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}
@@ -503,8 +562,8 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                 )}
               </AnimatePresence>
             </div>
-            <div className="relative" onMouseEnter={useHoverProfileMenu ? () => setShowProfileMenu(true) : undefined} onMouseLeave={useHoverProfileMenu ? () => setShowProfileMenu(false) : undefined}>
-              <button onClick={useHoverProfileMenu ? undefined : () => setShowProfileMenu(!showProfileMenu)} className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800' : 'hover:bg-neutral-100'}`}>
+            <div ref={profileMenuRef} className="relative">
+              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800' : 'hover:bg-neutral-100'}`}>
                 <img src={getProfileImage()} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
               </button>
               <AnimatePresence>
@@ -516,18 +575,8 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                     className={`absolute right-0 top-12 w-64 rounded-xl border overflow-hidden shadow-xl ${isDarkMode ? 'bg-neutral-900/95 border-neutral-800' : 'bg-white border-neutral-200'}`}
                   >
                     <div className="p-4 border-b border-neutral-800">
-                      <div className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                        {(() => {
-                          const user = JSON.parse(localStorage.getItem('user') || '{}');
-                          const name = user.full_name || 'User';
-                          if (name.includes('@')) {
-                            const part = name.split('@')[0];
-                            return part.charAt(0).toUpperCase() + part.slice(1);
-                          }
-                          return name;
-                        })()}
-                      </div>
-                      <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{JSON.parse(localStorage.getItem('user') || '{}').email || ''}</div>
+                      <div className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{getCurrentUserName()}</div>
+                      <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{currentUser?.email || ''}</div>
                     </div>
                     <div className="p-2">
                       <Link to={`${dashboardBase}/settings`} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-100 text-neutral-700'}`}>
