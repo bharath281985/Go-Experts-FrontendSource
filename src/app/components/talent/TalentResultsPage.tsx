@@ -204,7 +204,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
       
       <div className="flex items-center justify-between pt-4 border-t border-neutral-800 mt-auto">
         <div className="text-xl font-bold text-[#F24C20]">Starts from ₹{talent.hourly_rate || '1000'}</div>
-        <Link to={`/f/${talent.username || talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
+        <Link to={`/talent/${talent.slug || talent.username || talent.id}`} className="px-4 py-2 rounded-lg bg-[#044071] hover:bg-[#055a99] text-white text-sm font-medium transition-colors">
           Profile
         </Link>
       </div>
@@ -451,7 +451,7 @@ export default function TalentResultsPage({ answers }: TalentResultsPageProps) {
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 lg:gap-4 lg:mt-8">
                           <div className="text-xl lg:text-3xl font-bold text-[#F24C20]">Starts from ₹{featuredTalent.hourly_rate || '1200'}</div>
-                          <Link to={`/f/${featuredTalent.username || featuredTalent.id}`} className="w-full sm:w-auto px-4 lg:px-6 py-2 lg:py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-sm lg:font-semibold transition-colors text-center">View Profile</Link>
+                          <Link to={`/talent/${featuredTalent.slug || featuredTalent.username || featuredTalent.id}`} className="w-full sm:w-auto px-4 lg:px-6 py-2 lg:py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-sm lg:font-semibold transition-colors text-center">View Profile</Link>
                         </div>
                       </div>
                     </div>

@@ -136,7 +136,11 @@ export default function Settings() {
     whatsapp_country_code: '+91',
     country_code: '+91',
     business_or_alternative_number: '',
-    business_or_alternative_country_code: '+91'
+    business_or_alternative_country_code: '+91',
+    meta_title: '',
+    meta_keywords: '',
+    meta_description: '',
+    slug: ''
   });
 
   const [dbSkills, setDbSkills] = useState<any[]>([]);
@@ -251,7 +255,11 @@ export default function Settings() {
           whatsapp_country_code: user.whatsapp_country_code || '+91',
           country_code: user.country_code || '+91',
           business_or_alternative_number: user.business_or_alternative_number || '',
-          business_or_alternative_country_code: user.business_or_alternative_country_code || '+91'
+          business_or_alternative_country_code: user.business_or_alternative_country_code || '+91',
+          meta_title: user.meta_title || '',
+          meta_keywords: user.meta_keywords || '',
+          meta_description: user.meta_description || '',
+          slug: user.slug || user.username || ''
         });
       }
     } catch (error) {
@@ -1228,6 +1236,68 @@ export default function Settings() {
                     <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Availability</label><select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-neutral-950 outline-none"><option value="">Select</option><option value="full-time">Full Time</option><option value="part-time">Part Time</option></select></div>
                   </div>
                 )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20 mb-6">
+                  <div className="md:col-span-2"><h3 className="font-bold text-sm uppercase text-[#F24C20] mb-4">Public Link & SEO</h3></div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Title</label>
+                    <input type="text" placeholder="e.g. Hire John Doe - Senior React Developer" value={formData.meta_title} onChange={e => setFormData({ ...formData, meta_title: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Keywords</label>
+                    <div 
+                      className={`w-full min-h-[50px] px-3 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} flex flex-wrap gap-2 items-center cursor-text transition-colors focus-within:border-[#F24C20]`}
+                      onClick={() => document.getElementById('frontend-keyword-input')?.focus()}
+                    >
+                      {(formData.meta_keywords || '').split(',').filter(k => k.trim()).map((kw, i) => (
+                        <div 
+                          key={i}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${isDarkMode ? 'bg-neutral-800 text-neutral-200 border border-neutral-700' : 'bg-neutral-100 text-neutral-700 border border-neutral-200'}`}
+                        >
+                          {kw.trim()}
+                          <X 
+                            size={14} 
+                            className="cursor-pointer hover:text-red-500 opacity-50 hover:opacity-100 transition-opacity" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const kws = (formData.meta_keywords || '').split(',').filter(k => k.trim());
+                              kws.splice(i, 1);
+                              setFormData({ ...formData, meta_keywords: kws.join(',') });
+                            }}
+                          />
+                        </div>
+                      ))}
+                      <input 
+                        id="frontend-keyword-input"
+                        type="text" 
+                        placeholder={!(formData.meta_keywords || '').trim() ? "Type keywords separated by commas or press Enter" : ""}
+                        className="flex-1 min-w-[150px] bg-transparent border-none outline-none text-sm py-1"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault();
+                            const val = e.currentTarget.value.trim();
+                            if (val) {
+                              const currentKwStr = formData.meta_keywords || '';
+                              const kws = currentKwStr.split(',').map(k => k.trim()).filter(Boolean);
+                              if (!kws.includes(val)) {
+                                setFormData({ ...formData, meta_keywords: currentKwStr ? `${currentKwStr},${val}` : val });
+                              }
+                              e.currentTarget.value = '';
+                            }
+                          } else if (e.key === 'Backspace' && !e.currentTarget.value && formData.meta_keywords) {
+                            const kws = formData.meta_keywords.split(',').filter(k => k.trim());
+                            kws.pop();
+                            setFormData({ ...formData, meta_keywords: kws.join(',') });
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Description</label>
+                    <textarea rows={3} placeholder="Short search description for this profile..." value={formData.meta_description} onChange={e => setFormData({ ...formData, meta_description: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20] resize-none`} />
+                  </div>
+                </div>
 
 
                 <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 transition-all shadow-lg shadow-[#044071]/20">

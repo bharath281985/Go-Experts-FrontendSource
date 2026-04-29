@@ -82,6 +82,29 @@ export default function TalentProfile() {
     if (activeTab === 'reviews') fetchReviews();
   }, [activeTab, fetchReviews]);
 
+  useEffect(() => {
+    if (!talent) return;
+
+    const title = talent.meta_title || `${talent.full_name} | Go Experts`;
+    const description = talent.meta_description || talent.bio || `View ${talent.full_name}'s profile on Go Experts.`;
+    const keywords = talent.meta_keywords || [talent.full_name, talent.role, 'Go Experts'].filter(Boolean).join(', ');
+
+    document.title = title;
+
+    const setMeta = (name: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.name = name;
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    setMeta('description', description);
+    setMeta('keywords', keywords);
+  }, [talent]);
+
   const handleSubmitReview = async () => {
     if (!myRating) return toast.error('Please select a star rating');
     if (!currentUser) return toast.error('Please sign in to leave a review');
