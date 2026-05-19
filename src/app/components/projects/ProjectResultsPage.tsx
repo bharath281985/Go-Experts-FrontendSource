@@ -5,7 +5,7 @@ import {
   TrendingUp, Award, CheckCircle, User, Briefcase,
   Loader2, XCircle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 import type { ProjectAnswers } from './ProjectFinderWizard';
@@ -43,6 +43,7 @@ const timelineLabels: Record<string, string> = {
 };
 
 export default function ProjectResultsPage({ answers }: ProjectResultsPageProps) {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -174,6 +175,17 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
   const displayProjects = (isLoggedIn && (subscriptionPlan !== 'Free' && subscriptionPlan !== null)) 
     ? filteredProjects 
     : filteredProjects.slice(0, 10);
+
+  const handleProjectDetailsClick = (projectId: string) => {
+    if (!isLoggedIn) {
+      const message = encodeURIComponent('Please sign in or create an account to view project details.');
+      const redirect = encodeURIComponent(`/projects/${projectId}`);
+      navigate(`/signin?redirect=${redirect}&message=${message}`);
+      return;
+    }
+
+    navigate(`/projects/${projectId}`);
+  };
 
   if (loading) {
     return (
@@ -462,13 +474,16 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                                 <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Verified Client</div>
                               </div>
                             </div>
-                            <Link to={`/projects/${project.id}`} className={`w-full sm:w-auto px-8 py-3 rounded-xl font-bold transition-all text-center ${
+                            <button
+                              onClick={() => handleProjectDetailsClick(project.id)}
+                              className={`w-full sm:w-auto px-8 py-3 rounded-xl font-bold transition-all text-center ${
                               project.isApplied 
                               ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-500/20' 
                               : 'bg-[#044071] hover:bg-[#055a99] text-white shadow-xl shadow-blue-900/10'
-                            }`}>
+                            }`}
+                            >
                               {project.isApplied ? 'View Application' : 'View Details'}
-                            </Link>
+                            </button>
                           </div>
                         </div>
                       </div>

@@ -564,23 +564,7 @@ export default function FreelancerLandingPage() {
                 <h3 className="text-4xl lg:text-5xl font-black uppercase relative z-10">My <span className="text-[#F24C20]">Portfolio</span></h3>
               </div>
 
-              {!isUnlocked ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white/5 rounded-[3rem] border border-white/5 backdrop-blur-sm text-center px-6">
-                  <Lock className="w-16 h-16 text-[#F24C20] mb-6 opacity-40" />
-                  <h4 className="text-2xl font-black uppercase mb-3 text-white">Portfolio is Locked</h4>
-                  <p className="text-neutral-500 max-w-md mx-auto mb-8">
-                    To view project gallery and case studies, please unlock this freelancer's details using your subscription credits.
-                  </p>
-                  <button
-                    onClick={() => promptUnlock('portfolio')}
-                    className="px-10 py-4 bg-[#F24C20] text-white rounded-full font-bold uppercase tracking-widest text-sm shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-all flex items-center gap-3 disabled:opacity-50"
-                  >
-                    <ShieldCheck className="w-5 h-5 text-white" />
-                    Unlock Full Profile
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                   {talent.portfolio?.length > 0 ? (
                     talent.portfolio.map((item: any, pIdx: number) => {
                       const allImages = [
@@ -667,7 +651,6 @@ export default function FreelancerLandingPage() {
                     </div>
                   )}
                 </div>
-              )}
             </motion.section>
           )}
 

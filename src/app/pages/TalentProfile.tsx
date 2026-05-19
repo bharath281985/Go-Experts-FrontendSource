@@ -389,23 +389,7 @@ export default function TalentProfile() {
 
           {activeTab === 'portfolio' && (
             <section className="relative">
-              {!isUnlocked ? (
-                <div className="relative py-20 px-8 bg-neutral-900/40 border border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center overflow-hidden">
-                  <div className="absolute inset-0 blur-2xl opacity-10 bg-gradient-to-br from-[#F24C20] via-transparent to-blue-500" />
-                  <div className="w-20 h-20 rounded-[2rem] bg-[#F24C20]/10 flex items-center justify-center mb-6 relative">
-                    <Lock className="w-10 h-10 text-[#F24C20]" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-3">Portfolio is Locked</h3>
-                  <p className="text-neutral-500 max-w-sm mb-8">This specialist has hidden their portfolio projects. Use 1 credit to unlock their full works and case studies.</p>
-                  <button 
-                    onClick={() => setShowUnlockModal(true)}
-                    className="px-8 py-4 bg-[#F24C20] text-white rounded-2xl font-bold shadow-xl shadow-[#F24C20]/20 hover:scale-105 transition-transform"
-                  >
-                    Unlock Portfolio Now
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {talent.portfolio?.length > 0 ? (
                     talent.portfolio.map((item: any, i: number) => (
                       <div key={i} className={`group relative rounded-[2rem] overflow-hidden border ${isDarkMode ? 'bg-neutral-900 border-white/5' : 'bg-white border-neutral-200'} shadow-2xl transition-all hover:-translate-y-2`}>
@@ -456,7 +440,6 @@ export default function TalentProfile() {
                     </div>
                   )}
                 </div>
-              )}
             </section>
           )}
 
@@ -584,7 +567,10 @@ export default function TalentProfile() {
         onClose={() => setShowUnlockModal(false)}
         targetId={id!}
         targetType="freelancer"
-        onUnlocked={() => setIsUnlocked(true)}
+        onUnlocked={() => {
+          setIsUnlocked(true);
+          fetchTalentDetails();
+        }}
       />
     </div>
   );

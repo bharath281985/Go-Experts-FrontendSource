@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import logoFallback from '@/assets/0772c85ef8b5349a958c92c3b3261c8a881ce229.png';
 import { motion } from 'motion/react';
@@ -14,6 +14,14 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const message = params.get('message');
+    if (message) {
+      toast.info(message);
+    }
+  }, []);
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const logoUrl = site_logo ? (site_logo.startsWith('http') ? site_logo : `${apiUrl}${site_logo}`) : logoFallback;

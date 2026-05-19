@@ -11,6 +11,9 @@ const clearStoredAuth = () => {
     localStorage.removeItem('userName');
 };
 
+let lastRateLimitToastAt = 0;
+const RATE_LIMIT_TOAST_COOLDOWN_MS = 8000;
+
 const api = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`,
 });
@@ -37,6 +40,7 @@ api.interceptors.response.use(
     (error) => {
         const responseData = error.response?.data;
         const status = error.response?.status;
+        const now = Date.now();
 
         // Handle session expiration
         if (status === 401) {
@@ -58,6 +62,15 @@ api.interceptors.response.use(
                 clearStoredAuth();
                 window.dispatchEvent(new Event('userUpdate'));
             }
+        }
+
+        // Handle rate limit errors with deduped toast
+        if (status === 429) {
+            if (!error.config?.skipToast && now - lastRateLimitToastAt > RATE_LIMIT_TOAST_COOLDOWN_MS) {
+                lastRateLimitToastAt = now;
+                toast.error('Too many requests right now. Please wait a few seconds and try again.');
+            }
+            return Promise.reject(error);
         }
 
         // Show detailed validation errors if present
