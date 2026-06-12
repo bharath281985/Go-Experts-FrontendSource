@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useTheme } from '@/app/components/ThemeProvider';
 import { Bookmark, Briefcase, Users, Package, X, ExternalLink, Star, MapPin, DollarSign, Loader2, Sparkles, Clock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +7,6 @@ import api from '@/app/utils/api';
 type TabType = 'projects' | 'talents' | 'gigs' | 'ideas';
 
 export default function SavedItems() {
-  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const [userType, setUserType] = useState<string>('client');
   const [activeTab, setActiveTab] = useState<TabType>('talents');
@@ -146,7 +144,7 @@ export default function SavedItems() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin" />
-        <p className={`font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>Securing your saved collection...</p>
+        <p className="font-medium text-[#4a4a4a]">Securing your saved collection...</p>
       </div>
     );
   }
@@ -155,10 +153,10 @@ export default function SavedItems() {
     <div className="space-y-8 pb-12">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-end">
         <div>
-          <h1 className={`text-4xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'} tracking-tight`}>
+          <h1 className="text-4xl font-black tracking-tight text-[#111111]">
             Saved Items
           </h1>
-          <p className={`mt-2 text-lg ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+          <p className="mt-2 text-lg text-[#4a4a4a]">
             Curating your personal dashboard of {userType === 'client' ? 'top-tier talent and services' : 'high-potential projects and ideas'}
           </p>
         </div>
@@ -170,7 +168,7 @@ export default function SavedItems() {
         )}
       </motion.div>
 
-      <div className={`p-1.5 rounded-2xl border flex gap-1 overflow-x-auto no-scrollbar ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-neutral-100 border-neutral-200'}`}>
+      <div className="flex gap-1 overflow-x-auto no-scrollbar rounded-2xl border border-[#f2c9a7] bg-[#fff3e7] p-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -180,14 +178,12 @@ export default function SavedItems() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-3 px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${isActive
                   ? 'bg-[#F24C20] text-white shadow-xl shadow-[#F24C20]/30'
-                  : isDarkMode
-                    ? 'text-neutral-500 hover:text-white hover:bg-neutral-800'
-                    : 'text-neutral-500 hover:text-neutral-900 hover:bg-white'
+                  : 'text-[#6b625b] hover:bg-[#F24C20] hover:text-white'
                 }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
-              <span className={`ml-1 px-2 py-0.5 rounded-lg text-[10px] ${isActive ? 'bg-white/20' : isDarkMode ? 'bg-neutral-800' : 'bg-neutral-200'}`}>
+              <span className={`ml-1 px-2 py-0.5 rounded-lg text-[10px] ${isActive ? 'bg-white/20' : 'bg-[#F24C20]/10 text-[#F24C20]'}`}>
                 {tab.count}
               </span>
             </button>
@@ -208,8 +204,7 @@ export default function SavedItems() {
               {savedTalents.map((talent, index) => (
                 <div
                   key={talent.id}
-                  className={`group p-6 rounded-[2.5rem] border transition-all duration-500 relative ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:border-[#F24C20]/50 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:border-[#F24C20]/50 hover:shadow-2xl'
-                    }`}
+                  className="group relative rounded-[2.5rem] border border-neutral-200 bg-white p-6 transition-all duration-500 hover:border-[#F24C20]/50 hover:shadow-2xl"
                 >
                   <button
                     onClick={() => handleRemove(talent.id, 'talents')}
@@ -220,7 +215,7 @@ export default function SavedItems() {
                   <div className="flex gap-6 mb-6">
                     <img src={talent.avatar} alt={talent.name} className="w-24 h-24 rounded-[2rem] object-cover border-4 border-[#F24C20]/10 shadow-xl" />
                     <div>
-                      <h3 className={`text-xl font-black mb-1 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{talent.name}</h3>
+                      <h3 className="mb-1 text-xl font-black text-[#111111]">{talent.name}</h3>
                       <p className="text-[#F24C20] font-bold text-sm tracking-wide uppercase">{talent.title}</p>
                       <div className="flex items-center gap-4 mt-3">
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 rounded-lg">
@@ -236,15 +231,15 @@ export default function SavedItems() {
                   </div>
                   <div className="flex flex-wrap gap-2 mb-8">
                     {talent.skills.slice(0, 4).map((skill: string) => (
-                      <span key={skill} className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'bg-neutral-800 text-neutral-400 border border-neutral-700' : 'bg-neutral-50 text-neutral-500 border border-neutral-100'}`}>
+                      <span key={skill} className="rounded-xl border border-neutral-100 bg-neutral-50 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-neutral-500">
                         {skill}
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between pt-6 border-t border-neutral-800/50 dark:border-neutral-800">
+                  <div className="flex items-center justify-between border-t border-neutral-200 pt-6">
                     <div>
                       <div className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-1">Standard Rate</div>
-                      <div className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>₹{talent.hourlyRate}<span className="text-sm text-neutral-500 font-medium">/hr</span></div>
+                      <div className="text-2xl font-black text-[#111111]">₹{talent.hourlyRate}<span className="text-sm text-neutral-500 font-medium">/hr</span></div>
                     </div>
                     <button onClick={() => navigate(`/f/${talent.id}`)} className="px-8 py-3 bg-[#044071] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform shadow-lg shadow-[#044071]/30">
                       View Profile
@@ -258,7 +253,7 @@ export default function SavedItems() {
           {activeTab === 'gigs' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {savedGigs.map((gig) => (
-                <div key={gig.id} className={`group rounded-[2.5rem] border overflow-hidden transition-all duration-500 ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:shadow-2xl'}`}>
+                <div key={gig.id} className="group overflow-hidden rounded-[2.5rem] border border-neutral-200 bg-white transition-all duration-500 hover:shadow-2xl">
                   <div className="relative h-56 overflow-hidden">
                     <img src={gig.image} alt={gig.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -268,15 +263,15 @@ export default function SavedItems() {
                   </div>
                   <div className="p-6">
                     <div className="text-[10px] font-black uppercase tracking-widest text-[#F24C20] mb-3">{gig.category}</div>
-                    <h3 className={`text-lg font-black leading-tight mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{gig.title}</h3>
-                    <div className="flex items-center justify-between pt-4 border-t border-neutral-800/50 dark:border-neutral-800">
+                    <h3 className="mb-4 text-lg font-black leading-tight text-[#111111]">{gig.title}</h3>
+                    <div className="flex items-center justify-between border-t border-neutral-200 pt-4">
                       <div>
                         <div className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-1">Starts at</div>
                         <div className="text-xl font-black text-[#F24C20]">₹{gig.price.toLocaleString()}</div>
                       </div>
-                      <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${isDarkMode ? 'bg-neutral-800' : 'bg-neutral-50'}`}>
+                      <div className="flex items-center gap-1.5 rounded-xl bg-neutral-50 px-3 py-1.5">
                         <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                        <span className={`text-xs font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{gig.rating}</span>
+                        <span className="text-xs font-black text-[#111111]">{gig.rating}</span>
                       </div>
                     </div>
                   </div>
@@ -288,7 +283,7 @@ export default function SavedItems() {
           {activeTab === 'ideas' && (
             <div className="space-y-4">
               {savedIdeas.map((idea) => (
-                <div key={idea.id} className={`group p-8 rounded-[3rem] border transition-all duration-500 ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:shadow-xl'}`}>
+                <div key={idea.id} className="group rounded-[3rem] border border-neutral-200 bg-white p-8 transition-all duration-500 hover:shadow-xl">
                   <div className="flex justify-between items-start mb-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
@@ -300,14 +295,14 @@ export default function SavedItems() {
                           {idea.status}
                         </span>
                       </div>
-                      <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</h3>
+                      <h3 className="text-2xl font-black text-[#111111]">{idea.title}</h3>
                     </div>
                     <button onClick={() => handleRemove(idea.id, 'ideas')} className="p-2.5 rounded-2xl bg-neutral-800/10 hover:bg-red-500/10 text-neutral-500 hover:text-red-500 transition-colors">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                  <p className={`text-lg leading-relaxed mb-8 max-w-3xl ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>{idea.shortDescription}</p>
-                  <div className="flex items-center justify-between pt-6 border-t border-neutral-800/50 dark:border-neutral-800">
+                  <p className="mb-8 max-w-3xl text-lg leading-relaxed text-[#4a4a4a]">{idea.shortDescription}</p>
+                  <div className="flex items-center justify-between border-t border-neutral-200 pt-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-neutral-800 flex items-center justify-center text-white font-black text-sm">{idea.creator.charAt(0)}</div>
                       <div className="text-xs font-black uppercase tracking-widest text-neutral-500">Conceptualized by {idea.creator}</div>
@@ -324,14 +319,14 @@ export default function SavedItems() {
           {activeTab === 'projects' && (
             <div className="space-y-6">
               {savedProjects.map((project) => (
-                <div key={project.id} className={`group p-8 rounded-[3rem] border transition-all duration-500 relative overflow-hidden ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 hover:bg-neutral-900' : 'bg-white border-neutral-200 hover:shadow-xl'}`}>
+                <div key={project.id} className="group relative overflow-hidden rounded-[3rem] border border-neutral-200 bg-white p-8 transition-all duration-500 hover:shadow-xl">
                   {project.status === 'closed' && (
                     <div className="absolute top-8 -right-12 bg-neutral-800 text-white border border-white/20 px-14 py-1.5 rotate-45 font-black text-[10px] tracking-[0.2em] shadow-2xl z-20">PROJECT FILLED</div>
                   )}
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex-1 max-w-2xl">
-                      <h3 className={`text-2xl font-black mb-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'} ${project.status === 'closed' ? 'opacity-50' : ''}`}>{project.title}</h3>
-                      <p className={`text-lg leading-relaxed mb-6 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>{project.description}</p>
+                      <h3 className={`mb-3 text-2xl font-black text-[#111111] ${project.status === 'closed' ? 'opacity-50' : ''}`}>{project.title}</h3>
+                      <p className="mb-6 text-lg leading-relaxed text-[#4a4a4a]">{project.description}</p>
                     </div>
                     <button onClick={() => handleRemove(project.id, 'projects')} className="p-2.5 rounded-2xl bg-neutral-800/10 hover:bg-red-500/10 text-neutral-500 hover:text-red-500 transition-colors">
                       <X className="w-5 h-5" />
@@ -347,7 +342,7 @@ export default function SavedItems() {
                       <span className="text-sm font-black text-blue-600">Timeline: {project.duration}</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pt-6 border-t border-neutral-800/50 dark:border-neutral-800">
+                  <div className="flex items-center justify-between border-t border-neutral-200 pt-6">
                     <div className="text-xs font-black uppercase tracking-widest text-neutral-500">Initiated by {project.postedBy}</div>
                     <button onClick={() => navigate(`/dashboard/projects/${project.id}`)} className="flex items-center gap-3 px-8 py-3.5 bg-[#044071] text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:scale-105 transition-transform">
                       Analyze Project <ExternalLink className="w-3.5 h-3.5" />
@@ -359,12 +354,12 @@ export default function SavedItems() {
           )}
 
           {loading === false && ((activeTab === 'talents' && savedTalents.length === 0) || (activeTab === 'gigs' && savedGigs.length === 0) || (activeTab === 'ideas' && savedIdeas.length === 0) || (activeTab === 'projects' && savedProjects.length === 0)) && (
-            <div className={`p-20 rounded-[4rem] text-center border-2 border-dashed ${isDarkMode ? 'bg-neutral-900/20 border-neutral-800' : 'bg-neutral-50/50 border-neutral-200'}`}>
+            <div className="rounded-[4rem] border-2 border-dashed border-neutral-200 bg-neutral-50/50 p-20 text-center">
               <div className="w-24 h-24 bg-neutral-800/10 rounded-[3rem] flex items-center justify-center mx-auto mb-8">
                 {activeTab === 'talents' ? <Users className="w-12 h-12 text-neutral-500" /> : activeTab === 'gigs' ? <Package className="w-12 h-12 text-neutral-500" /> : activeTab === 'ideas' ? <Bookmark className="w-12 h-12 text-neutral-500" /> : <Briefcase className="w-12 h-12 text-neutral-500" />}
               </div>
-              <h3 className={`text-2xl font-black mb-3 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Collection Empty</h3>
-              <p className={`text-lg max-w-md mx-auto ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>You haven't added any {activeTab} to your personal collection yet. Start exploring to curate your dashboard.</p>
+              <h3 className="mb-3 text-2xl font-black text-[#111111]">Collection Empty</h3>
+              <p className="mx-auto max-w-md text-lg text-[#4a4a4a]">You haven't added any {activeTab} to your personal collection yet. Start exploring to curate your dashboard.</p>
               <button onClick={() => navigate('/')} className="mt-10 px-10 py-4 bg-[#F24C20] text-white rounded-[2rem] font-black text-sm uppercase tracking-widest hover:scale-105 transition-transform shadow-2xl shadow-[#F24C20]/20">Explore Marketplace</button>
             </div>
           )}

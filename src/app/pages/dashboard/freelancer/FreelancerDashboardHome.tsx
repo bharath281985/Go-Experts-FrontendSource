@@ -73,42 +73,42 @@ export default function FreelancerDashboardHome() {
   })) || [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-[#1f120d] selection:bg-[#F24C20] selection:text-white">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col xl:flex-row xl:items-center justify-between gap-4"
       >
         <div>
-          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h1 className="text-2xl font-bold text-[#1f120d]">
             Dashboard
           </h1>
-          <p className={`mt-1 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+          <p className="mt-1 text-sm text-[#6f5548]">
             Track your earnings, orders, and performance
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${isDarkMode ? 'bg-[#fffaf4] border-[#f2c9a7]' : 'bg-white border-neutral-200'}`}>
               <img
                 src={getImgUrl(profile.profile_image) || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.full_name || 'Go Experts')}&background=F24C20&color=fff`}
                 alt={profile.full_name || 'Freelancer'}
                 className="w-9 h-9 rounded-full object-cover"
               />
               <div className="min-w-0">
-                <div className={`text-sm font-semibold truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <div className="text-sm font-semibold truncate text-[#1f120d]">
                   {profile.full_name || 'Freelancer'}
                 </div>
-                <div className={`text-xs truncate ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                <div className="text-xs truncate text-[#6f5548]">
                   {profile.role_title || 'Add your professional title in settings'}
                 </div>
               </div>
             </div>
             {profile.location ? (
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-neutral-300' : 'bg-white border-neutral-200 text-neutral-700'}`}>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${isDarkMode ? 'bg-[#fffaf4] border-[#f2c9a7] text-[#111111]' : 'bg-white border-neutral-200 text-neutral-700'}`}>
                 <MapPin className="w-4 h-4 text-[#F24C20]" />
                 <span>{profile.location}</span>
               </div>
             ) : null}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${isDarkMode ? 'bg-neutral-900 border-neutral-800 text-neutral-300' : 'bg-white border-neutral-200 text-neutral-700'}`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${isDarkMode ? 'bg-[#fffaf4] border-[#f2c9a7] text-[#111111]' : 'bg-white border-neutral-200 text-neutral-700'}`}>
               {profile.is_verified ? <ShieldCheck className="w-4 h-4 text-green-500" /> : <UserRound className="w-4 h-4 text-[#F24C20]" />}
               <span>{profile.is_verified ? 'KYC Verified' : 'Profile Active'}</span>
             </div>
@@ -118,23 +118,23 @@ export default function FreelancerDashboardHome() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div
             className={`w-full sm:flex-1 flex items-center gap-2 px-3 py-2 md:py-1.5 rounded-xl border overflow-hidden ${
-              isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'
+              isDarkMode ? 'bg-[#fffaf4] border-[#f2c9a7]' : 'bg-white border-neutral-200'
             }`}
           >
             <div className="flex-1 min-w-0">
-              <span className="text-[10px] text-neutral-500 block uppercase font-bold tracking-widest truncate">Landing Page</span>
-              <span className="text-sm font-bold truncate block">
+              <span className="text-[10px] block uppercase font-bold tracking-widest truncate text-[#F24C20]">Landing Page</span>
+              <span className="text-sm font-bold truncate block text-[#1f120d]">
                 {publicProfileSlug || '...'}
               </span>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0 border-l border-neutral-800 pl-2 ml-1">
+            <div className={`flex items-center gap-1 flex-shrink-0 pl-2 ml-1 ${isDarkMode ? 'border-l border-[#f2c9a7]' : 'border-l border-neutral-200'}`}>
               <button
                 onClick={() => {
                   if (!publicProfileUrl) return;
                   navigator.clipboard.writeText(publicProfileUrl);
                   toast.success('Link copied to clipboard!');
                 }}
-                className="p-1.5 hover:bg-white/5 rounded-lg transition-colors text-neutral-400 hover:text-[#F24C20]"
+                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-[#4a4a4a] hover:bg-[#F24C20]/15 hover:text-[#111111]' : 'text-neutral-400 hover:text-[#F24C20]'}`}
                 title="Copy Link"
               >
                 <Copy className="w-3.5 h-3.5" />
@@ -142,7 +142,7 @@ export default function FreelancerDashboardHome() {
               <Link
                 to={publicProfileSlug ? `/f/${publicProfileSlug}` : '#'}
                 target="_blank"
-                className="p-1.5 hover:bg-white/5 rounded-lg transition-colors text-neutral-400 hover:text-[#F24C20]"
+                className={`p-1.5 rounded-lg transition-colors ${isDarkMode ? 'text-[#4a4a4a] hover:bg-[#F24C20]/15 hover:text-[#111111]' : 'text-neutral-400 hover:text-[#F24C20]'}`}
                 title="View Page"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -176,11 +176,11 @@ export default function FreelancerDashboardHome() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className={`p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
+            ? 'bg-[#fffaf4] border-[#f2c9a7]'
+            : 'bg-white border-neutral-200'
             }`}
         >
-          <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h2 className="text-lg font-bold mb-4 text-[#1f120d]">
             Work Pipeline
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -189,12 +189,12 @@ export default function FreelancerDashboardHome() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               className={`p-3 rounded-xl border ${isDarkMode
-                ? 'bg-neutral-800/50 border-neutral-700'
-                : 'bg-neutral-50 border-neutral-200'
+                ? 'bg-[#fff3e7] border-[#f2c9a7]'
+                : 'bg-[#fffaf4] border-[#f2c9a7]'
                 }`}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <span className="text-sm font-semibold text-[#4a342b]">
                   Completed Projects
                 </span>
                 <div className="p-2 rounded-lg bg-blue-500/10">
@@ -202,7 +202,7 @@ export default function FreelancerDashboardHome() {
                 </div>
               </div>
               <div className="flex items-end justify-between gap-3">
-                <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <div className="text-2xl font-bold text-[#1f120d]">
                   {completedProjects}
                 </div>
                 <div className="text-sm font-semibold text-green-500">
@@ -218,12 +218,12 @@ export default function FreelancerDashboardHome() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + index * 0.1 }}
                 className={`p-3 rounded-xl border ${isDarkMode
-                  ? 'bg-neutral-800/50 border-neutral-700'
-                  : 'bg-neutral-50 border-neutral-200'
+                  ? 'bg-[#fff3e7] border-[#f2c9a7]'
+                  : 'bg-[#fffaf4] border-[#f2c9a7]'
                   }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <span className="text-sm font-semibold text-[#4a342b]">
                     {stage.stage}
                   </span>
                   <div
@@ -231,7 +231,7 @@ export default function FreelancerDashboardHome() {
                     style={{ backgroundColor: stage.color }}
                   />
                 </div>
-                <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <div className="text-2xl font-bold text-[#1f120d]">
                   {stage.count}
                 </div>
               </motion.div>
@@ -244,33 +244,33 @@ export default function FreelancerDashboardHome() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className={`p-4 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-            ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
+            ? 'bg-[#fffaf4] border-[#f2c9a7]'
+            : 'bg-white border-neutral-200'
             }`}
         >
-          <h2 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h2 className="text-lg font-bold mb-4 text-[#1f120d]">
             Performance
           </h2>
           <div className="space-y-4">
             <div className="flex flex-col items-center">
               <RadialProgress value={completionRate} color="#10b981" size={84} />
-              <span className={`text-sm mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              <span className="text-sm mt-2 font-semibold text-[#4a342b]">
                 Completion Rate
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              <span className="text-sm font-semibold text-[#4a342b]">
                 On-time Delivery
               </span>
-              <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              <span className="font-bold text-[#1f120d]">
                 {onTimeDelivery}%
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              <span className="text-sm font-semibold text-[#4a342b]">
                 Client Satisfaction
               </span>
-              <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              <span className="font-bold text-[#1f120d]">
                 {clientSatisfaction}%
               </span>
             </div>
@@ -283,12 +283,12 @@ export default function FreelancerDashboardHome() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className={`p-6 rounded-[1.5rem] md:rounded-2xl border backdrop-blur-sm ${isDarkMode
-          ? 'bg-neutral-900/50 border-neutral-800'
-          : 'bg-white/50 border-neutral-200'
-          }`}
+            ? 'bg-[#fffaf4] border-[#f2c9a7]'
+            : 'bg-white border-neutral-200'
+            }`}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h2 className="text-xl font-bold text-[#1f120d]">
             Recent Orders
           </h2>
         </div>
@@ -300,20 +300,20 @@ export default function FreelancerDashboardHome() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 + index * 0.1 }}
               className={`p-4 rounded-xl border ${isDarkMode
-                ? 'bg-neutral-800/50 border-neutral-700'
+                ? 'bg-[#fff3e7] border-[#f2c9a7]'
                 : 'bg-neutral-50 border-neutral-200'
                 }`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <div className={`font-medium ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <div className="font-medium text-[#1f120d]">
                     {order.title}
                   </div>
-                  <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <div className="text-sm text-[#6f5548]">
                     {order.client}
                   </div>
                 </div>
-                <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <div className="font-bold text-[#1f120d]">
                   Rs {order.amount.toLocaleString()}
                 </div>
               </div>

@@ -26,6 +26,25 @@ export default function ExploreStartupIdeas() {
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
+  const getCategoryLabel = (category: any): string => {
+    if (!category) return '';
+    if (typeof category === 'string') return category;
+    if (typeof category === 'object') return category.name || category.slug || category._id || '';
+    return String(category);
+  };
+
+  const normalizeStringArray = (value: any): string[] => {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((item) => {
+        if (!item) return '';
+        if (typeof item === 'string') return item;
+        if (typeof item === 'object') return item.name || item.slug || item.title || item._id || '';
+        return String(item);
+      })
+      .filter(Boolean);
+  };
+
   useEffect(() => {
     // Role guard: Only investors can browse other ideas
     const role = user.role || (user.roles && user.roles[0]);
@@ -138,8 +157,8 @@ export default function ExploreStartupIdeas() {
     const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          idea.shortDescription.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'All' || 
-                           idea.category?.trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
+    const matchesCategory = selectedCategory === 'All' ||
+                           getCategoryLabel(idea.category).trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
     
     const matchesBudget = budgetRange === 'All' || idea.fundingAmount === budgetRange;
                            
@@ -152,7 +171,7 @@ export default function ExploreStartupIdeas() {
           idea={viewingIdea} 
           onBack={() => setViewingIdea(null)} 
           isDarkMode={isDarkMode}
-          similarIdeas={ideas.filter(i => i.category === viewingIdea.category && i._id !== viewingIdea._id).slice(0, 3)}
+          similarIdeas={ideas.filter(i => getCategoryLabel(i.category) === getCategoryLabel(viewingIdea.category) && i._id !== viewingIdea._id).slice(0, 3)}
        />
     );
   }
@@ -328,7 +347,7 @@ export default function ExploreStartupIdeas() {
                       <div key={idea._id || i} className="flex items-center gap-3">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
                          <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
-                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{getCategoryLabel(idea.category) || 'Tech'}</span>
                       </div>
                     )) : (
                       <span className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Awaiting new venture submissions...</span>
@@ -338,7 +357,7 @@ export default function ExploreStartupIdeas() {
                       <div key={`dup-${idea._id || i}`} className="flex items-center gap-3">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
                          <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
-                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{getCategoryLabel(idea.category) || 'Tech'}</span>
                       </div>
                     ))}
                  </motion.div>
@@ -385,7 +404,7 @@ export default function ExploreStartupIdeas() {
                       <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-2">
                           <span className="px-3 py-1.5 bg-[#F24C20] text-white text-[9px] font-black uppercase tracking-widest rounded-xl">
-                            {idea.category}
+                            {getCategoryLabel(idea.category) || 'Tech'}
                           </span>
                           {(isOwner || isUnlocked) && (
                             <span className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-500 text-[9px] font-black uppercase tracking-widest rounded-xl flex items-center gap-1.5 animate-in fade-in zoom-in duration-500">
@@ -424,7 +443,7 @@ export default function ExploreStartupIdeas() {
 
                     {/* Specialist Badges */}
                     <div className="flex flex-wrap gap-2 mb-8">
-                       {(idea.neededRoles || ['Product Designer', 'Growth Marketer', 'Industry Advisor']).slice(0, 3).map((role: string, i: number) => (
+                       {normalizeStringArray(idea.neededRoles || ['Product Designer', 'Growth Marketer', 'Industry Advisor']).slice(0, 3).map((role: string, i: number) => (
                          <span key={i} className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-xl text-[9px] font-black text-slate-300 uppercase tracking-tighter">
                             {role}
                          </span>
@@ -529,6 +548,20 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState("overview");
+  const getCategoryLabel = (category: any): string => {
+    if (!category) return '';
+    if (typeof category === 'string') return category;
+    if (typeof category === 'object') return category.name || category.slug || category._id || '';
+    return String(category);
+  };
+  const normalizedRoles = React.useMemo(() => {
+    const roles = Array.isArray(idea.neededRoles) ? idea.neededRoles : ["Frontend Developer", "AI Engineer", "Angel Investor", "Marketing Partner"];
+    return roles.map((role: any) => typeof role === 'object' ? (role.name || role.slug || role.title || role._id || '') : String(role)).filter(Boolean);
+  }, [idea.neededRoles]);
+  const normalizedTags = React.useMemo(() => {
+    const tags = Array.isArray(idea.tags) ? idea.tags : ["AI", "Innovation", "Global Scale"];
+    return tags.map((tag: any) => typeof tag === 'object' ? (tag.name || tag.slug || tag.title || tag._id || '') : String(tag)).filter(Boolean);
+  }, [idea.tags]);
 
   const images = React.useMemo(() => {
      if (idea.attachments?.length > 0) {
@@ -585,7 +618,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
               </div>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <span>Domain</span>
-                <span className="font-semibold text-white">{idea.category}</span>
+                <span className="font-semibold text-white">{getCategoryLabel(idea.category) || 'Tech'}</span>
               </div>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <span>Location</span>
@@ -623,7 +656,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
 
     return (
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        {(idea.neededRoles || ["Frontend Developer", "AI Engineer", "Angel Investor", "Marketing Partner"]).map((role: string) => (
+        {normalizedRoles.map((role: string) => (
           <div key={role} className="group rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl transition duration-300 hover:border-[#F24C20]/40 hover:bg-gradient-to-br hover:from-[#F24C20]/10 hover:to-transparent">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white transition duration-300 group-hover:bg-[#F24C20]/20 text-xs font-black uppercase tracking-widest">Team</div>
             <h3 className="mt-4 text-base font-semibold text-white">{role}</h3>
@@ -736,10 +769,10 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
                 </div>
               </div>
               <p className="mt-8 text-sm leading-7 text-slate-400">
-                Building a validated venture targeting high-growth {idea.category} sectors. Dedicated to engineering a scalable solution model for the modern digital economy.
+                Building a validated venture targeting high-growth {getCategoryLabel(idea.category) || 'technology'} sectors. Dedicated to engineering a scalable solution model for the modern digital economy.
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
-                {(idea.tags || ["AI", "Innovation", "Global Scale"]).map((tag: string) => (
+                {normalizedTags.map((tag: string) => (
                   <span key={tag} className="px-3 py-1.5 rounded-xl border border-white/5 bg-white/5 text-[9px] font-black uppercase tracking-widest text-[#F24C20]">
                     {tag}
                   </span>
@@ -791,7 +824,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
         <section className="mt-20">
           <SectionTitle
             eyebrow="Related Opportunities"
-            title={`More From ${idea.category}`}
+            title={`More From ${getCategoryLabel(idea.category) || 'This Category'}`}
             desc="Discover other high-potential ventures in the same ecosystem currently seeking investment and talent."
           />
 
@@ -806,7 +839,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent" />
                   <span className="absolute left-6 top-6 rounded-xl bg-black/60 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-[#F24C20] backdrop-blur-xl border border-white/10">
-                    {item.category}
+                    {getCategoryLabel(item.category) || 'Tech'}
                   </span>
                 </div>
                 <div className="p-8">

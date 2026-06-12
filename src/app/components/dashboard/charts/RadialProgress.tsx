@@ -59,13 +59,13 @@ export default function RadialProgress({
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
-            className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}
+            className={`text-xl font-bold ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}
           >
             {Math.round(percentage)}%
           </motion.div>
         )}
         {label && (
-          <div className={`text-xs mt-1 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
+          <div className={`text-xs mt-1 ${isDarkMode ? 'text-[#4a4a4a]' : 'text-neutral-500'}`}>
             {label}
           </div>
         )}

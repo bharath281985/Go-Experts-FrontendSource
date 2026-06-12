@@ -99,16 +99,16 @@ export default function StaticPageView() {
     return (
         <>
             <Header />
-            <main className="min-h-screen bg-neutral-950 pt-24 pb-20">
+            <main className="min-h-screen bg-background pt-24 pb-20">
                 {loading ? (
                     <div className="max-w-4xl mx-auto px-6 py-24 text-center">
                         <div className="animate-spin w-10 h-10 border-2 border-[#F24C20] border-t-transparent rounded-full mx-auto mb-4" />
-                        <p className="text-neutral-400">Loading...</p>
+                        <p className="text-muted-foreground">Loading...</p>
                     </div>
                 ) : !page ? (
                     <div className="max-w-4xl mx-auto px-6 py-24 text-center">
-                        <h1 className="text-4xl font-bold text-white mb-4">Page not found</h1>
-                        <p className="text-neutral-400">This page hasn't been created yet in the CMS.</p>
+                        <h1 className="text-4xl font-bold text-foreground mb-4">Page not found</h1>
+                        <p className="text-muted-foreground">This page hasn't been created yet in the CMS.</p>
                     </div>
                 ) : (
                     <motion.article
@@ -118,21 +118,21 @@ export default function StaticPageView() {
                         className="max-w-4xl mx-auto px-6"
                     >
                         {/* Page Header */}
-                        <div className="text-center py-16 border-b border-neutral-800 mb-12">
-                            <h1 className="text-5xl font-bold text-white mb-4">{page.title}</h1>
-                            <p className="text-neutral-500 text-sm">
+                        <div className="text-center py-16 border-b border-border mb-12">
+                            <h1 className="text-5xl font-bold text-foreground mb-4">{page.title}</h1>
+                            <p className="text-muted-foreground text-sm">
                                 Last updated: {new Date(page.updatedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </p>
                         </div>
 
                         {/* Page Content */}
                         <div
-                            className="prose prose-invert prose-lg max-w-none
-                prose-headings:text-white prose-headings:font-bold prose-headings:mb-4 prose-headings:mt-8
+                            className="prose prose-lg max-w-none
+                prose-headings:text-foreground prose-headings:font-bold prose-headings:mb-4 prose-headings:mt-8
                 prose-h2:text-2xl prose-h3:text-xl
-                prose-p:text-neutral-300 prose-p:leading-relaxed prose-p:mb-4
-                prose-li:text-neutral-300 prose-ul:space-y-2
-                prose-strong:text-white"
+                prose-p:text-foreground/80 prose-p:leading-relaxed prose-p:mb-4
+                prose-li:text-foreground/80 prose-ul:space-y-2
+                prose-strong:text-foreground"
                             dangerouslySetInnerHTML={{ __html: page.content }}
                         />
                     </motion.article>

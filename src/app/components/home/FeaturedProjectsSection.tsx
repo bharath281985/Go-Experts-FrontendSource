@@ -90,7 +90,7 @@ export default function FeaturedProjectsSection() {
       ref={ref}
       className="relative py-25 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #000000 0%, #0f0505 50%, #000000 100%)',
+        background: 'linear-gradient(180deg, var(--background) 0%, var(--secondary) 50%, var(--background) 100%)',
       }}
     >
       {/* Background Elements */}
@@ -120,11 +120,11 @@ export default function FeaturedProjectsSection() {
             </motion.div>
 
             <h2 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="text-white">Featured </span>
+              <span className="text-foreground">Featured </span>
               <span className="text-[#F24C20]">Projects</span>
             </h2>
 
-            <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
+            <p className="text-xl text-neutral-500 max-w-2xl mx-auto">
               Discover handpicked opportunities from verified clients worldwide
             </p>
           </motion.div>
@@ -150,7 +150,7 @@ export default function FeaturedProjectsSection() {
                     <motion.div
                       whileHover={{ y: -8 }}
                       transition={{ duration: 0.3 }}
-                      className="relative h-full p-6 rounded-[2.5rem] bg-neutral-900/40 backdrop-blur-xl border border-neutral-800/50 hover:border-[#F24C20]/50 overflow-hidden flex flex-col"
+                      className="relative h-full p-6 rounded-[2.5rem] bg-white border border-[#FFE0C2] hover:border-[#F24C20]/50 overflow-hidden flex flex-col shadow-xl shadow-orange-500/5"
                     >
                       {/* Header */}
                       <div className="flex items-start justify-between mb-6">
@@ -159,7 +159,7 @@ export default function FeaturedProjectsSection() {
                             {project.client_id?.full_name?.substring(0, 1).toUpperCase() || 'P'}
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-white truncate max-w-[120px]">{project.client_id?.full_name || 'Anonymous'}</div>
+                            <div className="text-xs font-bold text-foreground truncate max-w-[120px]">{project.client_id?.full_name || 'Anonymous'}</div>
                             <div className="text-[10px] text-neutral-500 uppercase tracking-widest font-black">Verified</div>
                           </div>
                         </div>
@@ -169,7 +169,7 @@ export default function FeaturedProjectsSection() {
                           whileTap={{ scale: 0.9 }}
                           onClick={(e) => handleToggleFavorite(e, project._id)}
                           className={`p-2 rounded-xl transition-all ${
-                            favorites.includes(project._id) ? 'bg-[#F24C20]/20' : 'bg-neutral-800/50 hover:bg-[#F24C20]/10'
+                            favorites.includes(project._id) ? 'bg-[#F24C20]/20' : 'bg-[#FFEAD4]/50 border border-[#FFE0C2] hover:bg-[#F24C20]/10'
                           }`}
                         >
                           <Heart className={`w-4 h-4 ${favorites.includes(project._id) ? 'text-[#F24C20] fill-[#F24C20]' : 'text-neutral-500'}`} />
@@ -177,7 +177,7 @@ export default function FeaturedProjectsSection() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-xl font-bold mb-4 text-white group-hover:text-[#F24C20] transition-colors leading-tight line-clamp-2">
+                      <h3 className="text-xl font-bold mb-4 text-foreground group-hover:text-[#F24C20] transition-colors leading-tight line-clamp-2">
                         {project.title}
                       </h3>
 
@@ -203,7 +203,7 @@ export default function FeaturedProjectsSection() {
                         {/* Featured Skills */}
                         <div className="flex flex-wrap gap-1.5 mb-6">
                           {project.skills_required?.slice(0, 3).map((tag: string) => (
-                            <span key={tag} className="px-2 py-1 rounded bg-neutral-800/50 text-[10px] font-bold text-neutral-400 border border-neutral-700/50">
+                            <span key={tag} className="px-2 py-1 rounded bg-[#FFEAD4]/60 text-[10px] font-bold text-neutral-500 border border-[#FFE0C2]">
                               {tag}
                             </span>
                           ))}
@@ -211,11 +211,11 @@ export default function FeaturedProjectsSection() {
                       </div>
 
                       {/* Footer */}
-                      <div className="pt-6 border-t border-neutral-800 flex items-center justify-between">
+                      <div className="pt-6 border-t border-[#FFE0C2] flex items-center justify-between">
                         <div className="text-[10px] font-black uppercase tracking-widest text-[#F24C20]">
                           Featured
                         </div>
-                        <div className="flex items-center gap-1 text-white text-xs font-bold group-hover:gap-2 transition-all">
+                        <div className="flex items-center gap-1 text-foreground text-xs font-bold group-hover:gap-2 transition-all">
                           View <ArrowRight className="w-3 h-3" />
                         </div>
                       </div>

@@ -119,7 +119,7 @@ export default function PricingSection() {
   };
 
   return (
-    <section ref={ref} className="relative py-24 overflow-hidden bg-black">
+    <section ref={ref} className="relative py-24 overflow-hidden bg-background text-foreground">
       {/* Background Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-[#F24C20]/5 rounded-full blur-[120px]" />
@@ -140,17 +140,17 @@ export default function PricingSection() {
               {subtitle}
             </div>
             
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-8 italic uppercase tracking-tighter leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground mb-8 italic uppercase tracking-tighter leading-tight">
               {title}
             </h2>
             
-            <p className="text-lg text-neutral-400 mb-10 leading-relaxed max-w-xl">
+            <p className="text-lg text-neutral-500 mb-10 leading-relaxed max-w-xl">
               {description}
             </p>
 
             <div className="grid sm:grid-cols-2 gap-4 mb-12">
               {highlights.map((item: string, i: number) => (
-                <div key={i} className="flex items-center gap-3 text-neutral-300">
+                <div key={i} className="flex items-center gap-3 text-foreground">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
                   <span className="text-sm font-medium">{item}</span>
                 </div>
@@ -161,7 +161,7 @@ export default function PricingSection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNavigate}
-              className="group flex items-center gap-3 px-8 py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl transition-all"
+              className="group flex items-center gap-3 px-8 py-4 bg-[#044071] hover:bg-[#055a99] text-white font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#044071]/30 border border-[#044071]"
             >
               {buttonText}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -185,7 +185,7 @@ export default function PricingSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.5, delay: idx * 0.15 }}
-                    className={`flex gap-4 sm:gap-6 p-4 sm:p-6 rounded-[2rem] sm:rounded-[32px] border ${item.color} backdrop-blur-sm group hover:scale-[1.02] transition-all cursor-pointer`}
+                    className={`flex gap-4 sm:gap-6 p-4 sm:p-6 rounded-[2rem] sm:rounded-[32px] border ${item.color} backdrop-blur-sm group hover:scale-[1.02] transition-all cursor-pointer bg-white/70 shadow-lg shadow-orange-500/5 hover:bg-white`}
                     onClick={handleNavigate}
                   >
                     <div className={`w-14 h-14 rounded-2xl ${item.iconBg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
@@ -193,14 +193,14 @@ export default function PricingSection() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1 sm:gap-4">
-                        <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight italic truncate sm:whitespace-normal">
+                        <h3 className="text-base sm:text-lg font-black text-foreground uppercase tracking-tight italic truncate sm:whitespace-normal">
                           {item.role}
                         </h3>
                         <span className="text-[#F24C20] font-black text-[10px] sm:text-xs uppercase shrink-0 whitespace-nowrap bg-[#F24C20]/10 px-2 py-0.5 rounded-full border border-[#F24C20]/20 sm:bg-transparent sm:px-0 sm:py-0 sm:border-0 w-fit">
                           Starts at {startPrice || "Custom"}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed line-clamp-2 md:line-clamp-none">
+                      <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed line-clamp-2 md:line-clamp-none">
                         {item.desc}
                       </p>
                     </div>

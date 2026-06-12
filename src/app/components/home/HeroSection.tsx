@@ -165,7 +165,7 @@ export default function HeroSection() {
       ref={heroRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #170a0a 0%, #120808 55%, #0f0606 100%)',
+        background: 'linear-gradient(180deg, var(--background) 0%, var(--secondary) 55%, var(--muted) 100%)',
       }}
     >
       {/* Background Image if available */}
@@ -176,7 +176,7 @@ export default function HeroSection() {
             alt="Hero Background"
             className="w-full h-full object-cover opacity-20 mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-[#120808]/35" />
+          <div className="absolute inset-0 bg-background/35" />
         </div>
       )}
 
@@ -213,7 +213,7 @@ export default function HeroSection() {
 
         {/* Radial Spotlights */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-radial from-[#F24C20]/20 to-transparent blur-3xl rounded-full" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-radial from-orange-800/20 to-transparent blur-3xl rounded-full" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-radial from-[#F24C20]/10 to-transparent blur-3xl rounded-full" />
       </div>
 
       {/* Floating Vector Icons with Parallax */}
@@ -254,7 +254,7 @@ export default function HeroSection() {
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/30 mb-8 backdrop-blur-sm"
         >
           <div className="w-2 h-2 bg-[#F24C20] rounded-full animate-pulse" />
-          <span className="text-sm font-medium text-neutral-300">
+          <span className="text-sm font-medium text-neutral-600">
             Working With You..For You...
           </span>
         </motion.div>
@@ -266,7 +266,7 @@ export default function HeroSection() {
           transition={{ duration: 1, delay: 0.4 }}
           className="text-[42px] sm:text-5xl md:text-8xl font-bold mb-8 leading-tight tracking-tight"
         >
-          <span className="block text-white mb-2">
+          <span className="block text-foreground mb-2">
             {activeBanner.title.split(' ').slice(0, -1).join(' ')}{' '}
             <span className="relative inline-block">
               <span className="text-[#F24C20]">{activeBanner.title.split(' ').pop()}</span>
@@ -294,7 +294,7 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="text-xl md:text-2xl text-neutral-400 mb-16 max-w-4xl mx-auto"
+          className="text-xl md:text-2xl text-neutral-500 mb-16 max-w-4xl mx-auto"
         >
           {activeBanner.subtitle}
         </motion.div>
@@ -312,7 +312,7 @@ export default function HeroSection() {
 
             <form
               onSubmit={handleSearch}
-              className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-3xl border border-neutral-800"
+              className="relative flex flex-col md:flex-row items-stretch gap-3 p-3 bg-white/95 backdrop-blur-xl rounded-3xl border border-[#FFE0C2] shadow-xl shadow-orange-500/5"
             >
               {/* Type Selector */}
               {showBothSearchModes && (
@@ -322,7 +322,7 @@ export default function HeroSection() {
                     onClick={() => setSearchType('sellers')}
                     className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'sellers'
                       ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
-                      : 'text-neutral-400 hover:text-white'
+                      : 'text-neutral-500 hover:text-neutral-900'
                       }`}
                   >
                     Find Talent
@@ -332,7 +332,7 @@ export default function HeroSection() {
                     onClick={() => setSearchType('buyers')}
                     className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${searchType === 'buyers'
                       ? 'bg-[#044071] text-white shadow-lg shadow-[#044071]/50'
-                      : 'text-neutral-400 hover:text-white'
+                      : 'text-neutral-500 hover:text-neutral-900'
                       }`}
                   >
                     Find Projects
@@ -349,7 +349,7 @@ export default function HeroSection() {
                   placeholder={
                     searchPlaceholder
                   }
-                  className="flex-1 bg-transparent border-none outline-none text-white placeholder:text-neutral-500 text-lg"
+                  className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-neutral-500 text-lg"
                 />
               </div>
 
@@ -384,7 +384,7 @@ export default function HeroSection() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 2 + i * 0.1 }}
                   whileHover={{ scale: 1.1, y: -2 }}
-                  className="px-4 py-2 text-sm bg-neutral-800/50 hover:bg-[#F24C20]/20 border border-neutral-700 hover:border-[#F24C20]/50 rounded-full text-neutral-300 hover:text-[#F24C20] transition-all duration-300"
+                  className="px-4 py-2 text-sm bg-[#FFEAD4]/50 hover:bg-[#F24C20]/20 border border-[#FFE0C2] hover:border-[#F24C20]/50 rounded-full text-foreground hover:text-[#F24C20] transition-all duration-300"
                 >
                   {tag}
                 </motion.button>
@@ -487,7 +487,7 @@ export default function HeroSection() {
       </div>
 
       {/* Bottom Gradient Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 }

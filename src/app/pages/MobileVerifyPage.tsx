@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { CheckCircle, XCircle, Loader2, Mail, smartphone } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Mail, Smartphone } from 'lucide-react';
 import api from '../utils/api';
 
 export default function MobileVerifyPage() {
@@ -29,7 +29,7 @@ export default function MobileVerifyPage() {
     }, [token]);
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-6 text-white font-sans">
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6 font-sans">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#F24C20]/10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600/10 rounded-full blur-[120px]" />
@@ -70,10 +70,10 @@ export default function MobileVerifyPage() {
                             </div>
                             <div className="h-px w-8 bg-neutral-700" />
                             <div className="p-3 bg-neutral-800 rounded-2xl">
-                                <smartphone className="w-6 h-6 text-green-500" />
+                                <Smartphone className="w-6 h-6 text-green-500" />
                             </div>
                         </div>
-                        <p className="text-white font-semibold text-lg mb-2">Instructions:</p>
+                        <p className="text-foreground font-semibold text-lg mb-2">Instructions:</p>
                         <ul className="text-sm text-neutral-400 space-y-2 text-left list-disc list-inside px-4">
                             <li>You can now safely close this browser tab.</li>
                             <li>Open the <b>Go Experts Mobile App</b> on your phone.</li>

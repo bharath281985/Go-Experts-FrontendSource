@@ -1,5 +1,4 @@
 import { motion } from 'motion/react';
-import { useTheme } from '@/app/components/ThemeProvider';
 import {
   MessageSquare,
   Search,
@@ -62,7 +61,6 @@ const formatChatName = (user: any) => {
 };
 
 export default function Messages() {
-  const { isDarkMode } = useTheme();
   const [searchParams] = useSearchParams();
   const queryUser = searchParams.get('user');
   const queryIntent = searchParams.get('intent');
@@ -287,10 +285,10 @@ export default function Messages() {
         animate={{ opacity: 1, y: 0 }}
         className={`${showChatArea ? 'hidden md:block' : 'block'}`}
       >
-        <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#111111]">
           Messages
         </h1>
-        <p className={`mt-1 md:mt-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+        <p className="mt-1 md:mt-2 text-sm text-[#4a4a4a]">
           Communicate with clients and freelancers
         </p>
       </motion.div>
@@ -300,28 +298,20 @@ export default function Messages() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`rounded-2xl border backdrop-blur-sm overflow-hidden ${isDarkMode
-          ? 'bg-neutral-900/50 border-neutral-800'
-          : 'bg-white/50 border-neutral-200'
-          }`}
+        className="overflow-hidden rounded-2xl border border-neutral-200 bg-white/50 backdrop-blur-sm"
         style={{ height: 'calc(100vh - 200px)' }}
       >
         <div className="flex h-full relative">
           {/* Chat List Sidebar */}
-          <div className={`${showChatArea ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'} flex-col`}>
+          <div className={`${showChatArea ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-col border-r border-neutral-200`}>
             {/* Search */}
-            <div className="p-4 border-b border-neutral-800/50">
-              <div className={`relative rounded-xl overflow-hidden ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
-                }`}>
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'
-                  }`} />
+            <div className="border-b border-neutral-200 p-4">
+              <div className="relative overflow-hidden rounded-xl border border-[#f2c9a7] bg-[#fff3e7]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b625b]" />
                 <input
                   type="text"
                   placeholder="Search messages..."
-                  className={`w-full pl-10 pr-4 py-2.5 bg-transparent text-sm outline-none ${isDarkMode
-                    ? 'text-white placeholder:text-neutral-500'
-                    : 'text-neutral-900 placeholder:text-neutral-400'
-                    }`}
+                  className="w-full bg-transparent py-2.5 pl-10 pr-4 text-sm text-[#111111] outline-none placeholder:text-[#6b625b]"
                 />
               </div>
             </div>
@@ -337,12 +327,8 @@ export default function Messages() {
                   }}
                   whileHover={{ x: 4 }}
                   className={`w-full p-4 flex items-start gap-3 border-b transition-colors ${selectedChat === chat.id
-                    ? isDarkMode
-                      ? 'bg-[#F24C20]/10 border-[#F24C20]/30'
-                      : 'bg-[#F24C20]/10 border-[#F24C20]/30'
-                    : isDarkMode
-                      ? 'border-neutral-800 hover:bg-neutral-800/50'
-                      : 'border-neutral-200 hover:bg-neutral-50'
+                    ? 'border-[#F24C20]/30 bg-[#F24C20]/10'
+                    : 'border-neutral-200 hover:bg-[#fff3e7]'
                     }`}
                 >
                   <div className="relative">
@@ -357,15 +343,15 @@ export default function Messages() {
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`font-semibold text-sm ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                      <span className="text-sm font-semibold text-[#111111]">
                         {chat.name}
                       </span>
-                      <span className={`text-xs ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                      <span className="text-xs text-neutral-500">
                         {chat.timestamp}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className={`text-sm line-clamp-1 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                      <p className="line-clamp-1 text-sm text-[#4a4a4a]">
                         {chat.lastMessage || 'Start a conversation'}
                       </p>
                       {chat.unread > 0 && (
@@ -383,15 +369,15 @@ export default function Messages() {
           </div>
 
           {/* Chat Area */}
-          <div className={`${showChatArea ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full bg-neutral-950/20`}>
+          <div className={`${showChatArea ? 'flex' : 'hidden md:flex'} h-full flex-1 flex-col bg-white`}>
              {selectedChatData ? (
                 <>
                   {/* Chat Header */}
-                  <div className={`p-3 md:p-4 border-b ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'} flex items-center justify-between bg-neutral-900/40 backdrop-blur-md`}>
+                  <div className="flex items-center justify-between border-b border-neutral-200 bg-[#fff3e7] p-3 backdrop-blur-md md:p-4">
                     <div className="flex items-center gap-3">
                       <button 
                         onClick={() => setShowChatArea(false)}
-                        className="p-2 md:hidden text-neutral-400 hover:text-white"
+                        className="p-2 text-neutral-500 hover:text-[#111111] md:hidden"
                       >
                          <ChevronLeft className="w-6 h-6" />
                       </button>
@@ -406,22 +392,22 @@ export default function Messages() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <h3 className={`font-bold text-sm md:text-base truncate ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                        <h3 className="truncate text-sm font-bold text-[#111111] md:text-base">
                           {selectedChatData.name}
                         </h3>
-                        <p className={`text-[10px] md:text-xs ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                        <p className="text-[10px] text-[#4a4a4a] md:text-xs">
                           {selectedChatData.online ? 'Active now' : 'Offline'}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 md:gap-2">
-                      <button className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
+                      <button className="rounded-lg p-2 text-[#6b625b] transition-colors hover:bg-[#F24C20] hover:text-white">
                         <Phone className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
-                      <button onClick={initiateVideoCall} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
+                      <button onClick={initiateVideoCall} className="rounded-lg p-2 text-[#6b625b] transition-colors hover:bg-[#F24C20] hover:text-white">
                         <Video className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
-                      <button className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
+                      <button className="rounded-lg p-2 text-[#6b625b] transition-colors hover:bg-[#F24C20] hover:text-white">
                         <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                     </div>
@@ -438,14 +424,12 @@ export default function Messages() {
                       >
                         <div className={`max-w-[85%] md:max-w-md px-4 py-3 rounded-2xl ${message.sender === 'me'
                           ? 'bg-[#F24C20] text-white rounded-br-sm shadow-lg shadow-[#F24C20]/20'
-                          : isDarkMode
-                            ? 'bg-neutral-800 text-white rounded-bl-sm border border-neutral-700'
                             : 'bg-neutral-100 text-neutral-900 rounded-bl-sm border border-neutral-200'
                           }`}>
                           <p className="text-sm leading-relaxed">{message.text}</p>
                           <span className={`text-[10px] mt-1 block font-bold uppercase tracking-widest ${message.sender === 'me'
                             ? 'text-white/60'
-                            : isDarkMode ? 'text-neutral-500' : 'text-neutral-400'
+                            : 'text-neutral-400'
                             }`}>
                             {message.timestamp}
                           </span>
@@ -456,10 +440,9 @@ export default function Messages() {
                   </div>
 
                   {/* Message Input */}
-                  <div className={`p-3 md:p-4 border-t ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'} bg-neutral-900/40 backdrop-blur-md`}>
-                    <div className={`flex items-end gap-2 md:gap-3 p-2 md:p-3 rounded-2xl ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'
-                      }`}>
-                      <button className={`p-2 rounded-lg transition-colors hidden sm:block ${isDarkMode ? 'hover:bg-neutral-700 text-neutral-400' : 'hover:bg-neutral-200 text-neutral-600'}`}>
+                  <div className="border-t border-neutral-200 bg-[#fff3e7] p-3 backdrop-blur-md md:p-4">
+                    <div className="flex items-end gap-2 rounded-2xl bg-white p-2 md:gap-3 md:p-3">
+                      <button className="hidden rounded-lg p-2 text-[#6b625b] transition-colors hover:bg-[#F24C20] hover:text-white sm:block">
                         <Paperclip className="w-5 h-5" />
                       </button>
                       <textarea
@@ -467,10 +450,7 @@ export default function Messages() {
                         onChange={(e) => setMessageText(e.target.value)}
                         placeholder="Message..."
                         rows={1}
-                        className={`flex-1 bg-transparent py-2 px-1 outline-none resize-none text-sm ${isDarkMode
-                          ? 'text-white placeholder:text-neutral-500'
-                          : 'text-neutral-900 placeholder:text-neutral-400'
-                          }`}
+                        className="flex-1 resize-none bg-transparent px-1 py-2 text-sm text-[#111111] outline-none placeholder:text-[#6b625b]"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -478,7 +458,7 @@ export default function Messages() {
                           }
                         }}
                       />
-                      <button className={`p-2 rounded-lg transition-colors hidden sm:block ${isDarkMode ? 'hover:bg-neutral-700 text-neutral-400' : 'hover:bg-neutral-200 text-neutral-600'}`}>
+                      <button className="hidden rounded-lg p-2 text-[#6b625b] transition-colors hover:bg-[#F24C20] hover:text-white sm:block">
                         <Smile className="w-5 h-5" />
                       </button>
                       <button
@@ -486,9 +466,7 @@ export default function Messages() {
                         disabled={!messageText.trim()}
                         className={`p-2 rounded-xl transition-all ${messageText.trim()
                           ? 'bg-[#F24C20] text-white hover:scale-110 active:scale-95 shadow-lg shadow-[#F24C20]/30'
-                          : isDarkMode
-                            ? 'bg-neutral-700 text-neutral-500 opacity-50'
-                            : 'bg-neutral-200 text-neutral-400 opacity-50'
+                          : 'bg-neutral-200 text-neutral-400 opacity-50'
                           }`}
                       >
                         <Send className="w-5 h-5" />
@@ -500,10 +478,10 @@ export default function Messages() {
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center">
                     <div className="w-20 h-20 bg-[#F24C20]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-3">
-                       <MessageSquare className={`w-10 h-10 ${isDarkMode ? 'text-[#F24C20]' : 'text-[#F24C20]'}`} />
+                       <MessageSquare className="w-10 h-10 text-[#F24C20]" />
                     </div>
-                    <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Your Inbox</h3>
-                    <p className={`text-sm max-w-xs mx-auto ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                    <h3 className="mb-2 text-xl font-bold text-[#111111]">Your Inbox</h3>
+                    <p className="mx-auto max-w-xs text-sm text-[#4a4a4a]">
                       Select an active conversation to start collaborating with experts or clients.
                     </p>
                     <button 
@@ -520,4 +498,4 @@ export default function Messages() {
       </motion.div>
     </div>
   );
-}
+}

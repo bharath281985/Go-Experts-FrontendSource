@@ -13,6 +13,7 @@ interface CreditUnlockModalProps {
   customTitle?: string;
   customDescription?: string;
   confirmLabel?: string;
+  unlockContext?: 'default' | 'chat' | 'portfolio';
 }
 
 export function CreditUnlockModal({
@@ -23,13 +24,28 @@ export function CreditUnlockModal({
   onUnlocked,
   customTitle,
   customDescription,
-  confirmLabel
+  confirmLabel,
+  unlockContext = 'default'
 }: CreditUnlockModalProps) {
   const [loading, setLoading] = useState(true);
   const [unlocking, setUnlocking] = useState(false);
   const [subStatus, setSubStatus] = useState<any>(null);
   const [isAlreadyUnlocked, setIsAlreadyUnlocked] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+
+  const getAvailableCredits = () => {
+    if (!subStatus) return 0;
+    if (targetType === 'project') {
+      return Number(subStatus?.remaining_project_visits ?? subStatus?.user?.subscription_details?.project_credits ?? 0);
+    }
+    if (unlockContext === 'chat') {
+      return Number(subStatus?.remaining_chats ?? subStatus?.user?.subscription_details?.chat_credits ?? 0);
+    }
+    return Number(subStatus?.remaining_portfolio_visits ?? subStatus?.user?.subscription_details?.portfolio_credits ?? 0);
+  };
+
+  const availableCredits = getAvailableCredits();
+  const isChatAccessUnlock = unlockContext === 'chat';
 
   useEffect(() => {
     if (isOpen) {
@@ -71,7 +87,7 @@ export function CreditUnlockModal({
   const handleUnlock = async () => {
     try {
       setUnlocking(true);
-      const res = await api.post('/subscription/unlock', { targetId, targetType });
+      const res = await api.post('/subscription/unlock', { targetId, targetType, unlockContext });
       if (res.data.success) {
         toast.success(res.data.message);
         
@@ -124,10 +140,12 @@ export function CreditUnlockModal({
               <h3 className="text-2xl font-bold text-[#044071] dark:text-white mb-2">
                 {isGuest ? 'Sign in to Unlock' : (customTitle || 'Content Locked')}
               </h3>
-              <p className="text-neutral-500 text-sm leading-relaxed px-4">
-                {isGuest 
+                <p className="text-neutral-500 text-sm leading-relaxed px-4">
+                  {isGuest 
                   ? `Please sign in or create an account to view complete ${targetType} details and protected contact info.`
-                  : (customDescription || `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details by using 1 credit.`)
+                  : (customDescription || (targetType === 'project'
+                    ? `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details by using 1 credit.`
+                    : `You are on the ${subStatus?.plan_name || 'Starter Plan'}. View complete ${targetType} details instantly.`))
                 }
               </p>
             </div>
@@ -161,7 +179,7 @@ export function CreditUnlockModal({
               ) : (
                 <>
                   {/* Usage Gating Alert */}
-                  {(targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 10 && (
+                  {availableCredits <= 10 && (
                      <div className="bg-[#F24C20]/10 border border-[#F24C20]/20 rounded-2xl p-4 flex items-center gap-3 mb-4 animate-pulse">
                         <AlertCircle className="w-5 h-5 text-[#F24C20]" />
                         <p className="text-xs font-bold text-[#F24C20]">WARNING: VIEWING LIMITS REACHED (80%). UPGRADE NOW!</p>
@@ -169,21 +187,23 @@ export function CreditUnlockModal({
                   )}
 
                   <div className={`flex items-center justify-between p-4 rounded-2xl border mb-2 transition-colors ${
-                    (targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 5 
+                    availableCredits <= 5
                     ? 'bg-red-500/5 border-red-500/20' 
                     : 'bg-neutral-100 dark:bg-white/5 border-gray-100 dark:border-white/10'
                   }`}>
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                         (targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 5 
+                         availableCredits <= 5
                          ? 'bg-red-500/10' : 'bg-blue-500/10'
                       }`}>
-                        <Zap className={`w-5 h-5 ${(targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 5 ? 'text-red-500' : 'text-blue-500'}`} />
+                        <Zap className={`w-5 h-5 ${availableCredits <= 5 ? 'text-red-500' : 'text-blue-500'}`} />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Available Credits</p>
-                        <p className={`text-xl font-black ${(targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 5 ? 'text-red-500' : 'text-[#044071] dark:text-white'}`}>
-                          {targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits} Left
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-neutral-400">
+                          {isChatAccessUnlock ? 'Available Chat Credits' : 'Available Credits'}
+                        </p>
+                        <p className={`text-xl font-black ${availableCredits <= 5 ? 'text-red-500' : 'text-[#044071] dark:text-white'}`}>
+                          {availableCredits} {isChatAccessUnlock ? 'Chats Left' : 'Left'}
                         </p>
                       </div>
                     </div>
@@ -192,7 +212,7 @@ export function CreditUnlockModal({
                   <div className="space-y-3 pt-4">
                     <button
                       onClick={handleUnlock}
-                      disabled={unlocking || (targetType === 'project' ? subStatus?.remaining_project_visits : subStatus?.remaining_portfolio_visits) <= 0}
+                      disabled={unlocking || availableCredits <= 0}
                       className="w-full py-4 bg-[#F24C20] hover:bg-[#d9431b] text-white rounded-2xl font-bold transition-all shadow-xl shadow-[#F24C20]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:transform-none disabled:bg-neutral-500"
                     >
                       {unlocking ? (
@@ -200,7 +220,7 @@ export function CreditUnlockModal({
                       ) : (
                         <>
                           <CheckCircle className="w-5 h-5" />
-                          {confirmLabel || 'Use 1 Credit'}
+                          {confirmLabel || (targetType === 'project' ? 'Use 1 Credit' : 'Unlock Now')}
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </>
                       )}

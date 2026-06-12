@@ -39,10 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <div className={`min-h-screen transition-colors duration-300 ${isDarkMode
-          ? 'bg-neutral-950 text-white'
-          : 'bg-white text-neutral-900'
-        }`}>
+      <div className="min-h-screen transition-colors duration-300 bg-background text-foreground">
         {children}
       </div>
     </ThemeContext.Provider>

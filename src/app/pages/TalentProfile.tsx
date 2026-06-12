@@ -45,6 +45,7 @@ export default function TalentProfile() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [avgRating, setAvgRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
+  const resolvedTalentId = talent?._id || id;
 
   useEffect(() => {
     fetchTalentDetails();
@@ -62,10 +63,10 @@ export default function TalentProfile() {
   };
 
   const fetchReviews = useCallback(async () => {
-    if (!id) return;
+    if (!resolvedTalentId) return;
     setReviewsLoading(true);
     try {
-      const res = await api.get(`/reviews/${id}`);
+      const res = await api.get(`/reviews/${resolvedTalentId}`);
       if (res.data.success) {
         setReviews(res.data.data);
         setAvgRating(res.data.average);
@@ -76,7 +77,7 @@ export default function TalentProfile() {
     } finally {
       setReviewsLoading(false);
     }
-  }, [id]);
+  }, [resolvedTalentId]);
 
   useEffect(() => {
     if (activeTab === 'reviews') fetchReviews();
@@ -108,9 +109,10 @@ export default function TalentProfile() {
   const handleSubmitReview = async () => {
     if (!myRating) return toast.error('Please select a star rating');
     if (!currentUser) return toast.error('Please sign in to leave a review');
+    if (!resolvedTalentId) return toast.error('Invalid freelancer profile');
     setSubmittingReview(true);
     try {
-      await api.post(`/reviews/${id}`, { rating: myRating, comment: reviewComment });
+      await api.post(`/reviews/${resolvedTalentId}`, { rating: myRating, comment: reviewComment });
       toast.success('Review submitted!');
       setMyRating(0);
       setReviewComment('');
@@ -132,7 +134,7 @@ export default function TalentProfile() {
     } catch (err: any) {
       console.error('Error checking unlock status:', err);
       if (err.response?.status === 401) {
-        toast.error('Please register to review portfolio');
+        toast.error('Please register or sign in to review portfolio');
         navigate('/signin');
       }
     }
@@ -177,21 +179,36 @@ export default function TalentProfile() {
     }
   };
 
+  useEffect(() => {
+    if (!talent?._id) return;
+    const checkUnlockByResolvedId = async () => {
+      try {
+        const res = await api.get(`/subscription/is-unlocked/${talent._id}`, { skipAuthRedirect: true, skipToast: true } as any);
+        if (res.data.success && res.data.isUnlocked) {
+          setIsUnlocked(true);
+        }
+      } catch {
+        // silent on public page
+      }
+    };
+    checkUnlockByResolvedId();
+  }, [talent?._id]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center">
+      <div className={`min-h-screen flex flex-col items-center justify-center ${isDarkMode ? 'bg-neutral-950' : 'bg-[#fdf7f2]'}`}>
         <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin mb-4" />
-        <p className="text-neutral-400">Loading profile...</p>
+        <p className={isDarkMode ? 'text-neutral-400' : 'text-[#6f5548]'}>Loading profile...</p>
       </div>
     );
   }
 
   if (error || !talent) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className={`min-h-screen flex flex-col items-center justify-center p-6 text-center ${isDarkMode ? 'bg-neutral-950' : 'bg-[#fdf7f2]'}`}>
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">Error</h2>
-        <p className="text-neutral-400 mb-6">{error || 'Profile not found'}</p>
+        <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>Error</h2>
+        <p className={`mb-6 ${isDarkMode ? 'text-neutral-400' : 'text-[#6f5548]'}`}>{error || 'Profile not found'}</p>
         <Link to="/talent" className="px-6 py-3 bg-[#F24C20] text-white rounded-lg font-bold">
           Back to Talent
         </Link>
@@ -208,17 +225,21 @@ export default function TalentProfile() {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950 pt-20">
+    <div className={`min-h-screen pt-20 ${isDarkMode ? 'bg-neutral-950' : 'bg-[#fdf7f2]'}`}>
       {/* Hero Cover Section */}
-      <div className="relative h-80 bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-900/50 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-neutral-950 to-transparent" />
+      <div className={`relative h-80 overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800' : 'bg-gradient-to-br from-[#fff7ef] via-[#fffaf5] to-[#fdebdc]'}`}>
+        <div className={`absolute inset-0 ${isDarkMode ? 'bg-gradient-to-t from-neutral-950 via-neutral-900/50 to-transparent' : 'bg-gradient-to-t from-[#fdf7f2] via-white/40 to-transparent'}`} />
+        <div className={`absolute inset-x-0 bottom-0 h-40 ${isDarkMode ? 'bg-gradient-to-t from-neutral-950 to-transparent' : 'bg-gradient-to-t from-[#fdf7f2] to-transparent'}`} />
         
         {/* Back Button */}
         <div className="absolute top-8 left-6 z-20">
           <button
             onClick={() => navigate('/talent')}
-            className="flex items-center gap-2 px-4 py-2 bg-black/30 backdrop-blur-md rounded-xl border border-white/10 text-white font-bold hover:bg-black/50 transition-all group"
+            className={`flex items-center gap-2 px-4 py-2 backdrop-blur-md rounded-xl font-bold transition-all group ${
+              isDarkMode
+                ? 'bg-black/30 border border-white/10 text-white hover:bg-black/50'
+                : 'bg-white/85 border border-[#f2c9ae] text-[#2b160e] hover:bg-white'
+            }`}
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Talent Pool
@@ -231,35 +252,39 @@ export default function TalentProfile() {
         <div className="flex flex-col md:flex-row gap-8 items-start mb-12">
           {/* Avatar Area */}
           <div className="relative group">
-            <div className="w-48 h-48 rounded-3xl overflow-hidden border-8 border-neutral-950 shadow-2xl relative z-10">
+            <div className={`w-48 h-48 rounded-3xl overflow-hidden shadow-2xl relative z-10 ${isDarkMode ? 'border-8 border-neutral-950' : 'border-8 border-white'}`}>
               <ImageWithFallback
                 src={getImgUrl(talent.profile_image) || `https://ui-avatars.com/api/?name=${talent.full_name}&size=256`}
                 alt={talent.full_name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
             </div>
-            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center border-4 border-neutral-950 z-20 shadow-lg">
+            <div className={`absolute -bottom-2 -right-2 w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center z-20 shadow-lg ${isDarkMode ? 'border-4 border-neutral-950' : 'border-4 border-white'}`}>
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
           </div>
 
           {/* User Info Card */}
-          <div className="flex-1 w-full bg-neutral-900/60 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
+          <div className={`flex-1 w-full backdrop-blur-xl p-8 rounded-[2.5rem] shadow-2xl ${
+            isDarkMode
+              ? 'bg-neutral-900/60 border border-white/5'
+              : 'bg-white/90 border border-[#f2d7c2]'
+          }`}>
             <div className="flex flex-col lg:flex-row justify-between gap-6">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 flex items-center gap-3">
+                <h1 className={`text-4xl md:text-5xl font-bold mb-2 flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>
                   {talent.full_name}
                   {talent.kyc_details?.is_verified && (
                     <span className="px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-lg border border-green-500/20">Verified</span>
                   )}
                 </h1>
-                <p className="text-xl text-neutral-400 font-medium mb-4 capitalize">{talent.role || 'Professional Expert'}</p>
+                <p className={`text-xl font-medium mb-4 capitalize ${isDarkMode ? 'text-neutral-400' : 'text-[#f24c20]'}`}>{talent.role || 'Professional Expert'}</p>
 
-                <div className="flex flex-wrap items-center gap-6 text-neutral-300">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                <div className={`flex flex-wrap items-center gap-6 ${isDarkMode ? 'text-neutral-300' : 'text-[#2b160e]'}`}>
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-[#fff7ef] border border-[#f3d6be]'}`}>
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="font-bold">{talent.rating}</span>
-                    <span className="text-neutral-500">({talent.reviewCount} reviews)</span>
+                    <span className={isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}>({talent.reviewCount} reviews)</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-[#F24C20]" />
@@ -270,22 +295,34 @@ export default function TalentProfile() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}${localStorage.getItem('userType') === 'client' ? '&intent=hire' : ''}`)}
-                  className={`flex-1 md:flex-none px-8 py-4 ${isUnlocked ? 'bg-[#F24C20] hover:bg-[#d9431b]' : 'bg-neutral-800 hover:bg-neutral-700'} text-white rounded-2xl font-bold transition-all shadow-lg shadow-[#F24C20]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2`}
+                  onClick={() => {
+                    if (!isUnlocked) {
+                      setShowUnlockModal(true);
+                    } else {
+                      navigate(`/dashboard/messages?user=${resolvedTalentId}${localStorage.getItem('userType') === 'client' ? '&intent=hire' : ''}`);
+                    }
+                  }}
+                  className={`flex-1 md:flex-none px-8 py-4 ${isUnlocked ? 'bg-[#F24C20] hover:bg-[#d9431b]' : isDarkMode ? 'bg-neutral-800 hover:bg-neutral-700' : 'bg-[#ffd9bf] hover:bg-[#ffc79f] text-[#2b160e]'} ${isUnlocked ? 'text-white' : isDarkMode ? 'text-white' : 'text-[#2b160e]'} rounded-2xl font-bold transition-all shadow-lg shadow-[#F24C20]/25 transform hover:-translate-y-1 flex items-center justify-center gap-2`}
                 >
                   {!isUnlocked && <Lock className="w-5 h-5" />}
                   {localStorage.getItem('userType') === 'freelancer' ? 'Collaborate' : 'Hire Specialist'}
                 </button>
                 <button
-                  onClick={() => !isUnlocked ? setShowUnlockModal(true) : navigate(`/dashboard/messages?user=${id}`)}
-                  className={`p-4 ${isUnlocked ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : 'bg-white/5 border-white/10 text-white'} rounded-2xl border transition-all relative group`}
+                  onClick={() => {
+                    if (!isUnlocked) {
+                      setShowUnlockModal(true);
+                    } else {
+                      navigate(`/dashboard/messages?user=${resolvedTalentId}`);
+                    }
+                  }}
+                  className={`p-4 ${isUnlocked ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : isDarkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-[#f3d6be] text-[#2b160e]'} rounded-2xl border transition-all relative group`}
                 >
                   {!isUnlocked && <div className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-lg"><Lock className="w-2.5 h-2.5" /></div>}
                   <MessageCircle className="w-6 h-6" />
                 </button>
                 <button
                   onClick={() => setSaved(!saved)}
-                  className={`p-4 rounded-2xl border transition-all ${saved ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : 'bg-white/5 border-white/10 text-white hover:border-[#F24C20]'}`}
+                  className={`p-4 rounded-2xl border transition-all ${saved ? 'bg-[#F24C20]/10 border-[#F24C20] text-[#F24C20]' : isDarkMode ? 'bg-white/5 border-white/10 text-white hover:border-[#F24C20]' : 'bg-white border-[#f3d6be] text-[#2b160e] hover:border-[#F24C20]'}`}
                 >
                   <Bookmark className={`w-6 h-6 ${saved ? 'fill-current' : ''}`} />
                 </button>
@@ -307,22 +344,22 @@ export default function TalentProfile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="p-6 bg-neutral-900/40 border border-white/5 rounded-3xl hover:bg-neutral-900/60 transition-colors"
+              className={`p-6 rounded-3xl transition-colors ${isDarkMode ? 'bg-neutral-900/40 border border-white/5 hover:bg-neutral-900/60' : 'bg-white/85 border border-[#f2d7c2] hover:bg-white'}`}
             >
               <stat.icon className={`w-6 h-6 ${stat.color} mb-3`} />
-              <div className="text-sm text-neutral-500 font-medium">{stat.label}</div>
-              <div className="text-xl font-bold text-white">{stat.value}</div>
+              <div className={`text-sm font-medium ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>{stat.label}</div>
+              <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>{stat.value}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-8 mb-8 border-b border-white/5 overflow-x-auto pb-1 scrollbar-hide">
+        <div className={`flex gap-8 mb-8 overflow-x-auto pb-1 scrollbar-hide ${isDarkMode ? 'border-b border-white/5' : 'border-b border-[#f2d7c2]'}`}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-[#F24C20]' : 'text-neutral-500 hover:text-white'}`}
+              className={`pb-4 text-sm font-bold transition-all relative ${activeTab === tab.id ? 'text-[#F24C20]' : isDarkMode ? 'text-neutral-500 hover:text-white' : 'text-[#7a5a49] hover:text-[#1f120d]'}`}
             >
               {tab.label}
               {activeTab === tab.id && (
@@ -337,33 +374,33 @@ export default function TalentProfile() {
           {activeTab === 'about' && (
             <div className="space-y-12">
               <section>
-                <h2 className="text-2xl font-bold text-white mb-6">Professional Profile</h2>
-                <p className="text-neutral-400 text-lg leading-relaxed">{talent.bio || 'This expert hasn\'t provided a bio yet.'}</p>
+                <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#F24C20]'}`}>Professional Profile</h2>
+                <p className={`text-lg leading-relaxed ${isDarkMode ? 'text-neutral-400' : 'text-[#3b2418]'}`}>{talent.bio || 'This expert hasn\'t provided a bio yet.'}</p>
               </section>
 
-              <section className="p-8 bg-neutral-900/40 border border-white/5 rounded-[2rem]">
-                <h3 className="text-xl font-bold text-white mb-6">Why Hire Me</h3>
+              <section className={`p-8 rounded-[2rem] ${isDarkMode ? 'bg-neutral-900/40 border border-white/5' : 'bg-white/85 border border-[#f2d7c2]'}`}>
+                <h3 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#F24C20]'}`}>Why Hire Me</h3>
                 <div className="grid gap-4">
                   {talent.whyHireMe.map((item: string, i: number) => (
                     <div key={i} className="flex gap-3">
                       <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
                         <CheckCircle className="w-4 h-4 text-green-500" />
                       </div>
-                      <span className="text-neutral-300">{item}</span>
+                      <span className={isDarkMode ? 'text-neutral-300' : 'text-[#2b160e]'}>{item}</span>
                     </div>
                   ))}
                 </div>
               </section>
 
               <section>
-                <h3 className="text-xl font-bold text-white mb-6">Work Process</h3>
+                <h3 className={`text-xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-[#F24C20]'}`}>Work Process</h3>
                 <div className="flex flex-col gap-6">
                   {talent.workProcess.map((p: any) => (
                     <div key={p.step} className="flex gap-6">
-                      <div className="text-4xl font-black text-white/5 select-none">{p.step.toString().padStart(2, '0')}</div>
+                      <div className={`text-4xl font-black select-none ${isDarkMode ? 'text-white/5' : 'text-[#f4c7ae]'}`}>{p.step.toString().padStart(2, '0')}</div>
                       <div>
-                        <h4 className="font-bold text-white mb-1">{p.title}</h4>
-                        <p className="text-neutral-500">{p.description}</p>
+                        <h4 className={`font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-[#2b160e]'}`}>{p.title}</h4>
+                        <p className={isDarkMode ? 'text-neutral-500' : 'text-[#6f5548]'}>{p.description}</p>
                       </div>
                     </div>
                   ))}
@@ -376,13 +413,13 @@ export default function TalentProfile() {
             <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {talent.skills?.length > 0 ? (
                 talent.skills.map((skill: any) => (
-                  <div key={typeof skill === 'object' ? skill._id : skill} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between">
-                    <span className="text-white font-bold">{typeof skill === 'object' ? skill.name : skill}</span>
-                    <Award className="w-5 h-5 text-[#F24C20]" />
-                  </div>
+                      <div key={typeof skill === 'object' ? skill._id : skill} className={`p-4 rounded-2xl flex items-center justify-between ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#f2d7c2]'}`}>
+                        <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#2b160e]'}`}>{typeof skill === 'object' ? skill.name : skill}</span>
+                        <Award className="w-5 h-5 text-[#F24C20]" />
+                      </div>
                 ))
               ) : (
-                <p className="text-neutral-500 italic">No specific skills listed.</p>
+                <p className={`italic ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>No specific skills listed.</p>
               )}
             </section>
           )}
@@ -392,7 +429,7 @@ export default function TalentProfile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {talent.portfolio?.length > 0 ? (
                     talent.portfolio.map((item: any, i: number) => (
-                      <div key={i} className={`group relative rounded-[2rem] overflow-hidden border ${isDarkMode ? 'bg-neutral-900 border-white/5' : 'bg-white border-neutral-200'} shadow-2xl transition-all hover:-translate-y-2`}>
+                      <div key={i} className={`group relative rounded-[2rem] overflow-hidden border ${isDarkMode ? 'bg-neutral-900 border-white/5' : 'bg-white border-[#f2d7c2]'} shadow-2xl transition-all hover:-translate-y-2`}>
                         <div className="aspect-[16/10] overflow-hidden relative">
                           <ImageWithFallback 
                             src={item.image || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80'} 
@@ -410,8 +447,8 @@ export default function TalentProfile() {
                         </div>
                         
                         <div className="p-6">
-                          <h4 className="text-xl font-bold text-white mb-3 group-hover:text-[#F24C20] transition-colors">{item.title}</h4>
-                          <p className="text-neutral-400 text-sm line-clamp-3 mb-6 leading-relaxed">
+                          <h4 className={`text-xl font-bold mb-3 group-hover:text-[#F24C20] transition-colors ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>{item.title}</h4>
+                          <p className={`text-sm line-clamp-3 mb-6 leading-relaxed ${isDarkMode ? 'text-neutral-400' : 'text-[#6f5548]'}`}>
                             {item.description || 'Professional execution with high attention to detail and user experience.'}
                           </p>
                           
@@ -422,7 +459,7 @@ export default function TalentProfile() {
                                 href={link} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[#F24C20] rounded-xl border border-white/10 hover:border-[#F24C20] text-xs font-bold text-white transition-all group/link"
+                                className={`flex items-center gap-2 px-4 py-2 hover:bg-[#F24C20] rounded-xl text-xs font-bold transition-all group/link ${isDarkMode ? 'bg-white/5 border border-white/10 text-white hover:border-[#F24C20]' : 'bg-[#fff7ef] border border-[#f2d7c2] text-[#2b160e] hover:text-white hover:border-[#F24C20]'}`}
                               >
                                  <LinkIcon className="w-3.5 h-3.5" />
                                  {link.includes('github') ? 'GitHub' : link.includes('behance') ? 'Behance' : 'Live Project'}
@@ -434,9 +471,9 @@ export default function TalentProfile() {
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-2 text-center py-20 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 w-full">
+                    <div className={`col-span-2 text-center py-20 rounded-[2.5rem] border border-dashed w-full ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white/70 border-[#f2d7c2]'}`}>
                       <Briefcase className="w-12 h-12 text-neutral-600 mx-auto mb-4" />
-                      <p className="text-neutral-500 font-medium">No projects added to the portfolio yet.</p>
+                      <p className={`font-medium ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>No projects added to the portfolio yet.</p>
                     </div>
                   )}
                 </div>
@@ -445,8 +482,8 @@ export default function TalentProfile() {
 
           {activeTab === 'qualification' && (
             <section className="space-y-8">
-              <div className="p-8 bg-neutral-900/40 border border-white/5 rounded-[2.5rem]">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+              <div className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-neutral-900/40 border border-white/5' : 'bg-white/85 border border-[#f2d7c2]'}`}>
+                <h3 className={`text-xl font-bold mb-6 flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-[#F24C20]'}`}>
                   <Award className="w-6 h-6 text-[#F24C20]" />
                   Educational Credentials
                 </h3>
@@ -455,11 +492,11 @@ export default function TalentProfile() {
                     <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />
                     <div>
                       <p className="font-bold text-green-500">Academic Background Verified</p>
-                      <p className="text-neutral-400 text-sm mt-1">This specialist has provided authentic educational documents that have been verified by the GoExperts validation team.</p>
+                      <p className={`text-sm mt-1 ${isDarkMode ? 'text-neutral-400' : 'text-[#5f4a3f]'}`}>This specialist has provided authentic educational documents that have been verified by the GoExperts validation team.</p>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-neutral-500 italic">Credential verification is currently in progress.</p>
+                  <p className={`italic ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>Credential verification is currently in progress.</p>
                 )}
               </div>
             </section>
@@ -468,22 +505,22 @@ export default function TalentProfile() {
           {activeTab === 'reviews' && (
             <section className="space-y-8">
               {/* Rating Summary */}
-              <div className="flex items-center gap-8 p-6 bg-neutral-900/40 border border-white/5 rounded-3xl">
+              <div className={`flex items-center gap-8 p-6 rounded-3xl ${isDarkMode ? 'bg-neutral-900/40 border border-white/5' : 'bg-white/85 border border-[#f2d7c2]'}`}>
                 <div className="text-center">
-                  <div className="text-6xl font-black text-white">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</div>
+                  <div className={`text-6xl font-black ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</div>
                   <div className="flex justify-center gap-1 mt-2">
                     {[1,2,3,4,5].map(s => (
                       <Star key={s} className={`w-5 h-5 ${s <= Math.round(avgRating) ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-700'}`} />
                     ))}
                   </div>
-                  <div className="text-neutral-500 text-sm mt-1">{reviewCount} review{reviewCount !== 1 ? 's' : ''}</div>
+                  <div className={`text-sm mt-1 ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>{reviewCount} review{reviewCount !== 1 ? 's' : ''}</div>
                 </div>
               </div>
 
               {/* Submit Review Form (logged-in users only) */}
-              {currentUser && currentUser._id !== id && (
-                <div className="p-6 bg-neutral-900/40 border border-white/5 rounded-3xl space-y-4">
-                  <h4 className="text-white font-bold text-lg">Leave a Review</h4>
+              {currentUser && currentUser._id !== resolvedTalentId && (
+                <div className={`p-6 rounded-3xl space-y-4 ${isDarkMode ? 'bg-neutral-900/40 border border-white/5' : 'bg-white/85 border border-[#f2d7c2]'}`}>
+                  <h4 className={`font-bold text-lg ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>Leave a Review</h4>
                   {/* Star picker */}
                   <div className="flex gap-2">
                     {[1,2,3,4,5].map(s => (
@@ -504,7 +541,7 @@ export default function TalentProfile() {
                     value={reviewComment}
                     onChange={e => setReviewComment(e.target.value)}
                     placeholder="Share your experience (optional)..."
-                    className="w-full bg-neutral-800 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm resize-none focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all h-28"
+                    className={`w-full rounded-2xl px-5 py-4 text-sm resize-none focus:border-[#F24C20] focus:ring-1 focus:ring-[#F24C20] outline-none transition-all h-28 ${isDarkMode ? 'bg-neutral-800 border border-white/10 text-white' : 'bg-white border border-[#f2d7c2] text-[#2b160e]'}`}
                   />
                   <button
                     onClick={handleSubmitReview}
@@ -521,14 +558,14 @@ export default function TalentProfile() {
               {reviewsLoading ? (
                 <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-[#F24C20]" /></div>
               ) : reviews.length === 0 ? (
-                <div className="text-center py-12 bg-neutral-900/20 border border-white/5 rounded-3xl">
+                <div className={`text-center py-12 rounded-3xl ${isDarkMode ? 'bg-neutral-900/20 border border-white/5' : 'bg-white/75 border border-[#f2d7c2]'}`}>
                   <Star className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
-                  <p className="text-neutral-500">No reviews yet. Be the first to review!</p>
+                  <p className={isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}>No reviews yet. Be the first to review!</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((review: any) => (
-                    <div key={review._id} className="p-5 bg-neutral-900/40 border border-white/5 rounded-2xl">
+                    <div key={review._id} className={`p-5 rounded-2xl ${isDarkMode ? 'bg-neutral-900/40 border border-white/5' : 'bg-white/85 border border-[#f2d7c2]'}`}>
                       <div className="flex items-start gap-4">
                         <img
                           src={review.reviewer_id?.profile_image
@@ -542,15 +579,15 @@ export default function TalentProfile() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="font-bold text-white">{review.reviewer_id?.full_name || 'Anonymous'}</span>
-                            <span className="text-xs text-neutral-500">{new Date(review.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
+                            <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-[#1f120d]'}`}>{review.reviewer_id?.full_name || 'Anonymous'}</span>
+                            <span className={`text-xs ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>{new Date(review.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
                           </div>
                           <div className="flex gap-1 mt-1 mb-2">
                             {[1,2,3,4,5].map(s => (
                               <Star key={s} className={`w-4 h-4 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-700'}`} />
                             ))}
                           </div>
-                          {review.comment && <p className="text-neutral-400 text-sm leading-relaxed">{review.comment}</p>}
+                          {review.comment && <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-neutral-400' : 'text-[#5f4a3f]'}`}>{review.comment}</p>}
                         </div>
                       </div>
                     </div>
@@ -565,7 +602,7 @@ export default function TalentProfile() {
       <CreditUnlockModal 
         isOpen={showUnlockModal}
         onClose={() => setShowUnlockModal(false)}
-        targetId={id!}
+        targetId={resolvedTalentId!}
         targetType="freelancer"
         onUnlocked={() => {
           setIsUnlocked(true);

@@ -93,14 +93,14 @@ export default function DashboardRouter() {
           <Route path="projects/explore" element={<Navigate to="/dashboard/projects/my-projects" replace />} />
           <Route path="projects/my-projects" element={<MyProjects />} />
 
-          {/* Create Project (Client Only) */}
+          {/* Create Project (Client + Freelancer) */}
           <Route
             path="projects/create"
-            element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />}
+            element={(userType === 'client' || userType === 'freelancer') ? <CreateProject /> : <Navigate to="/dashboard" />}
           />
           <Route
             path="projects/edit/:id"
-            element={userType === 'client' ? <CreateProject /> : <Navigate to="/dashboard" />}
+            element={(userType === 'client' || userType === 'freelancer') ? <CreateProject /> : <Navigate to="/dashboard" />}
           />
 
           {/* Gigs */}

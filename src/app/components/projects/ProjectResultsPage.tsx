@@ -189,19 +189,19 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground">
         <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin mb-4" />
-        <p className="text-neutral-400 font-medium">Finding the best matches for you...</p>
+        <p className="text-muted-foreground font-medium">Finding the best matches for you...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
 
       <main className="pt-20">
-        <section className="relative py-12 bg-gradient-to-b from-neutral-900 to-neutral-950 border-b border-neutral-800">
+        <section className="relative py-12 bg-gradient-to-b from-secondary to-background border-b border-border">
           <div className="max-w-7xl mx-auto px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -210,11 +210,11 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
             >
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Briefcase className="w-8 h-8 text-[#F24C20]" />
-                <h1 className="text-4xl font-bold text-white">
+                <h1 className="text-4xl font-bold text-foreground">
                   We found <span className="text-[#F24C20]">{filteredProjects.length}</span> matching projects
                 </h1>
               </div>
-              <p className="text-xl text-neutral-400">Based on your preferences and skills</p>
+              <p className="text-xl text-muted-foreground">Based on your preferences and skills</p>
             </motion.div>
           </div>
         </section>
@@ -226,24 +226,24 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
               <div className="lg:hidden flex flex-col gap-4">
                  <button 
                   onClick={() => setIsMobileFiltersOpen(true)}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-neutral-900 border border-neutral-800 rounded-2xl text-white font-bold shadow-xl active:scale-95 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#FFEAD4]/40 hover:bg-[#FFEAD4]/80 border border-[#FFE0C2] rounded-2xl text-foreground font-bold shadow-md active:scale-95 transition-all"
                 >
                   <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
                   Refine Your Search
                 </button>
-                <div className="text-neutral-400 text-sm font-medium">
-                  We found <span className="text-white font-bold">{filteredProjects.length}</span> matching projects
+                <div className="text-muted-foreground text-sm font-medium">
+                  We found <span className="text-foreground font-bold">{filteredProjects.length}</span> matching projects
                 </div>
               </div>
 
               {/* Sidebar / Filters */}
               <div className="flex flex-col lg:flex-row gap-8">
               <aside className="hidden lg:block w-80 flex-shrink-0 space-y-6 sticky top-24 h-[calc(100vh-120px)] overflow-y-auto no-scrollbar scrollbar-hide pr-2">
-                <div className="p-6 rounded-3xl bg-neutral-900/50 border border-neutral-800 backdrop-blur-xl">
+                <div className="p-6 rounded-3xl bg-white border border-border shadow-sm">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-2">
                       <SlidersHorizontal className="w-5 h-5 text-[#F24C20]" />
-                      <h3 className="font-black text-white uppercase tracking-tighter">Refine Results</h3>
+                      <h3 className="font-black text-foreground uppercase tracking-tighter">Refine Results</h3>
                     </div>
                     <button 
                       onClick={clearAllFilters}
@@ -256,27 +256,27 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                   <div className="space-y-8">
                     {/* Search */}
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Search Content</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Search Content</label>
                       <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-[#F24C20] transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-[#F24C20] transition-colors" />
                         <input
                           type="text"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           placeholder="Search titles or items..."
-                          className="w-full pl-12 pr-4 py-3 bg-neutral-950 border border-neutral-800 rounded-2xl text-white text-sm placeholder:text-neutral-600 focus:outline-none focus:border-[#F24C20] transition-all"
+                          className="w-full pl-12 pr-4 py-3 bg-[#FFEAD4]/20 border border-[#FFE0C2] rounded-2xl text-foreground text-sm placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-all"
                         />
                       </div>
                     </div>
 
                     {/* Categories */}
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Category</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Category</label>
                       <div className="flex flex-col gap-2">
                         <button
                           onClick={() => setFilters(prev => ({ ...prev, projectType: '' }))}
                           className={`flex items-center justify-between p-3 rounded-xl border text-sm font-bold transition-all ${
-                            !filters.projectType ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                            !filters.projectType ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-border text-muted-foreground hover:border-[#FFE0C2]/80 hover:text-foreground'
                           }`}
                         >
                           All Categories
@@ -287,7 +287,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                             key={cat._id}
                             onClick={() => setFilters(prev => ({ ...prev, projectType: cat.name }))}
                             className={`flex items-center justify-between p-3 rounded-xl border text-sm font-bold transition-all ${
-                              filters.projectType === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                              filters.projectType === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-border text-muted-foreground hover:border-[#FFE0C2]/80 hover:text-foreground'
                             }`}
                           >
                             {cat.name}
@@ -299,7 +299,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
 
                     {/* Budget Range */}
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Budget Range</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Budget Range</label>
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(budgetLabels).map(([key, label]) => {
                           const isSelected = filters.budget === key;
@@ -308,7 +308,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                               key={key}
                               onClick={() => setFilters(prev => ({ ...prev, budget: isSelected ? '' : key }))}
                               className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all ${
-                                isSelected ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-neutral-800 text-neutral-500 hover:border-neutral-700 hover:text-neutral-400'
+                                isSelected ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-border text-muted-foreground hover:border-[#FFE0C2]/80 hover:text-foreground'
                               }`}
                             >
                               {label}
@@ -320,7 +320,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
 
                     {/* Skills Toggle */}
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Tech Stack</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Tech Stack</label>
                       <div className="flex flex-wrap gap-2">
                         {availableSkills.slice(0, 10).map(skill => {
                           const isSelected = filters.skills.includes(skill.name);
@@ -329,7 +329,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                               key={skill._id}
                               onClick={() => toggleSkill(skill.name)}
                               className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all ${
-                                isSelected ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-neutral-800 text-neutral-500 hover:border-neutral-700 hover:text-neutral-400'
+                                isSelected ? 'bg-[#F24C20] border-[#F24C20] text-white' : 'border-border text-muted-foreground hover:border-[#FFE0C2]/80 hover:text-foreground'
                               }`}
                             >
                               {skill.name}
@@ -345,31 +345,31 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
               {/* Mobile Filter Drawer */}
               <div className={`lg:hidden fixed inset-0 z-[100] transition-all duration-300 ${isMobileFiltersOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileFiltersOpen(false)} />
-                <div className={`absolute bottom-0 left-0 right-0 max-h-[90vh] bg-neutral-900 rounded-t-[2.5rem] border-t border-neutral-800 p-6 overflow-y-auto transition-transform duration-300 ${isMobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div className={`absolute bottom-0 left-0 right-0 max-h-[90vh] bg-white rounded-t-[2.5rem] border-t border-border p-6 overflow-y-auto transition-transform duration-300 ${isMobileFiltersOpen ? 'translate-y-0' : 'translate-y-full'}`}>
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-xl font-bold text-white">Filters</h3>
-                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 rounded-full bg-neutral-800 text-neutral-400"><XCircle className="w-6 h-6" /></button>
+                    <h3 className="text-xl font-bold text-foreground">Filters</h3>
+                    <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 rounded-full bg-[#FFEAD4]/60 text-muted-foreground"><XCircle className="w-6 h-6" /></button>
                   </div>
                   
                   <div className="space-y-8 pb-8">
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Keywords</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Keywords</label>
                       <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search titles or items..."
-                        className="w-full px-4 py-4 bg-neutral-950 border border-neutral-800 rounded-2xl text-white text-sm focus:outline-none focus:border-[#F24C20] transition-all"
+                        className="w-full px-4 py-4 bg-[#FFEAD4]/20 border border-[#FFE0C2] rounded-2xl text-foreground text-sm focus:outline-none focus:border-[#F24C20] transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-3 block">Category</label>
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 block">Category</label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           onClick={() => setFilters(prev => ({ ...prev, projectType: '' }))}
                           className={`p-3 rounded-xl border text-sm font-bold transition-all ${
-                            !filters.projectType ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                            !filters.projectType ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-border text-muted-foreground'
                           }`}
                         >
                           All Categories
@@ -379,7 +379,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                             key={cat._id}
                             onClick={() => setFilters(prev => ({ ...prev, projectType: cat.name }))}
                             className={`p-3 rounded-xl border text-sm font-bold transition-all ${
-                              filters.projectType === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-neutral-800 text-neutral-400'
+                              filters.projectType === cat.name ? 'bg-[#F24C20]/10 border-[#F24C20]/30 text-[#F24C20]' : 'border-border text-muted-foreground'
                             }`}
                           >
                             {cat.name}
@@ -400,8 +400,8 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
 
               <div className="flex-1 space-y-6">
                 <div className="hidden lg:flex items-center justify-between mb-2">
-                  <div className="text-neutral-400 text-sm font-medium">
-                    We found <span className="text-white font-bold">{filteredProjects.length}</span> matching projects
+                  <div className="text-muted-foreground text-sm font-medium">
+                    We found <span className="text-foreground font-bold">{filteredProjects.length}</span> matching projects
                   </div>
                 </div>
 
@@ -414,17 +414,17 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                     whileHover={{ y: -4 }}
                     className="relative group"
                   >
-                    <div className="p-5 md:p-6 rounded-2xl bg-neutral-900/50 border border-neutral-800 hover:border-[#F24C20]/50 transition-all overflow-hidden group">
+                    <div className="p-5 md:p-6 rounded-2xl bg-white border border-border hover:border-[#F24C20]/50 transition-all overflow-hidden group shadow-sm">
                       <div className="relative">
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                            <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-[#F24C20] transition-colors leading-tight">
+                            <h3 className="text-lg md:text-xl font-bold text-foreground group-hover:text-[#F24C20] transition-colors leading-tight">
                               {project.title}
                             </h3>
                             <div className="flex gap-2 shrink-0">
                               {project.isApplied && (
                                 <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] font-black uppercase rounded-lg border border-green-500/30 whitespace-nowrap">
-                                  Applied
+                                  Proposal: Pending
                                 </span>
                               )}
                               {project.isUnlocked && !project.isApplied && (
@@ -435,7 +435,7 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                             </div>
                           </div>
                           
-                          <p className="text-neutral-400 text-sm line-clamp-2 md:line-clamp-none mb-6">
+                          <p className="text-muted-foreground text-sm line-clamp-2 md:line-clamp-none mb-6">
                             {project.description}
                           </p>
 
@@ -445,33 +445,33 @@ export default function ProjectResultsPage({ answers }: ProjectResultsPageProps)
                                 <IndianRupee className="w-5 h-5 text-[#F24C20]" />
                               </div>
                               <div>
-                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Budget</div>
-                                <div className="font-bold text-white text-sm md:text-base">₹{project.budget_range}</div>
+                                <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Budget</div>
+                                <div className="font-bold text-foreground text-sm md:text-base">₹{project.budget_range}</div>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-neutral-800/50 flex items-center justify-center shrink-0">
-                                <Clock className="w-5 h-5 text-neutral-400" />
+                              <div className="w-10 h-10 rounded-xl bg-[#FFEAD4]/40 flex items-center justify-center shrink-0">
+                                <Clock className="w-5 h-5 text-foreground" />
                               </div>
                               <div>
-                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Type</div>
-                                <div className="font-bold text-white text-sm md:text-base">Fixed Price</div>
+                                <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Type</div>
+                                <div className="font-bold text-foreground text-sm md:text-base">Fixed Price</div>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-6 border-t border-neutral-800">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-6 border-t border-border">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 flex items-center justify-center overflow-hidden">
+                              <div className="w-10 h-10 rounded-full bg-[#FFEAD4] border border-[#FFE0C2] flex items-center justify-center overflow-hidden shrink-0">
                                 {project.client_id?.profile_image ? (
                                   <img src={project.client_id.profile_image} className="w-full h-full object-cover" alt="" />
                                 ) : (
-                                  <span className="text-white text-xs font-bold">{project.client_id?.full_name?.substring(0, 2).toUpperCase()}</span>
+                                  <span className="text-[#F24C20] text-xs font-bold">{project.client_id?.full_name?.substring(0, 2).toUpperCase()}</span>
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <div className="text-sm font-bold text-white truncate">{project.client_id?.full_name || 'Anonymous Client'}</div>
-                                <div className="text-[10px] text-neutral-500 font-black uppercase tracking-widest">Verified Client</div>
+                                <div className="text-sm font-bold text-foreground truncate">{project.client_id?.full_name || 'Anonymous Client'}</div>
+                                <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Verified Client</div>
                               </div>
                             </div>
                             <button

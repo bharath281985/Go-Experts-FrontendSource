@@ -28,7 +28,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main>
         <HeroSection />

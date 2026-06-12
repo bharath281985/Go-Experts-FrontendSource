@@ -741,7 +741,7 @@ export default function CreateProject() {
                 <div>
                   <label className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>Category</label>
                   <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
-                    {projectData.category || 'Not selected'}
+                    {selectedCategory?.name || projectData.category || 'Not selected'}
                   </p>
                 </div>
                 <div>

@@ -65,7 +65,7 @@ export default function FAQSection() {
   return (
     <section
       ref={ref}
-      className="relative py-15 overflow-hidden bg-black"
+      className="relative py-15 overflow-hidden bg-background text-foreground"
     >
       {/* Decorative background atoms */}
       <div className="absolute inset-0 pointer-events-none">
@@ -84,7 +84,7 @@ export default function FAQSection() {
             <span className="text-sm font-bold tracking-wider uppercase">Quick Help</span>
           </div>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6">
-            <span className="text-white">Questions? </span>
+            <span className="text-foreground">Questions? </span>
             <span className="bg-gradient-to-r from-[#F24C20] to-orange-500 bg-clip-text text-transparent italic">
               Answered.
             </span>
@@ -98,8 +98,8 @@ export default function FAQSection() {
               key={cat}
               onClick={() => { setActiveTab(cat); setOpenId(null); }}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${activeTab === cat
-                  ? 'bg-[#F24C20] border-[#F24C20] text-white shadow-lg'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
+                  ? 'bg-[#F24C20] border-[#F24C20] text-white shadow-lg shadow-[#F24C20]/20'
+                  : 'bg-white border-[#FFE0C2] text-foreground hover:border-[#F24C20]/50 hover:text-[#F24C20]'
                 }`}
             >
               {getTabIcon(cat)}
@@ -159,7 +159,7 @@ const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ delay: index * 0.05 }}
-      className={`rounded-[32px] border transition-all overflow-hidden ${isOpen ? 'bg-neutral-900 border-[#F24C20]/50 shadow-2xl' : 'bg-neutral-900/40 border-neutral-800 hover:border-neutral-700'
+      className={`rounded-[32px] border transition-all overflow-hidden ${isOpen ? 'bg-white border-[#F24C20] shadow-xl shadow-orange-500/5' : 'bg-white/80 border-[#FFE0C2] hover:border-[#F24C20]/30'
         }`}
     >
       <button
@@ -167,10 +167,10 @@ const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen
         className="w-full p-8 text-left group"
       >
         <div className="flex items-center justify-between gap-6">
-          <h3 className={`text-xl font-bold transition-colors ${isOpen ? 'text-[#F24C20]' : 'text-white'}`}>
+          <h3 className={`text-xl font-bold transition-colors ${isOpen ? 'text-[#F24C20]' : 'text-foreground'}`}>
             {faq.question}
           </h3>
-          <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${isOpen ? 'bg-[#F24C20] border-[#F24C20] text-white rotate-180' : 'bg-neutral-800 border-neutral-700 text-neutral-400'
+          <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${isOpen ? 'bg-[#F24C20] border-[#F24C20] text-white rotate-180' : 'bg-[#FFEAD4] border-[#FFE0C2] text-foreground'
             }`}>
             <ChevronDown className="w-6 h-6" />
           </div>
@@ -181,7 +181,7 @@ const FAQItem = forwardRef(({ faq, isOpen, onToggle, index }: { faq: FAQ, isOpen
           animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
           className="overflow-hidden"
         >
-          <div className="pt-8 text-neutral-400 text-lg leading-relaxed whitespace-pre-wrap">
+          <div className="pt-8 text-neutral-500 text-lg leading-relaxed whitespace-pre-wrap">
             <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
           </div>
         </motion.div>

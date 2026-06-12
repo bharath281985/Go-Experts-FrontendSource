@@ -70,7 +70,7 @@ export default function TalentSection() {
       ref={ref}
       className="relative py-25 overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at bottom, #0f0505 0%, #000000 100%)',
+        background: 'radial-gradient(ellipse at bottom, var(--secondary) 0%, var(--background) 100%)',
       }}
     >
       {/* Background Elements */}
@@ -109,11 +109,11 @@ export default function TalentSection() {
           </motion.div>
 
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-white">Meet World-Class </span>
+            <span className="text-foreground">Meet World-Class </span>
             <span className="text-[#F24C20]">Talent</span>
           </h2>
 
-          <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-500 max-w-2xl mx-auto">
             Work with hand-vetted professionals who have proven track records
           </p>
         </motion.div>
@@ -137,7 +137,7 @@ export default function TalentSection() {
                     rotateY: 3,
                   } : {}}
                   transition={{ duration: 0.4 }}
-                  className="relative min-h-[520px] p-6 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden h-full flex flex-col"
+                  className="relative min-h-[520px] p-6 rounded-3xl bg-white border border-[#FFE0C2] hover:border-[#F24C20]/50 overflow-hidden h-full flex flex-col shadow-xl shadow-orange-500/5"
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Glow Effect */}
@@ -185,7 +185,7 @@ export default function TalentSection() {
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ delay: index * 0.15 + 0.5, type: 'spring' }}
-                              className="absolute -bottom-2 -right-2 w-9 h-9 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-4 border-black shadow-xl"
+                              className="absolute -bottom-2 -right-2 w-9 h-9 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center border-4 border-white shadow-xl"
                             >
                               <CheckCircle className="w-5 h-5 text-white" />
                             </motion.div>
@@ -208,7 +208,7 @@ export default function TalentSection() {
                       </motion.div>
 
                       {/* Name & Role */}
-                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-[#F24C20] transition-colors line-clamp-1">
+                      <h3 className="text-xl font-bold text-foreground mb-1 group-hover:text-[#F24C20] transition-colors line-clamp-1">
                         {talent.full_name || talent.name}
                       </h3>
                       <p className="text-sm text-neutral-400 mb-4 capitalize line-clamp-1">{talent.role}</p>
@@ -216,7 +216,7 @@ export default function TalentSection() {
                       {/* Rating */}
                       <div className="flex items-center justify-center gap-2 mb-4">
                         <Star className={`w-5 h-5 ${talent.rating ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-600'}`} />
-                        <span className="font-bold text-white text-lg">{talent.rating ?? 'New'}</span>
+                        <span className="font-bold text-foreground text-lg">{talent.rating ?? 'New'}</span>
                         {talent.reviews > 0 && <span className="text-sm text-neutral-500">({talent.reviews})</span>}
                       </div>
 
@@ -234,7 +234,7 @@ export default function TalentSection() {
                           return (
                             <span
                               key={typeof skill === 'object' ? skill._id : skill}
-                              className="mx-auto block max-w-full truncate px-3 py-2 rounded-xl bg-neutral-800/70 text-xs font-medium text-neutral-300 border border-neutral-700 text-center"
+                              className="mx-auto block max-w-full truncate px-3 py-2 rounded-xl bg-[#FFEAD4]/60 text-xs font-medium text-foreground border border-[#FFE0C2] text-center"
                               title={skillName}
                             >
                               {skillName}
@@ -245,7 +245,7 @@ export default function TalentSection() {
                     </div>
 
                     {/* Footer Area - Price (Fixed at bottom) */}
-                    <div className="pt-6 border-t border-neutral-800/50 mt-auto flex items-center justify-between gap-3">
+                    <div className="pt-6 border-t border-[#FFE0C2] mt-auto flex items-center justify-between gap-3">
                       <div className="flex flex-col text-left">
                         <div className="text-[10px] italic tracking-widest font-bold text-neutral-500 mb-1">Service Starts From</div>
                         <div className="text-2xl font-black text-[#F24C20] tracking-tight leading-none">₹{talent.hourly_rate}</div>

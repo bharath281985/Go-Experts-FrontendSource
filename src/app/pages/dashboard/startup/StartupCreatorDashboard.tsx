@@ -481,7 +481,7 @@ export default function StartupCreatorDashboard() {
                         <div className="p-8 rounded-full bg-blue-500/10 mb-8 animate-pulse">
                             <TrendingUp className="w-20 h-20 text-blue-500" />
                         </div>
-                        <h4 className="text-2xl font-black text-white">Visual Insights Coming Soon</h4>
+                        <h4 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Visual Insights Coming Soon</h4>
                         <p className="mt-4 text-neutral-500 font-bold max-w-sm text-center uppercase tracking-widest text-xs">
                             We are integrating interactive charts to help you visualize investor behavior.
                         </p>
@@ -489,16 +489,16 @@ export default function StartupCreatorDashboard() {
                     <div className="space-y-6">
                          <div className={`p-8 rounded-[3rem] border ${isDarkMode ? 'bg-[#F24C20]/10 border-[#F24C20]/30' : 'bg-orange-50 border-orange-200'}`}>
                             <h5 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#F24C20] mb-4">Top Performing Pitch</h5>
-                            <h3 className="text-2xl font-black text-white">{ideas[0] ? getIdeaTitle(ideas[0]) : 'N/A'}</h3>
+                            <h3 className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{ideas[0] ? getIdeaTitle(ideas[0]) : 'N/A'}</h3>
                             <div className="mt-6 flex items-center gap-6">
                                 <div>
                                     <span className="text-[8px] font-black uppercase text-neutral-500">Total Views</span>
-                                    <span className="block text-xl font-black text-white">{ideas[0]?.views || 0}</span>
+                                    <span className={`block text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{ideas[0]?.views || 0}</span>
                                 </div>
-                                <div className="w-px h-8 bg-neutral-800" />
+                                <div className={`w-px h-8 ${isDarkMode ? 'bg-neutral-800' : 'bg-orange-200'}`} />
                                 <div>
                                     <span className="text-[8px] font-black uppercase text-neutral-500">C-Rate</span>
-                                    <span className="block text-xl font-black text-white">4.2%</span>
+                                    <span className={`block text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>4.2%</span>
                                 </div>
                             </div>
                          </div>

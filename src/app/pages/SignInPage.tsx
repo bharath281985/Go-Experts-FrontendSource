@@ -14,7 +14,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const message = params.get('message');
@@ -100,57 +100,57 @@ export default function SignInPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-neutral-950">
+      <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-md"
         >
-          <Link to="/" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white mb-8 transition-colors">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to home
           </Link>
 
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <img src={logoUrl} alt="Go Experts" className="h-10 w-auto brightness-0 invert" />
+              <img src={logoUrl} alt="Go Experts" className="h-10 w-auto" />
             </div>
-            <h1 className="text-3xl font-bold mb-2 text-white">Welcome back</h1>
-            <p className="text-neutral-400">Sign in to your account to continue</p>
+            <h1 className="text-3xl font-bold mb-2 text-foreground">Welcome back</h1>
+            <p className="text-muted-foreground">Sign in to your account to continue</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium mb-2 text-neutral-300">Email</label>
+              <label className="block text-sm font-medium mb-2 text-foreground">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value.toLowerCase())}
                   placeholder="enter mail"
                   required
-                  className="w-full pl-12 pr-4 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                  className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#F24C20] transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-neutral-300">Password</label>
+              <label className="block text-sm font-medium mb-2 text-foreground">Password</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
                   required
-                  className="w-full pl-12 pr-12 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                  className="w-full pl-12 pr-12 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#F24C20] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -159,8 +159,8 @@ export default function SignInPage() {
 
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-neutral-700 text-[#F24C20] focus:ring-[#F24C20]" />
-                <span className="text-sm text-neutral-400">Remember me</span>
+                <input type="checkbox" className="w-4 h-4 rounded border-border text-[#F24C20] focus:ring-[#F24C20]" />
+                <span className="text-sm text-muted-foreground">Remember me</span>
               </label>
               <Link to="/forgot-password" className="text-sm text-[#F24C20] hover:text-[#F24C20]/80 transition-colors">
                 Forgot password?
@@ -183,7 +183,7 @@ export default function SignInPage() {
             </button>
           </form>
 
-          <div className="text-center text-neutral-400">
+          <div className="text-center text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/signup" className="text-[#F24C20] hover:text-[#F24C20]/80 transition-colors font-medium">
               Sign up
@@ -196,13 +196,13 @@ export default function SignInPage() {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="hidden lg:flex flex-1 items-center justify-center p-8 bg-gradient-to-br from-[#F24C20]/10 to-orange-600/5 relative overflow-hidden"
+        className="hidden lg:flex flex-1 items-center justify-center p-8 bg-gradient-to-br from-[#F24C20]/10 to-orange-200/20 relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-[linear-gradient(rgba(242,76,32,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(242,76,32,0.05)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="relative z-10 text-center">
           <div className="text-8xl mb-8">🚀</div>
-          <h2 className="text-3xl font-bold mb-4 text-white">Start Your Journey</h2>
-          <p className="text-xl text-neutral-400 max-w-md">
+          <h2 className="text-3xl font-bold mb-4 text-foreground">Start Your Journey</h2>
+          <p className="text-xl text-muted-foreground max-w-md">
             Join thousands of professionals finding success on Go Experts
           </p>
         </div>

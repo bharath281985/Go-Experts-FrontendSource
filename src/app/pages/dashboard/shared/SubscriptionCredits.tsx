@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useTheme } from '@/app/components/ThemeProvider';
 import {
   Crown,
   Check,
@@ -81,14 +80,14 @@ const buildPlanFeatures = (plan: any, targetRole: string) => {
   const features = new Set<string>();
 
   if (targetRole === 'freelancer') {
-    if (plan.interest_click_limit > 0) features.add(`Apply to ${plan.interest_click_limit} projects`);
+    if (plan.interest_click_limit > 0) features.add(`Apply to projects using plan credits`);
     if (plan.project_visit_limit > 0) features.add(`View ${plan.project_visit_limit} detailed project briefs`);
     if (plan.startup_idea_post_limit > 0) features.add(`Submit ${plan.startup_idea_post_limit} startup pitches`);
     if (plan.startup_idea_explore_limit > 0) features.add(`Unlock ${plan.startup_idea_explore_limit} startup concepts`);
     if (plan.chat_limit > 0) features.add(`Chat with ${plan.chat_limit} potential clients`);
   } else if (targetRole === 'client') {
     if (plan.project_post_limit > 0) features.add(`Post up to ${plan.project_post_limit} active projects`);
-    if (plan.portfolio_visit_limit > 0) features.add(`Unlock ${plan.portfolio_visit_limit} premium talent profiles`);
+    if (plan.portfolio_visit_limit > 0) features.add(`Unlock contact details using credits`);
     if (plan.chat_limit > 0) features.add(`Directly message ${plan.chat_limit} freelancers`);
   } else if (targetRole === 'startup_creator') {
     if (plan.startup_idea_post_limit > 0) features.add(`Publish ${plan.startup_idea_post_limit} investment pitches`);
@@ -106,7 +105,7 @@ const buildPlanFeatures = (plan: any, targetRole: string) => {
 };
 
 export default function SubscriptionCredits() {
-  const { isDarkMode } = useTheme();
+  const isDarkMode = false;
   const location = useLocation();
   const [stats, setStats] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
@@ -215,7 +214,7 @@ export default function SubscriptionCredits() {
   );
 
   const usageMetrics = isFreelancer ? [
-    makeUsageMetric('Project Applications', sub?.remaining_interest_clicks, sub?.total_interest_clicks ?? planDetails.interest_click_limit),
+    makeUsageMetric('Project Application Points', stats?.profile?.total_points ?? 0, stats?.profile?.total_points ?? 0),
     makeUsageMetric('Project Detail Visits', sub?.remaining_project_visits, sub?.total_project_visits ?? planDetails.project_visit_limit),
     makeUsageMetric('Startup Submissions', sub?.remaining_startup_posts, sub?.total_startup_posts ?? planDetails.startup_idea_post_limit),
     makeUsageMetric('Startup Unlocks', sub?.remaining_idea_unlocks, sub?.total_idea_unlocks ?? planDetails.startup_idea_explore_limit),
@@ -230,7 +229,7 @@ export default function SubscriptionCredits() {
     makeUsageMetric('Direct Chats', sub?.remaining_chats, sub?.total_chats ?? planDetails.chat_limit)
   ] : [
     makeUsageMetric('Project Posts', sub?.remaining_project_posts, sub?.total_project_posts ?? planDetails.project_post_limit),
-    makeUsageMetric('Talent Unlocks', sub?.remaining_portfolio_visits, sub?.total_portfolio_visits ?? planDetails.portfolio_visit_limit),
+    makeUsageMetric('Contact Unlock Points', stats?.profile?.total_points ?? 0, stats?.profile?.total_points ?? 0),
     makeUsageMetric('Direct Chats', sub?.remaining_chats, sub?.total_chats ?? planDetails.chat_limit)
   ];
 
@@ -289,7 +288,7 @@ export default function SubscriptionCredits() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5 text-[#111111]">
       {/* Page Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -297,10 +296,10 @@ export default function SubscriptionCredits() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+            <h1 className="text-2xl font-bold text-[#111111]">
               Subscription & Credits
             </h1>
-            <p className={`mt-1 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            <p className="mt-1 text-sm text-[#4a4a4a]">
               Manage your subscription plan and credit balance
             </p>
           </div>
@@ -315,21 +314,21 @@ export default function SubscriptionCredits() {
       </motion.div>
 
       {/* Current Plan Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.9fr)_minmax(300px,0.9fr)] gap-4">
+      <div className="grid grid-cols-1 2xl:grid-cols-[minmax(0,1.85fr)_minmax(340px,0.85fr)] gap-4">
         {/* Plan Info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`p-4 rounded-2xl border backdrop-blur-sm ${isDarkMode
+          className={`p-5 rounded-2xl border backdrop-blur-sm ${isDarkMode
             ? 'bg-neutral-900/50 border-neutral-800'
-            : 'bg-white/50 border-neutral-200'
+            : 'bg-white border-neutral-200 shadow-sm'
             }`}
         >
           <div className="flex flex-col gap-3.5 mb-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className={`text-lg sm:text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                <h2 className="text-lg sm:text-xl font-bold text-[#111111]">
                   {currentPlanData.planName}
                 </h2>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${sub ? (isDarkMode
@@ -342,7 +341,7 @@ export default function SubscriptionCredits() {
                   {sub ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <p className={`mt-1.5 text-[11px] sm:text-xs font-medium ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
+              <p className="mt-1.5 text-[11px] sm:text-xs font-medium text-[#4a4a4a]">
                 {sub?.start_date || sub?.createdAt
                   ? `Authenticated on ${new Date(sub.start_date || sub.createdAt).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -366,7 +365,7 @@ export default function SubscriptionCredits() {
                     />
                   </div>
                   <div className="min-w-0">
-                     <p className={`text-[13px] font-black leading-none ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                     <p className="text-[13px] font-black leading-none text-[#111111]">
                         {currentPlanData.daysRemaining} Days
                      </p>
                      <p className="text-[10px] font-bold text-[#F24C20] uppercase tracking-widest mt-1">Remaining</p>
@@ -385,15 +384,15 @@ export default function SubscriptionCredits() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            <div className={`p-4 sm:p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-neutral-50/50 border-neutral-200 shadow-inner'}`}>
+            <div className={`p-4 sm:p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/50 border-neutral-700' : 'bg-[#fffaf4] border-[#f2c9a7]/70 shadow-inner'}`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {visibleUsageMetrics.length > 0 ? visibleUsageMetrics.map((metric) => (
-                  <div key={metric.label} className="rounded-xl bg-black/5 dark:bg-black/20 p-3">
+                  <div key={metric.label} className="rounded-xl bg-white p-4 border border-[#f2c9a7]/50">
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <span className={`text-xs font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                      <span className="text-xs font-semibold text-[#4a4a4a]">
                         {metric.label}
                       </span>
-                      <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                      <span className="text-sm font-bold text-[#111111]">
                         {metric.used}/{metric.total}
                       </span>
                     </div>
@@ -405,12 +404,12 @@ export default function SubscriptionCredits() {
                         className="h-full bg-gradient-to-r from-[#F24C20] to-orange-600"
                       />
                     </div>
-                    <p className={`text-[11px] mt-1.5 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>
+                    <p className="text-[11px] mt-1.5 text-[#4a4a4a]">
                       {metric.remaining} remaining
                     </p>
                   </div>
                 )) : (
-                  <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <div className="text-sm text-[#4a4a4a]">
                     No usage limits configured for this plan.
                   </div>
                 )}
@@ -440,29 +439,29 @@ export default function SubscriptionCredits() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`p-4 rounded-2xl border backdrop-blur-sm ${sub
+          className={`p-5 rounded-2xl border backdrop-blur-sm ${sub
             ? isDarkMode
               ? 'bg-emerald-500/5 border-emerald-500/40'
-              : 'bg-emerald-50/70 border-emerald-300'
+              : 'bg-emerald-50/80 border-emerald-300 shadow-sm'
             : isDarkMode
               ? 'bg-neutral-900/50 border-neutral-800'
-              : 'bg-white/50 border-neutral-200'
+              : 'bg-white border-neutral-200 shadow-sm'
             }`}
         >
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <Zap className={`w-5 h-5 ${sub ? 'text-emerald-500' : 'text-[#F24C20]'}`} />
-              <div>
-                <h3 className={`font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              <div className="min-w-0">
+                <h3 className="font-bold text-[#111111]">
                   Current Plan Live
                 </h3>
-                <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
+                <p className="text-xs mt-0.5 text-[#4a4a4a]">
                   Real-time subscription status
                 </p>
               </div>
             </div>
             {sub && (
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isDarkMode
+              <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border ${isDarkMode
                 ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                 : 'bg-emerald-100 text-emerald-700 border-emerald-200'
               }`}>
@@ -481,12 +480,12 @@ export default function SubscriptionCredits() {
                 : 'bg-neutral-100 border-neutral-200'
             }`}>
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                <span className="text-sm text-[#4a4a4a]">
                   Active Plan
                 </span>
                 <TrendingDown className="w-5 h-5 text-emerald-500" />
               </div>
-              <p className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              <p className="text-lg font-bold text-[#111111]">
                 {currentPlanData.planName}
               </p>
               <p className={`text-sm mt-1 ${isDarkMode ? 'text-emerald-300' : 'text-emerald-700'}`}>
@@ -497,24 +496,24 @@ export default function SubscriptionCredits() {
             <div className={`p-3.5 rounded-xl border ${isDarkMode ? 'bg-neutral-800/40 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <p className="text-sm text-[#4a4a4a]">
                     Primary Limit
                   </p>
-                  <p className={`text-lg font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <p className="text-lg font-bold mt-1 text-[#111111]">
                     {primaryMetric.remaining} available
                   </p>
                 </div>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${isDarkMode ? 'bg-neutral-700 text-neutral-200' : 'bg-neutral-200 text-neutral-700'}`}>
+                <span className="shrink-0 max-w-[160px] truncate rounded-full bg-[#111111] px-2.5 py-1 text-xs font-medium text-[#fffaf4]">
                   {primaryMetric.label}
                 </span>
               </div>
             </div>
 
             <div className="space-y-2 text-sm">
-              <h4 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+              <h4 className="font-semibold text-[#111111]">
                 Plan Features
               </h4>
-              <ul className={`space-y-1.5 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+              <ul className="space-y-1.5 text-[#4a4a4a]">
                 {(planFeatures.length > 0 ? planFeatures.slice(0, 4) : ['No features configured']).map((feature: string) => (
                   <li key={feature} className="flex items-start gap-2">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
@@ -535,7 +534,7 @@ export default function SubscriptionCredits() {
       >
         <h2 
           id="plans-selection"
-          className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}
+          className="text-xl font-bold mb-4 text-[#111111]"
         >
           Choose Your Plan
         </h2>
@@ -547,17 +546,17 @@ export default function SubscriptionCredits() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + index * 0.1 }}
-              className={`p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden ${plan.current
+              className={`p-6 rounded-2xl border backdrop-blur-sm relative overflow-hidden ${plan.current
                 ? isDarkMode
                   ? 'bg-emerald-500/5 border-emerald-500/45 shadow-[0_0_0_1px_rgba(16,185,129,0.15)]'
-                  : 'bg-emerald-50/70 border-emerald-300'
+                  : 'bg-emerald-50/80 border-emerald-300 shadow-sm'
                 : plan.recommended
                 ? isDarkMode
                   ? 'bg-gradient-to-br from-[#F24C20]/10 to-orange-900/10 border-[#F24C20]'
-                  : 'bg-gradient-to-br from-[#F24C20]/10 to-orange-100 border-[#F24C20]'
+                  : 'bg-gradient-to-br from-[#F24C20]/10 to-orange-50 border-[#F24C20] shadow-sm'
                 : isDarkMode
                   ? 'bg-neutral-900/50 border-neutral-800'
-                  : 'bg-white/50 border-neutral-200'
+                  : 'bg-white border-neutral-200 shadow-sm'
                 }`}
             >
               {plan.recommended && !plan.current && (
@@ -584,10 +583,10 @@ export default function SubscriptionCredits() {
                   <Crown className={`w-5 h-5 ${plan.current ? 'text-emerald-500' : 'text-[#F24C20]'}`} />
                 </div>
                 <div>
-                  <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <h3 className="text-xl font-bold text-[#111111]">
                     {plan.name}
                   </h3>
-                  <p className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <p className="text-sm text-[#4a4a4a]">
                     {plan.current && sub
                       ? `${currentPlanData.daysRemaining} days left live - ${getPlanTargetRoles(plan).join(', ') || targetRole}`
                       : `${plan.duration} - ${getPlanTargetRoles(plan).join(', ') || targetRole}`}
@@ -597,17 +596,17 @@ export default function SubscriptionCredits() {
 
               <div className="mb-4">
                 <div className="flex items-baseline gap-2">
-                  <span className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <span className="text-3xl font-bold text-[#111111]">
                     {formatCurrency(plan.price)}
                   </span>
                   {plan.price > 0 && (
-                    <span className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                    <span className="text-sm text-[#4a4a4a]">
                       per {formatBillingCycle(plan.billing_cycle)}
                     </span>
                   )}
                 </div>
                 {plan.description && (
-                  <p className={`text-sm mt-2 ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <p className="text-sm mt-2 text-[#4a4a4a]">
                     {plan.description}
                   </p>
                 )}
@@ -617,13 +616,13 @@ export default function SubscriptionCredits() {
                 {plan.features.slice(0, 8).map((feature: string) => (
                   <div key={feature} className="flex items-start gap-3">
                     <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
-                    <span className={`text-sm ${isDarkMode ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                    <span className="text-sm text-[#222222]">
                       {feature}
                     </span>
                   </div>
                 ))}
                 {plan.features.length === 0 && (
-                  <p className={`text-sm ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
+                  <p className="text-sm text-[#4a4a4a]">
                     No features configured.
                   </p>
                 )}

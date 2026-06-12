@@ -111,7 +111,7 @@ export default function ContactPage() {
     };
 
     return (
-        <div className="bg-black min-h-screen text-white overflow-x-hidden">
+        <div className="bg-background min-h-screen text-foreground overflow-x-hidden">
             <Header />
 
             <main className="pt-32 pb-20 px-6">

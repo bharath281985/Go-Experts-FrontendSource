@@ -396,7 +396,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
   }, [location.pathname]);
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-neutral-950 text-white' : 'bg-neutral-50 text-neutral-900'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'bg-neutral-950 text-[#111111]' : 'bg-neutral-50 text-neutral-900'}`}>
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -462,10 +462,10 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                   }}
                   className="w-full text-left"
                 >
-                  <div className={`mt-1 truncate text-sm font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                  <div className="mt-1 truncate text-sm font-bold text-[#111111]">
                     {incomingMessagePopup.name}
                   </div>
-                  <div className={`mt-1 line-clamp-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+                  <div className="mt-1 line-clamp-2 text-sm text-[#4a4a4a]">
                     {incomingMessagePopup.message}
                   </div>
                   <div className="mt-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#F24C20]">
@@ -496,10 +496,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                   setSidebarCollapsed(!sidebarCollapsed);
                 }
               }}
-              className={`p-2 rounded-lg transition-colors ${isDarkMode
-                ? 'hover:bg-neutral-800 text-neutral-400'
-                : 'hover:bg-neutral-100 text-neutral-600'
-                }`}
+              className="p-2 rounded-lg transition-colors hover:bg-[#F24C20]/15 text-[#6b625b] hover:text-[#F24C20]"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -515,19 +512,19 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
               />
             </Link>
             <div className="hidden lg:flex items-center gap-2 w-96">
-              <div className={`relative flex-1 rounded-lg overflow-hidden ${isDarkMode ? 'bg-neutral-800/50' : 'bg-neutral-100'}`}>
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`} />
+              <div className="relative flex-1 rounded-lg overflow-hidden bg-[#fff3e7] border border-[#f2c9a7]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b625b]" />
                 <input
                   type="text"
                   placeholder="Search projects, ventures, talents..."
-                  className={`w-full pl-10 pr-4 py-2 bg-transparent text-sm outline-none ${isDarkMode ? 'text-white placeholder:text-neutral-500' : 'text-neutral-900 placeholder:text-neutral-400'}`}
+                  className="w-full pl-10 pr-4 py-2 bg-transparent text-sm text-[#111111] placeholder:text-[#6b625b] outline-none"
                 />
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 lg:gap-3">
 
-            <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}>
+            <button onClick={toggleTheme} className="p-2 rounded-lg transition-colors hover:bg-[#F24C20]/15 text-[#6b625b] hover:text-[#F24C20]">
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <div
@@ -536,7 +533,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
             >
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className={`relative p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-400' : 'hover:bg-neutral-100 text-neutral-600'}`}
+                className="relative p-2 rounded-lg transition-colors hover:bg-[#F24C20]/15 text-[#6b625b] hover:text-[#F24C20]"
               >
                 <Bell className="w-5 h-5" />
                 {notifications.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-[#F24C20] rounded-full" />}
@@ -549,11 +546,11 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                     exit={{ opacity: 0, y: 10 }}
                     className={`absolute right-0 top-12 w-80 rounded-xl border overflow-hidden shadow-xl ${isDarkMode ? 'bg-neutral-900/95 border-neutral-800' : 'bg-white border-neutral-200'}`}
                   >
-                    <div className="p-4 border-b border-neutral-800"><h3 className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Notifications</h3></div>
+                    <div className={`p-4 border-b ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}><h3 className="font-semibold text-[#111111]">Notifications</h3></div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.length > 0 ? notifications.map((notif) => (
-                        <Link key={notif.id} to={notif.path} onClick={() => setShowNotifications(false)} className={`block p-4 border-b hover:bg-neutral-800/50 cursor-pointer transition-colors ${isDarkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
-                          <div className={`text-sm ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{notif.title}</div>
+                        <Link key={notif.id} to={notif.path} onClick={() => setShowNotifications(false)} className={`block p-4 border-b hover:bg-[#F24C20]/15 cursor-pointer transition-colors ${isDarkMode ? 'border-neutral-800' : 'border-neutral-100'}`}>
+                          <div className="text-sm text-[#111111]">{notif.title}</div>
                           <div className={`text-xs mt-1 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>{formatDistanceToNow(notif.time, { addSuffix: true })}</div>
                         </Link>
                       )) : <div className={`p-6 text-center text-sm ${isDarkMode ? 'text-neutral-500' : 'text-neutral-400'}`}>No new notifications</div>}
@@ -563,7 +560,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
               </AnimatePresence>
             </div>
             <div ref={profileMenuRef} className="relative">
-              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800' : 'hover:bg-neutral-100'}`}>
+              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="flex items-center gap-2 p-1.5 rounded-lg transition-colors hover:bg-[#F24C20]/15">
                 <img src={getProfileImage()} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
               </button>
               <AnimatePresence>
@@ -574,12 +571,12 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                     exit={{ opacity: 0, y: 10 }}
                     className={`absolute right-0 top-12 w-64 rounded-xl border overflow-hidden shadow-xl ${isDarkMode ? 'bg-neutral-900/95 border-neutral-800' : 'bg-white border-neutral-200'}`}
                   >
-                    <div className="p-4 border-b border-neutral-800">
-                      <div className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{getCurrentUserName()}</div>
-                      <div className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{currentUser?.email || ''}</div>
+                    <div className={`p-4 border-b ${isDarkMode ? 'border-neutral-800' : 'border-neutral-200'}`}>
+                      <div className="font-semibold text-[#111111]">{getCurrentUserName()}</div>
+                      <div className="text-sm text-[#6b625b]">{currentUser?.email || ''}</div>
                     </div>
                     <div className="p-2">
-                      <Link to={`${dashboardBase}/settings`} className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-neutral-800 text-neutral-300' : 'hover:bg-neutral-100 text-neutral-700'}`}>
+                      <Link to={`${dashboardBase}/settings`} className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#111111] transition-colors hover:bg-[#F24C20]/15 hover:text-[#F24C20]">
                         <UserIcon className="w-4 h-4" /> <span className="text-sm">My Profile</span>
                       </Link>
                       <button onClick={handleLogout} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}>
@@ -613,7 +610,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                 e.stopPropagation();
                 setIsMobileMenuOpen(false);
               }}
-              className="p-2 rounded-lg bg-neutral-800/50 text-neutral-400 active:scale-95 transition-all"
+              className={`p-2 rounded-lg active:scale-95 transition-all ${isDarkMode ? 'bg-neutral-800/50 text-neutral-400' : 'bg-neutral-100 text-neutral-600'}`}
             >
               <X className="w-5 h-5" />
             </button>
@@ -633,7 +630,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                     {hasSubmenu ? (
                       <button
                         onClick={() => toggleSubmenu(item.label)}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#F24C20]/10 text-[#F24C20]' : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'}`}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#F24C20] text-white font-semibold' : isDarkMode ? 'text-[#111111] hover:bg-[#F24C20] hover:text-white' : 'text-[#111111] hover:bg-[#F24C20] hover:text-white'}`}
                       >
                         <Icon className="w-5 h-5 flex-shrink-0" />
                         {!collapsed && (
@@ -655,7 +652,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                       <Link
                         to={item.path}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#F24C20]/10 text-[#F24C20]' : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'}`}
+                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive ? 'bg-[#F24C20] text-white font-semibold' : isDarkMode ? 'text-[#111111] hover:bg-[#F24C20] hover:text-white' : 'text-[#111111] hover:bg-[#F24C20] hover:text-white'}`}
                       >
                         <Icon className="w-5 h-5 flex-shrink-0" />
                         {!collapsed && (
@@ -676,7 +673,7 @@ export default function PremiumDashboardLayout({ children, userType }: PremiumDa
                     {hasSubmenu && isExpanded && !collapsed && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="ml-8 mt-1 space-y-1 overflow-hidden">
                         {item.submenu?.map((subItem) => (
-                          <Link key={subItem.path} to={subItem.path} onClick={() => setIsMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname === subItem.path ? 'text-[#F24C20] bg-[#F24C20]/5' : isDarkMode ? 'text-neutral-500 hover:text-white hover:bg-neutral-800' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'}`}>
+                          <Link key={subItem.path} to={subItem.path} onClick={() => setIsMobileMenuOpen(false)} className={`block px-3 py-2 rounded-lg text-sm transition-colors ${location.pathname === subItem.path ? 'bg-[#F24C20] text-white font-semibold' : isDarkMode ? 'text-[#4a4a4a] hover:bg-[#F24C20] hover:text-white' : 'text-[#4a4a4a] hover:bg-[#F24C20] hover:text-white'}`}>
                             {subItem.label}
                           </Link>
                         ))}

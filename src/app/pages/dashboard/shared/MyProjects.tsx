@@ -20,6 +20,7 @@ export default function MyProjects() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const userType = localStorage.getItem('userType') || (user?.role === 'client' ? 'client' : 'freelancer');
   const isFreelancer = userType === 'freelancer';
+  const [messageTarget, setMessageTarget] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -147,6 +148,16 @@ export default function MyProjects() {
 
   const getProjectTitle = (project: any) => project?.title || project?.name || 'Untitled Project';
 
+  const openMessageConfirm = (target: any, fallbackName: string) => {
+    const targetId = target?._id || (typeof target === 'string' ? target : '');
+    if (!targetId) {
+      toast.error('Unable to open chat: recipient ID not found.');
+      return;
+    }
+    const targetName = target?.full_name || fallbackName || 'this user';
+    setMessageTarget({ id: targetId, name: targetName });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -160,22 +171,20 @@ export default function MyProjects() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#111111]">
             {isFreelancer ? 'My Proposals' : 'My Projects'}
           </h1>
-          <p className={`mt-1 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+          <p className="mt-1 text-sm text-[#4a4a4a]">
             {isFreelancer ? 'Track your proposals and active work' : 'Manage projects and track hired talent'}
           </p>
         </div>
-        {!isFreelancer && (
-          <Link
-            to="/dashboard/projects/create"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F24C20] hover:bg-orange-600 text-white rounded-xl font-semibold transition-all shadow-lg shadow-[#F24C20]/20 hover:-translate-y-0.5"
-          >
-            <Plus className="w-4 h-4" />
-            New Project
-          </Link>
-        )}
+        <Link
+          to="/dashboard/projects/create"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#F24C20] hover:bg-orange-600 text-[#111111] rounded-xl font-semibold transition-all shadow-lg shadow-[#F24C20]/20 hover:-translate-y-0.5"
+        >
+          <Plus className="w-4 h-4" />
+          New Project
+        </Link>
       </motion.div>
 
       {/* Stats row */}
@@ -190,24 +199,24 @@ export default function MyProjects() {
             className={`p-4 md:p-5 rounded-2xl border backdrop-blur-sm ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white/50 border-neutral-200'}`}>
             <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
               <div className={`p-1.5 md:p-2 rounded-lg ${s.bg}`}><s.icon className={`w-3.5 h-3.5 md:w-4 md:h-4 ${s.color}`} /></div>
-              <span className={`text-[10px] md:text-xs font-medium ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>{s.label}</span>
+              <span className="text-[10px] md:text-xs font-medium text-[#6b625b]">{s.label}</span>
             </div>
-            <div className={`text-lg md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{s.value}</div>
+            <div className="text-lg md:text-2xl font-bold text-[#111111]">{s.value}</div>
           </motion.div>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className={`flex gap-1 p-1.5 rounded-xl ${isDarkMode ? 'bg-neutral-900/70 border border-neutral-800' : 'bg-neutral-100'} overflow-x-auto custom-scrollbar`}>
+      <div className="flex gap-1 p-1.5 rounded-xl bg-[#fff3e7] border border-[#f2c9a7] overflow-x-auto custom-scrollbar">
         {(['all', 'ongoing', 'completed', 'cancelled'] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`relative flex-1 min-w-[100px] md:min-w-0 px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm capitalize transition-all ${activeTab === tab
+            className={`group relative flex-1 min-w-[100px] md:min-w-0 px-4 py-2.5 rounded-lg font-medium text-xs md:text-sm capitalize transition-all ${activeTab === tab
                 ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/20'
-                : isDarkMode ? 'text-neutral-400 hover:text-white hover:bg-neutral-800' : 'text-neutral-600 hover:text-neutral-900 hover:bg-white'
+                : 'text-[#6b625b] hover:bg-[#F24C20] hover:text-white'
               }`}>
             {tab}
             {tabCounts[tab] > 0 && (
-              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-bold ${activeTab === tab ? 'bg-white/20 text-white' : 'bg-neutral-700 text-neutral-300'}`}>
+              <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full font-bold transition-colors ${activeTab === tab ? 'bg-white/30 text-white' : 'bg-[#F24C20]/10 text-[#F24C20] group-hover:bg-white/30 group-hover:text-white'}`}>
                 {tabCounts[tab]}
               </span>
             )}
@@ -221,18 +230,16 @@ export default function MyProjects() {
           {filteredProjects.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className={`p-16 rounded-2xl border text-center ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800 border-dashed' : 'bg-white/50 border-neutral-200 border-dashed'}`}>
-              <Target className={`w-14 h-14 mx-auto mb-4 ${isDarkMode ? 'text-neutral-700' : 'text-neutral-300'}`} />
-              <h3 className={`text-lg font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>No {activeTab} projects</h3>
-              <p className={`text-sm mb-6 ${isDarkMode ? 'text-neutral-500' : 'text-neutral-500'}`}>
+              <Target className="w-14 h-14 mx-auto mb-4 text-[#111111]" />
+              <h3 className="text-lg font-bold mb-1 text-[#111111]">No {activeTab} projects</h3>
+              <p className="text-sm mb-6 text-[#4a4a4a]">
                 {activeTab === 'ongoing' ? 'Projects you are hired for will appear here' : `You don't have any ${activeTab} projects yet`}
               </p>
-              {!isFreelancer && (
-                <Link to="/dashboard/projects/create"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#F24C20] text-white rounded-xl font-semibold text-sm hover:bg-orange-600 transition-all">
-                  <Plus className="w-4 h-4" />
-                  Create Project
-                </Link>
-              )}
+              <Link to="/dashboard/projects/create"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#F24C20] text-[#111111] rounded-xl font-semibold text-sm hover:bg-orange-600 transition-all">
+                <Plus className="w-4 h-4" />
+                Create Project
+              </Link>
             </motion.div>
           ) : (
             filteredProjects.map((project, index) => {
@@ -298,7 +305,7 @@ export default function MyProjects() {
                           </span>
                         </div>
 
-                        <h3 className={`text-lg font-bold mb-3 leading-snug ${isDarkMode ? 'text-white' : 'text-neutral-900'} line-clamp-2`}>
+                        <h3 className="text-lg font-bold mb-3 leading-snug text-[#111111] line-clamp-2">
                           {getProjectTitle(project)}
                         </h3>
 
@@ -321,13 +328,13 @@ export default function MyProjects() {
                                     <Award className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
                                     <span className={`text-[10px] font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-600'}`}>Hired Freelancer</span>
                                 </div>
-                                <div className={`text-sm font-bold truncate ${isDarkMode ? 'text-white' : 'text-neutral-800'}`}>
+                                <div className="text-sm font-bold truncate text-[#111111]">
                                     {hiredFreelancer.full_name || 'Anonymous'}
                                 </div>
                                 </div>
                             </div>
                             <button
-                              onClick={() => navigate(`/dashboard/messages?user=${hiredFreelancer._id || hiredFreelancer}`)}
+                              onClick={() => openMessageConfirm(hiredFreelancer, hiredFreelancer?.full_name || 'Hired Freelancer')}
                               className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-xs font-semibold transition-colors border border-blue-500/20"
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
@@ -341,10 +348,10 @@ export default function MyProjects() {
                           <div className={`flex flex-col sm:flex-row sm:items-center justify-between mb-3 p-3 rounded-xl border gap-3 ${isDarkMode ? 'bg-neutral-800/40 border-neutral-700/50' : 'bg-neutral-50 border-neutral-200'}`}>
                             <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
                               <Users className="w-3.5 h-3.5" />
-                              <span>Client: <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-neutral-800'}`}>{project.client_id.full_name || 'Anonymous'}</span></span>
+                              <span>Client: <span className="font-semibold text-[#111111]">{project.client_id.full_name || 'Anonymous'}</span></span>
                             </div>
                             <button
-                              onClick={() => navigate(`/dashboard/messages?user=${project.client_id?._id || project.client_id}`)}
+                              onClick={() => openMessageConfirm(project.client_id, project.client_id?.full_name || 'Client')}
                               className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-2 bg-[#F24C20]/10 hover:bg-[#F24C20]/20 text-[#F24C20] rounded-lg text-xs font-semibold transition-colors border border-[#F24C20]/20"
                             >
                               <MessageSquare className="w-3.5 h-3.5" />
@@ -400,7 +407,7 @@ export default function MyProjects() {
                           {/* Accept Award (freelancer) */}
                           {isFreelancer && isAwarded && (
                             <button onClick={() => handleAcceptAward(project._id)}
-                              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-amber-500/20">
+                            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-[#111111] rounded-xl text-sm font-bold transition-all shadow-lg shadow-amber-500/20">
                               <Award className="w-4 h-4" />
                               Accept Award
                             </button>
@@ -419,7 +426,7 @@ export default function MyProjects() {
                           <Link to={`/dashboard/projects/${project._id}`}
                             className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isOngoing
                                 ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                                : 'bg-gradient-to-r from-[#F24C20] to-orange-600 hover:shadow-lg hover:shadow-[#F24C20]/20 text-white hover:-translate-y-0.5'
+                                : 'bg-gradient-to-r from-[#F24C20] to-orange-600 hover:shadow-lg hover:shadow-[#F24C20]/20 text-[#111111] hover:-translate-y-0.5'
                               }`}>
                             {isFreelancer ? (isOngoing ? 'View Project' : 'View Details') : (isOngoing ? 'Manage' : 'View')}
                             <ArrowRight className="w-4 h-4" />
@@ -433,6 +440,47 @@ export default function MyProjects() {
             })
           )}
         </div>
+      </AnimatePresence>
+      <AnimatePresence>
+        {messageTarget && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 12 }}
+              className={`w-full max-w-md rounded-2xl border p-6 ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'}`}
+            >
+              <h3 className="text-lg font-bold mb-2 text-[#111111]">Open Conversation</h3>
+              <p className="text-sm mb-5 text-[#4a4a4a]">
+                You are about to message <span className="font-semibold">{messageTarget.name}</span>.
+              </p>
+              <div className={`text-xs mb-5 px-3 py-2 rounded-lg border ${isDarkMode ? 'bg-neutral-800/60 border-neutral-700 text-neutral-400' : 'bg-neutral-50 border-neutral-200 text-neutral-600'}`}>
+                Recipient ID: <span className="font-mono">{messageTarget.id}</span>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setMessageTarget(null)}
+                  className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold border ${isDarkMode ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-100'}`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (!messageTarget?.id) {
+                      toast.error('Recipient is missing. Please try again.');
+                      return;
+                    }
+                    navigate(`/dashboard/messages?user=${messageTarget.id}`);
+                    setMessageTarget(null);
+                  }}
+                  className="flex-1 px-4 py-2 rounded-xl text-sm font-bold bg-[#F24C20] hover:bg-orange-600 text-[#111111]"
+                >
+                  Yes, Continue
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );

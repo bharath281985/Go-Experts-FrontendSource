@@ -62,14 +62,14 @@ export default function TrustStatsSection() {
       ref={ref}
       className="relative py-28 overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #000000 0%, #0a0505 50%, #000000 100%)',
+        background: 'linear-gradient(180deg, var(--background) 0%, var(--secondary) 50%, var(--background) 100%)',
       }}
     >
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Radial Glows */}
         <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#F24C20]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-orange-800/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#F24C20]/5 rounded-full blur-3xl" />
 
         {/* Animated Lines */}
         <svg className="absolute inset-0 w-full h-full opacity-10">
@@ -122,11 +122,11 @@ export default function TrustStatsSection() {
           </motion.div>
 
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-white">Numbers That </span>
+            <span className="text-foreground">Numbers That </span>
             <span className="text-[#F24C20]">Define Excellence</span>
           </h2>
 
-          <p className="text-xl text-neutral-400 max-w-4xl mx-auto">
+          <p className="text-xl text-neutral-500 max-w-4xl mx-auto">
             Join thousands of satisfied clients and verified experts building the future of work together
           </p>
         </motion.div>
@@ -154,7 +154,7 @@ export default function TrustStatsSection() {
               <motion.div
                 whileHover={{ y: -15, scale: 1.05 }}
                 transition={{ duration: 0.3 }}
-                className="relative w-full max-w-none md:w-72 p-5 sm:p-7 md:p-10 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden"
+                className="relative w-full max-w-none md:w-72 p-5 sm:p-7 md:p-10 rounded-3xl bg-gradient-to-br from-white to-white backdrop-blur-xl border border-[#FFE0C2] hover:border-[#F24C20]/50 overflow-hidden shadow-xl shadow-orange-500/5"
               >
                 {/* Animated Border Glow */}
                 <motion.div
@@ -181,7 +181,7 @@ export default function TrustStatsSection() {
 
                 {/* Value */}
                 <div className="mb-3">
-                  <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-white">
+                  <div className="text-3xl sm:text-4xl md:text-6xl font-bold text-foreground">
                     {stat.value < 100 && stat.value > 1 ? (
                       <Counter end={stat.value} />
                     ) : (
@@ -192,7 +192,7 @@ export default function TrustStatsSection() {
                 </div>
 
                 {/* Label */}
-                <div className="text-neutral-400 font-medium text-sm sm:text-base md:text-lg leading-snug">{stat.label}</div>
+                <div className="text-neutral-500 font-medium text-sm sm:text-base md:text-lg leading-snug">{stat.label}</div>
 
                 {/* Floating Particles */}
                 {[...Array(3)].map((_, i) => (
@@ -235,7 +235,7 @@ export default function TrustStatsSection() {
                 transition={{ delay: 0.8 + i * 0.1 }}
                 className="flex items-center gap-3 text-neutral-500"
               >
-                <div className="p-1 px-3 bg-neutral-900 border border-neutral-800 rounded-full flex items-center gap-2">
+                <div className="p-1 px-3 bg-white border border-[#FFE0C2] rounded-full flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-[#F24C20]" />
                   <span className="text-xs font-bold tracking-tight uppercase">{trust}</span>
                 </div>

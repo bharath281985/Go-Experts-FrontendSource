@@ -36,6 +36,7 @@ export default function StartupIdeaPublicDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [user, setUser] = useState<any>(JSON.parse(localStorage.getItem('user') || '{}'));
+  const categoryLabel = typeof idea?.category === 'string' ? idea?.category : idea?.category?.name;
 
   useEffect(() => {
     fetchIdeaDetails();
@@ -44,9 +45,24 @@ export default function StartupIdeaPublicDetailPage() {
   const fetchIdeaDetails = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/startup-ideas/${id}`);
-      if (res.data.success) {
-        setIdea(res.data.data);
+      const hasToken = !!localStorage.getItem('token');
+
+      if (hasToken) {
+        const res = await api.get(`/startup-ideas/${id}`);
+        if (res.data.success) {
+          setIdea(res.data.data);
+        }
+      } else {
+        const res = await api.get('/startup-ideas');
+        if (res.data.success) {
+          const found = (res.data.data || []).find((item: any) => item._id === id);
+          if (!found) {
+            toast.error('Idea not found');
+            navigate('/explore-ideas');
+            return;
+          }
+          setIdea(found);
+        }
       }
     } catch (err) {
       toast.error('Failed to load concept details');
@@ -59,7 +75,7 @@ export default function StartupIdeaPublicDetailPage() {
   const handleUnlock = async () => {
      if (!user || !localStorage.getItem('token')) {
         toast.error('Please login to unlock concept roadmaps');
-        navigate('/login');
+        navigate('/signin');
         return;
      }
 
@@ -84,9 +100,16 @@ export default function StartupIdeaPublicDetailPage() {
   };
 
   const handleRequestDeck = async () => {
+    if (!user || !localStorage.getItem('token')) {
+      toast.error('Please login to request the pitch deck.');
+      navigate('/signin');
+      return;
+    }
+
     if (!idea.isUnlocked) {
-        toast.error('Please unlock the roadmap first to request the deck.');
-        return;
+      // Trigger unlock flow first
+      await handleUnlock();
+      return;
     }
     
     if (!idea.creator?._id) {
@@ -110,16 +133,23 @@ export default function StartupIdeaPublicDetailPage() {
             toast.success('Interest registered. The founder has been notified to share the latest pitch deck.');
         }
     } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Unable to process request at this time');
+        toast.error('Unable to process request at this time');
     } finally {
         setSubmitting(false);
     }
   };
 
   const handleScheduleMeet = async () => {
+    if (!user || !localStorage.getItem('token')) {
+      toast.error('Please login to schedule a meeting.');
+      navigate('/signin');
+      return;
+    }
+
     if (!idea.isUnlocked) {
-        toast.error('You must unlock creator contact details to schedule a meeting.');
-        return;
+      // Trigger unlock flow so user can contact the founder
+      await handleUnlock();
+      return;
     }
 
     if (!idea.creator?._id) {
@@ -183,7 +213,7 @@ export default function StartupIdeaPublicDetailPage() {
                     <ShieldCheck className="w-3.5 h-3.5 mr-2" /> {idea.status}
                   </div>
                   <div className="inline-flex items-center rounded-lg lg:rounded-full border border-orange-500/30 bg-orange-500/10 px-3 lg:px-4 py-1.5 lg:py-2 text-[10px] font-black uppercase tracking-widest text-orange-400">
-                    <Rocket className="w-3.5 h-3.5 mr-2" /> {idea.category}
+                    <Rocket className="w-3.5 h-3.5 mr-2" /> {categoryLabel}
                   </div>
                 </div>
 
@@ -194,37 +224,34 @@ export default function StartupIdeaPublicDetailPage() {
                   {idea.shortDescription}
                 </p>
 
-                {!idea.isUnlocked ? (
-                    <div className="p-6 lg:p-8 rounded-2xl lg:rounded-3xl bg-orange-500/10 border border-orange-500/20 mb-8 max-w-xl">
-                        <div className="flex items-center gap-3 text-orange-500 font-black uppercase tracking-widest text-xs mb-3">
-                            <Lock className="w-5 h-5" /> Detailed Roadmap Locked 
-                        </div>
-                        <p className="text-xs lg:text-sm text-slate-400 mb-6 leading-relaxed">Execution roadmap, problem/solution matrix, and founder contact info are gated. Gain full intelligence using 1 credit point.</p>
-                        <button 
-                            onClick={handleUnlock}
-                            disabled={isUnlocking}
-                            className={`w-full lg:w-auto px-8 py-4 bg-[#F24C20] text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-xl shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50`}
-                        >
-                            {isUnlocking ? 'Authorizing...' : 'Unlock Full Access'}
-                        </button>
-                    </div>
-                ) : (
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <button 
-                            onClick={handleScheduleMeet}
-                            className="w-full sm:w-auto px-8 py-4 bg-[#F24C20] text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all hover:bg-orange-600 shadow-xl shadow-[#F24C20]/20 hover:scale-105 active:scale-95"
-                        >
-                            Schedule Meeting
-                        </button>
-                        <button className={`w-full sm:w-auto px-8 py-4 rounded-2xl border font-black transition-all hover:scale-105 active:scale-95 ${
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <button 
+                        onClick={handleScheduleMeet}
+                        disabled={submitting || isUnlocking}
+                        className="w-full sm:w-auto px-8 py-4 bg-[#F24C20] text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all hover:bg-orange-600 shadow-xl shadow-[#F24C20]/20 hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {isUnlocking ? 'Unlocking...' : 'Schedule Meeting'}
+                    </button>
+                    <button 
+                        onClick={handleRequestDeck}
+                        disabled={submitting || isUnlocking}
+                        className={`w-full sm:w-auto px-8 py-4 rounded-2xl border font-black transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-2 ${
+                            isDarkMode 
+                            ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' 
+                            : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700 shadow-lg'
+                        }`}
+                    >
+                        <Download className="w-4 h-4" />
+                        Request Pitch Deck
+                    </button>
+                    <button className={`p-4 rounded-2xl border transition-all hover:scale-105 active:scale-95 ${
                             isDarkMode 
                             ? 'border-white/10 bg-white/5 hover:bg-white/10 text-white' 
                             : 'border-gray-200 bg-white hover:bg-gray-50 text-gray-700 shadow-lg'
                         }`}>
-                            <Heart className={`w-5 h-5 mx-auto ${idea.isSaved ? 'fill-current text-red-500' : ''}`} />
-                        </button>
-                    </div>
-                )}
+                        <Heart className={`w-5 h-5 ${idea.isSaved ? 'fill-current text-red-500' : ''}`} />
+                    </button>
+                </div>
               </div>
 
               {/* Sidebar Preview */}
@@ -335,7 +362,7 @@ export default function StartupIdeaPublicDetailPage() {
               <SectionCard title="Intelligence Summary" darkMode={isDarkMode}>
                 <div className="space-y-1 text-sm font-medium">
                   <SummaryRow label="Stage" value={idea.status === 'approved' ? 'Growth Ready' : 'Incubation'} darkMode={isDarkMode} />
-                  <SummaryRow label="Domain" value={idea.category} darkMode={isDarkMode} />
+                  <SummaryRow label="Domain" value={categoryLabel} darkMode={isDarkMode} />
                   <SummaryRow label="Legality" value={idea.ndaRequired === 'Yes' ? 'NDA Required' : 'Public Domain'} darkMode={isDarkMode} highlight={idea.ndaRequired === 'Yes'} />
                   <SummaryRow label="Creator Verification" value="Identity Verified" darkMode={isDarkMode} color="text-emerald-500" />
                 </div>
@@ -350,7 +377,7 @@ export default function StartupIdeaPublicDetailPage() {
                   <div className="absolute top-0 right-0 w-32 h-32 bg-[#F24C20]/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
                   <h2 className="text-xl lg:text-2xl font-black mb-6 flex items-center gap-3">
                       <MessageCircle className="w-6 h-6 text-[#F24C20]" />
-                      Investor Access
+                      Contact Access
                   </h2>
                   <p className="text-slate-400 text-xs lg:text-sm leading-6 lg:leading-7 mb-8">
                     Interested in the expansion of this approved concept? Connect with the founder team to explore funding, strategic partnerships, or operational collaboration.

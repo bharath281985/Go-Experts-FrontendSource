@@ -47,7 +47,7 @@ export default function HowItWorksSection() {
       ref={ref} 
       className="relative py-32 overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at center, #1a0505 0%, #000000 100%)',
+        background: 'radial-gradient(ellipse at center, var(--secondary) 0%, var(--background) 100%)',
       }}
     >
       {/* Background Elements */}
@@ -75,11 +75,11 @@ export default function HowItWorksSection() {
           </motion.div>
           
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-white">How It </span>
+            <span className="text-foreground">How It </span>
             <span className="text-[#F24C20]">Works</span>
           </h2>
           
-          <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
+          <p className="text-xl text-neutral-500 max-w-2xl mx-auto">
             Three simple steps to unlock the future of collaboration
           </p>
         </motion.div>
@@ -114,7 +114,7 @@ export default function HowItWorksSection() {
                   <motion.div
                     whileHover={{ scale: 1.05, y: -10 }}
                     transition={{ duration: 0.3 }}
-                    className="relative p-8 rounded-3xl bg-gradient-to-br from-neutral-900/90 to-neutral-950/90 backdrop-blur-xl border border-neutral-800 hover:border-[#F24C20]/50 overflow-hidden group"
+                    className="relative p-8 rounded-3xl bg-gradient-to-br from-white to-white backdrop-blur-xl border border-[#FFE0C2] hover:border-[#F24C20]/50 overflow-hidden group shadow-xl shadow-orange-500/5"
                   >
                     {/* Glow Effect */}
                     <motion.div
@@ -126,7 +126,7 @@ export default function HowItWorksSection() {
 
                     <div className="relative">
                       {/* Step Number */}
-                      <div className="absolute -top-4 -right-4 text-8xl font-bold text-neutral-900/50">
+                      <div className="absolute -top-4 -right-4 text-8xl font-bold text-muted/30">
                         {String(index + 1).padStart(2, '0')}
                       </div>
 
@@ -143,12 +143,12 @@ export default function HowItWorksSection() {
                       </motion.div>
 
                       {/* Title */}
-                      <h3 className="text-3xl font-bold mb-4 text-white group-hover:text-[#F24C20] transition-colors">
+                      <h3 className="text-3xl font-bold mb-4 text-foreground group-hover:text-[#F24C20] transition-colors">
                         {step.title}
                       </h3>
 
                       {/* Description */}
-                      <p className="text-neutral-400 text-lg leading-relaxed">
+                      <p className="text-neutral-500 text-lg leading-relaxed">
                         {step.description}
                       </p>
 
@@ -170,7 +170,7 @@ export default function HowItWorksSection() {
                   transition={{ duration: 0.5, delay: index * 0.3 + 0.2, type: 'spring' }}
                   className="relative flex-shrink-0 hidden md:block"
                 >
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center shadow-2xl shadow-[#F24C20]/50 border-4 border-black">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#F24C20] to-orange-600 flex items-center justify-center shadow-2xl shadow-[#F24C20]/50 border-4 border-white">
                     <motion.div
                       className="text-white font-bold text-2xl"
                       animate={{

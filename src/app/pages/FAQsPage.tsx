@@ -41,7 +41,7 @@ export default function FAQsPage() {
     });
 
     return (
-        <div className="bg-black min-h-screen text-white">
+        <div className="bg-background min-h-screen text-foreground">
             <Header />
             
             <main className="pt-32 pb-20 px-6">
@@ -56,7 +56,7 @@ export default function FAQsPage() {
                             <HelpCircle className="w-4 h-4" />
                             <span className="text-sm font-medium">FAQ Help Center</span>
                         </div>
-                        <h1 className="text-5xl font-extrabold mb-6 bg-gradient-to-r from-white via-neutral-200 to-neutral-500 bg-clip-text text-transparent">
+                        <h1 className="text-5xl font-extrabold mb-6 text-foreground">
                             Frequently Asked Questions
                         </h1>
                         <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
@@ -77,7 +77,7 @@ export default function FAQsPage() {
                             placeholder="Search questions..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-16 pr-6 py-5 bg-neutral-900 border border-neutral-800 rounded-2xl text-lg focus:outline-none focus:border-[#F24C20] transition-colors shadow-2xl"
+                            className="w-full pl-16 pr-6 py-5 bg-card border border-border rounded-2xl text-foreground text-lg focus:outline-none focus:border-[#F24C20] transition-colors shadow-sm placeholder:text-muted-foreground"
                         />
                     </motion.div>
 
@@ -90,7 +90,7 @@ export default function FAQsPage() {
                                 className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${
                                     selectedCategory === cat 
                                     ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/20' 
-                                    : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
+                                    : 'bg-card text-muted-foreground hover:text-foreground border border-border'
                                 }`}
                             >
                                 {cat}
@@ -102,7 +102,7 @@ export default function FAQsPage() {
                     {loading ? (
                         <div className="space-y-4">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-20 bg-neutral-900 rounded-2xl animate-pulse" />
+                                <div key={i} className="h-20 bg-card border border-border rounded-2xl animate-pulse" />
                             ))}
                         </div>
                     ) : (
@@ -116,15 +116,15 @@ export default function FAQsPage() {
                                         transition={{ delay: index * 0.05 }}
                                         className={`rounded-2xl border transition-all duration-300 ${
                                             activeId === faq._id 
-                                            ? 'bg-neutral-900/80 border-[#F24C20]/30 shadow-xl' 
-                                            : 'bg-neutral-900/40 border-neutral-800 hover:border-neutral-700'
+                                            ? 'bg-card border-[#F24C20]/30 shadow-xl' 
+                                            : 'bg-card/50 border-border hover:border-[#F24C20]/20'
                                         }`}
                                     >
                                         <button
                                             onClick={() => setActiveId(activeId === faq._id ? null : faq._id)}
                                             className="w-full px-8 py-6 text-left flex items-center justify-between group"
                                         >
-                                            <span className={`text-lg font-bold transition-colors ${activeId === faq._id ? 'text-[#F24C20]' : 'text-white group-hover:text-white/90'}`}>
+                                            <span className={`text-lg font-bold transition-colors ${activeId === faq._id ? 'text-[#F24C20]' : 'text-foreground group-hover:text-foreground/80'}`}>
                                                 {faq.question}
                                             </span>
                                             <ChevronDown className={`w-5 h-5 text-neutral-500 transition-transform duration-300 ${activeId === faq._id ? 'rotate-180 text-[#F24C20]' : ''}`} />
@@ -138,9 +138,9 @@ export default function FAQsPage() {
                                                     exit={{ height: 0, opacity: 0 }}
                                                     className="overflow-hidden"
                                                 >
-                                                    <div className="px-8 pb-8 pt-2 text-neutral-400 leading-relaxed border-t border-neutral-800/50">
+                                                    <div className="px-8 pb-8 pt-2 text-muted-foreground leading-relaxed border-t border-border/50">
                                                         <div 
-                                                            className="prose prose-invert prose-sm max-w-none text-neutral-300"
+                                                            className="prose prose-sm max-w-none text-foreground/80"
                                                             dangerouslySetInnerHTML={{ __html: faq.answer }} 
                                                         />
                                                     </div>
@@ -150,10 +150,10 @@ export default function FAQsPage() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="text-center py-20 bg-neutral-900/50 rounded-3xl border border-dashed border-neutral-800">
-                                    <MessageCircle className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
-                                    <h3 className="text-xl font-bold text-neutral-300 mb-2">No results found</h3>
-                                    <p className="text-neutral-500">We couldn't find any FAQs matching your search.</p>
+                                <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border">
+                                    <MessageCircle className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                                    <h3 className="text-xl font-bold text-foreground mb-2">No results found</h3>
+                                    <p className="text-muted-foreground">We couldn't find any FAQs matching your search.</p>
                                 </div>
                             )}
                         </div>

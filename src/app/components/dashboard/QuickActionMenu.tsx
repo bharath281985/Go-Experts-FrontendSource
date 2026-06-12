@@ -57,6 +57,12 @@ export default function QuickActionMenu({ userType }: QuickActionMenuProps) {
 
   const freelancerActions = [
     {
+      label: 'Post a Project',
+      icon: Plus,
+      path: '/dashboard/projects/create',
+      color: 'bg-orange-600'
+    },
+    {
       label: 'Active Projects',
       icon: Briefcase,
       path: '/dashboard/projects/my-projects',

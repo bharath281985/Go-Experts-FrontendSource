@@ -12,7 +12,7 @@ export default function FinalCTASection() {
       ref={ref}
       className="relative py-18 overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse at center, #1a0505 0%, #000000 100%)',
+        background: 'radial-gradient(ellipse at center, var(--secondary) 0%, var(--background) 100%)',
       }}
     >
       {/* Epic Background Elements */}
@@ -105,7 +105,7 @@ export default function FinalCTASection() {
             className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-[#F24C20]/10 border border-[#F24C20]/30 mb-10 backdrop-blur-sm"
           >
             <Sparkles className="w-5 h-5 text-[#F24C20]" />
-            <span className="text-sm font-semibold text-neutral-300">Welcome To Professionals World</span>
+            <span className="text-sm font-semibold text-neutral-600">Welcome To Professionals World</span>
             <Zap className="w-5 h-5 text-[#F24C20]" />
           </motion.div>
 
@@ -116,7 +116,7 @@ export default function FinalCTASection() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-6xl md:text-5xl lg:text-6xl font-bold mb-8 leading-tight"
           >
-            <span className="block text-white mb-3">
+            <span className="block text-foreground mb-3">
               Ready to{' '}
               <motion.span
                 className="relative inline-block"
@@ -147,7 +147,7 @@ export default function FinalCTASection() {
                 </motion.svg>
               </motion.span>
             </span>
-            <span className="block text-white">Your Career?</span>
+            <span className="block text-foreground">Your Career?</span>
           </motion.h2>
 
           {/* Subtitle */}
@@ -155,7 +155,7 @@ export default function FinalCTASection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="text-2xl text-neutral-400 mb-16 max-w-3xl mx-auto leading-relaxed"
+            className="text-2xl text-neutral-500 mb-16 max-w-3xl mx-auto leading-relaxed"
           >
             Whether you're looking to hire top talent or find your next opportunity,{' '}
             <span className="text-[#F24C20] font-semibold">Go Experts</span> is your gateway to success.
@@ -183,7 +183,7 @@ export default function FinalCTASection() {
               <motion.button
                 whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-12 py-3 bg-neutral-900/80 hover:bg-neutral-800 border-2 border-neutral-800 hover:border-[#F24C20]/50 text-white rounded-2xl font-bold transition-all duration-300 backdrop-blur-xl text-lg"
+                className="px-12 py-3 bg-white hover:bg-neutral-50 border-2 border-[#FFE0C2] hover:border-[#F24C20]/50 text-foreground rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-orange-500/5 text-lg"
                 href="/projects">
                 Browse Projects
               </motion.button>
@@ -195,7 +195,7 @@ export default function FinalCTASection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 1 }}
-            className="flex flex-wrap items-center justify-center gap-8 text-xl text-neutral-500"
+            className="flex flex-wrap items-center justify-center gap-8 text-xl text-neutral-600"
           >
             {[
               { icon: '✓', text: 'No Commissions' },

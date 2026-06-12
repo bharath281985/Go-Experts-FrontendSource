@@ -166,7 +166,7 @@ export default function Header() {
   return (
     <>
       <motion.header
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${scrolled
+        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 selection:bg-[#F24C20] selection:text-white ${scrolled
           ? 'w-[95%] max-w-7xl'
           : 'w-[95%] max-w-7xl'
           }`}
@@ -210,14 +210,18 @@ export default function Header() {
               {/* Center Navigation - Desktop */}
               <nav className="hidden lg:flex items-center gap-1">
                 {navLinks.map((link) => {
-                  const isActive = location.pathname === link.path;
+                  const isActive = link.path === '/'
+                    ? location.pathname === '/'
+                    : location.pathname.startsWith(link.path);
                   return (
                     <Link
                       key={link.path}
                       to={link.path}
                       target={link.open_in_new_tab ? '_blank' : '_self'}
                       rel={link.open_in_new_tab ? 'noopener noreferrer' : undefined}
-                      className="relative px-4 py-2 text-neutral-300 hover:text-white transition-colors duration-300 font-medium group"
+                      className={`relative px-4 py-2 transition-colors duration-300 font-medium group ${
+                        isActive ? 'text-[#F24C20]' : 'text-foreground hover:text-[#F24C20]'
+                      }`}
                     >
                       <span className="relative z-10">{link.label}</span>
 
@@ -251,17 +255,17 @@ export default function Header() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search..."
-                    className="pl-10 pr-4 py-2 w-48 focus:w-64 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all duration-300 text-white placeholder:text-neutral-500 backdrop-blur-sm"
+                    className="pl-10 pr-4 py-2 w-48 focus:w-64 bg-[#FFEAD4]/30 border border-[#FFE0C2] rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all duration-300 text-foreground placeholder:text-neutral-500/60 backdrop-blur-sm"
                   />
                   <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2">
-                    <Search className="w-4 h-4 text-neutral-400 group-focus-within:text-[#F24C20] transition-colors" />
+                    <Search className="w-4 h-4 text-neutral-500/80 group-focus-within:text-[#F24C20] transition-colors" />
                   </button>
                 </form>
 
                 {/* Dark/Light Mode Toggle */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#F24C20]/30 transition-all group relative overflow-hidden"
+                  className="p-2.5 rounded-xl bg-[#FFEAD4]/40 hover:bg-[#FFEAD4]/80 border border-[#FFE0C2] hover:border-[#F24C20]/30 transition-all group relative overflow-hidden shadow-sm"
                 >
                   <AnimatePresence mode="wait">
                     {isDarkMode ? (
@@ -272,7 +276,7 @@ export default function Header() {
                         exit={{ rotate: 90, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Moon className="w-4 h-4 text-neutral-300 group-hover:text-[#F24C20] transition-colors" />
+                        <Moon className="w-4 h-4 text-foreground group-hover:text-[#F24C20] transition-colors" />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -282,7 +286,7 @@ export default function Header() {
                         exit={{ rotate: -90, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Sun className="w-4 h-4 text-neutral-300 group-hover:text-[#F24C20] transition-colors" />
+                        <Sun className="w-4 h-4 text-foreground group-hover:text-[#F24C20] transition-colors" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -293,25 +297,25 @@ export default function Header() {
                   <div className="flex items-center gap-2">
                     <Link
                       to={userRole === 'investor' ? '/dashboard-investor' : userRole === 'startup_creator' ? '/dashboard-startup' : '/dashboard'}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-[#F24C20]/30 transition-all duration-300 font-medium group"
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#FFEAD4]/40 hover:bg-[#FFEAD4]/80 text-foreground border border-[#FFE0C2] hover:border-[#F24C20]/30 transition-all duration-300 font-medium group shadow-sm"
                     >
                       {profileImage ? (
                         <img 
                           src={getImgUrl(profileImage)} 
                           alt={userName} 
-                          className="w-8 h-8 rounded-lg object-cover border border-white/10 group-hover:border-[#F24C20]/50 transition-all"
+                          className="w-8 h-8 rounded-lg object-cover border border-[#FFE0C2] group-hover:border-[#F24C20]/50 transition-all"
                         />
                       ) : (
-                        <User className="w-4 h-4 text-neutral-400 group-hover:text-[#F24C20] transition-colors" />
+                        <User className="w-4 h-4 text-[#7C5D4E] group-hover:text-[#F24C20] transition-colors" />
                       )}
                       <span className="hidden sm:inline text-sm">{userName}</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="p-2.5 rounded-xl bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 transition-all group"
+                      className="p-2.5 rounded-xl bg-[#FFEAD4]/40 hover:bg-red-500/10 border border-[#FFE0C2] hover:border-red-500/30 transition-all group shadow-sm"
                       title="Logout"
                     >
-                      <LogOut className="w-4 h-4 text-neutral-300 group-hover:text-red-500 transition-colors" />
+                      <LogOut className="w-4 h-4 text-foreground group-hover:text-red-500 transition-colors" />
                     </button>
                   </div>
                 ) : (
@@ -319,7 +323,7 @@ export default function Header() {
                     {/* Sign In */}
                     <Link
                       to="/signin"
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all duration-300 font-medium group"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-foreground hover:text-primary hover:bg-[#F24C20]/10 border border-transparent hover:border-[#F24C20]/20 transition-all duration-300 font-medium group"
                     >
                       <User className="w-4 h-4 group-hover:text-[#F24C20] transition-colors" />
                       <span>Sign In</span>
@@ -342,12 +346,12 @@ export default function Header() {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                className="lg:hidden p-2 rounded-xl bg-[#FFEAD4]/60 hover:bg-[#FFEAD4]/90 border border-[#FFE0C2] transition-all"
               >
                 {mobileMenuOpen ? (
-                  <X className="w-5 h-5 text-white" />
+                  <X className="w-5 h-5 text-foreground" />
                 ) : (
-                  <Menu className="w-5 h-5 text-white" />
+                  <Menu className="w-5 h-5 text-foreground" />
                 )}
               </button>
             </div>
@@ -364,11 +368,13 @@ export default function Header() {
               transition={{ duration: 0.2 }}
               className="lg:hidden absolute top-full left-0 right-0 mt-2"
             >
-              <div className="bg-black/90 backdrop-blur-2xl border border-neutral-800/50 rounded-2xl p-4 shadow-2xl">
+              <div className="bg-white/95 backdrop-blur-2xl border border-[#FFE0C2] rounded-2xl p-4 shadow-2xl shadow-orange-500/5">
                 {/* Mobile Navigation */}
                 <nav className="space-y-1 mb-4">
                   {navLinks.map((link) => {
-                    const isActive = location.pathname === link.path;
+                    const isActive = link.path === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(link.path);
                     return (
                       <Link
                         key={link.path}
@@ -376,7 +382,7 @@ export default function Header() {
                         onClick={() => setMobileMenuOpen(false)}
                         className={`block px-4 py-3 rounded-xl font-medium transition-all ${isActive
                           ? 'bg-[#F24C20]/10 text-[#F24C20] border border-[#F24C20]/30'
-                          : 'text-neutral-300 hover:bg-white/5 hover:text-white'
+                          : 'text-foreground hover:bg-[#FFEAD4]/40 hover:text-[#F24C20]'
                           }`}
                       >
                         {link.label}
@@ -392,7 +398,7 @@ export default function Header() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search..."
-                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all text-white placeholder:text-neutral-500"
+                    className="w-full pl-10 pr-4 py-3 bg-[#FFEAD4]/30 border border-[#FFE0C2] rounded-xl focus:outline-none focus:border-[#F24C20]/50 transition-all text-foreground placeholder:text-neutral-500"
                   />
                   <button type="submit" className="absolute left-3 top-1/2 -translate-y-1/2">
                     <Search className="w-4 h-4 text-neutral-400" />
@@ -413,7 +419,7 @@ export default function Header() {
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 border border-white/10 transition-all font-medium"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 border border-red-500/10 transition-all font-medium"
                       >
                         <LogOut className="w-4 h-4" />
                         Logout
@@ -424,7 +430,7 @@ export default function Header() {
                       <Link
                         to="/signin"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-neutral-300 hover:text-white hover:bg-white/5 border border-white/10 transition-all font-medium"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-foreground hover:text-primary hover:bg-[#FFEAD4]/40 border border-[#FFE0C2] transition-all font-medium"
                       >
                         <User className="w-4 h-4" />
                         Sign In

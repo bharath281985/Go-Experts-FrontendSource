@@ -170,13 +170,13 @@ export default function SubscriptionPlansPricingPage() {
   ];
 
   if (loading) return (
-     <div className="min-h-screen bg-[#05060a] flex items-center justify-center">
+     <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin" />
      </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       {/* Hero Section */}

@@ -49,7 +49,7 @@ export default function ClientDashboardHome() {
   // Subscription Details
   const sub = stats?.subscription || {};
   const projectCredits = sub?.remaining_project_posts || 0;
-  const unlockCredits = sub?.remaining_portfolio_visits || 0;
+  const unlockCredits = profile?.total_points || 0;
 
   // Hiring Funnel Data
   const hiringFunnel = [
@@ -120,7 +120,7 @@ export default function ClientDashboardHome() {
             </div>
           </div>
           <div>
-            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>
               Hello, {(() => {
                 const name = profile.full_name || 'Client';
                 if (name.includes('@')) {
@@ -130,7 +130,7 @@ export default function ClientDashboardHome() {
                 return name.split(' ')[0];
               })()}!
             </h1>
-            <p className={`text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>
+            <p className={`text-sm ${isDarkMode ? 'text-[#4a4a4a]' : 'text-neutral-600'}`}>
               {profile.roles?.includes('startup_creator') ? 'Startup Visionary' : 'Project Strategist'} • {profile.location || 'Global Presence'}
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function ClientDashboardHome() {
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-neutral-500 uppercase tracking-wider">Project Posts</span>
-                <span className={isDarkMode ? 'text-white' : 'text-neutral-900'}>{projectCredits} / 36</span>
+                <span className={isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}>{projectCredits} / 36</span>
               </div>
               <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                 <motion.div
@@ -193,7 +193,7 @@ export default function ClientDashboardHome() {
             <div>
               <div className="flex justify-between text-xs font-bold mb-2">
                 <span className="text-neutral-500 uppercase tracking-wider">Expert Unlocks</span>
-                <span className={isDarkMode ? 'text-white' : 'text-neutral-900'}>{unlockCredits} / 36</span>
+                <span className={isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}>{unlockCredits} / 36</span>
               </div>
               <div className="h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                 <motion.div
@@ -225,7 +225,7 @@ export default function ClientDashboardHome() {
             </div>
           </div>
           <div className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">Total Project Volume</div>
-          <div className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'} mb-2`}>
+          <div className={`text-3xl font-black ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'} mb-2`}>
             <CountUp end={totalSpent} prefix="₹" />
           </div>
           <SparklineChart data={sparklineData} dataKey="value" color="#F24C20" height={30} />
@@ -249,7 +249,7 @@ export default function ClientDashboardHome() {
             </div>
           </div>
           <div className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-1">Active Projects</div>
-          <div className={`text-3xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'} mb-2`}>
+          <div className={`text-3xl font-black ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'} mb-2`}>
             <CountUp end={activeProjects} />
           </div>
           <div className="flex gap-1.5 overflow-hidden rounded-full h-1 mt-6">
@@ -270,14 +270,14 @@ export default function ClientDashboardHome() {
             isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'
           }`}
         >
-          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Hiring Funnel</h2>
+          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>Hiring Funnel</h2>
           <div className="space-y-6">
             {hiringFunnel.map((stage, idx) => (
               <div key={stage.stage}>
                 <div className="flex justify-between items-end mb-2">
                   <div>
                     <span className="text-xs font-black uppercase tracking-widest text-neutral-500">{stage.stage}</span>
-                    <div className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{stage.count}</div>
+                    <div className={`text-xl font-black ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>{stage.count}</div>
                   </div>
                   <span className="text-[10px] font-bold text-neutral-500">{(stage.percentage).toFixed(0)}% Conv.</span>
                 </div>
@@ -301,7 +301,7 @@ export default function ClientDashboardHome() {
             isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'
           }`}
         >
-          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Talent Expertise Mix</h2>
+          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>Talent Expertise Mix</h2>
           <DonutChart data={categoryBreakdown} centerText="Total" centerValue={activeProjects.toString()} size={window.innerWidth < 768 ? 140 : 180} />
           <div className="mt-6 grid grid-cols-2 gap-3">
             {categoryBreakdown.map((cat) => (
@@ -326,7 +326,7 @@ export default function ClientDashboardHome() {
           }`}
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Spending Trend</h2>
+            <h2 className={`text-lg font-bold ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>Spending Trend</h2>
             <div className="flex bg-neutral-800 p-0.5 rounded-lg">
                <button className="px-3 py-1 text-[10px] font-bold bg-neutral-700 text-white rounded-md">6 Months</button>
                <button className="px-3 py-1 text-[10px] font-bold text-neutral-500">12 Months</button>
@@ -351,7 +351,7 @@ export default function ClientDashboardHome() {
             isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'
           }`}
         >
-          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Live Updates</h2>
+          <h2 className={`text-lg font-bold mb-6 ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>Live Updates</h2>
           <div className="space-y-4">
             {recentActivity.map((activity, index) => {
               const Icon = activity.icon;
@@ -361,7 +361,7 @@ export default function ClientDashboardHome() {
                     <Icon className={`w-4 h-4 ${activity.color}`} />
                   </div>
                   <div>
-                    <div className={`text-xs font-bold leading-tight ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+                    <div className={`text-xs font-bold leading-tight ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>
                       {activity.title}
                     </div>
                     <div className="text-[10px] text-neutral-500 font-medium mt-1 uppercase tracking-wider">

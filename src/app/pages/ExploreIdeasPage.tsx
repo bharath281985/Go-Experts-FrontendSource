@@ -21,8 +21,13 @@ export default function ExploreIdeasPage() {
   const [unlockingIdea, setUnlockingIdea] = useState<any>(null);
   const [viewingIdea, setViewingIdea] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = false;
   const navigate = useNavigate();
+  const getCategoryName = (idea: any) => {
+    if (!idea?.category) return '';
+    if (typeof idea.category === 'string') return idea.category;
+    return idea.category.name || '';
+  };
 
   const isLoggedIn = !!localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -66,24 +71,9 @@ export default function ExploreIdeasPage() {
   };
 
   const handleDeepDiveClick = (idea: any) => {
-    if (!isLoggedIn) {
-      toast.error('Please sign in to unlock deep dive analytics');
-      navigate('/signin');
-      return;
-    }
-
-    // Robust check for ownership or existing unlock
-    const creatorId = idea.creator?._id || idea.creator;
-    const isOwner = creatorId === user?._id;
-    const isUnlocked = idea.contacts?.some((c: any) => (c._id || c) === user._id) || idea.isUnlocked;
-
-    if (isOwner || isUnlocked) {
-      setViewingIdea(idea);
-      window.scrollTo(0, 0);
-      return;
-    }
-
-    setUnlockingIdea(idea);
+    // Allow anyone to view idea details freely — unlock is only required for contact/scheduling actions
+    setViewingIdea(idea);
+    window.scrollTo(0, 0);
   };
 
   const handleUnlockConfirm = async () => {
@@ -117,10 +107,10 @@ export default function ExploreIdeasPage() {
 
   const filteredIdeas = ideas.filter(idea => {
     const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         idea.category?.toLowerCase().includes(searchTerm.toLowerCase());
+                         getCategoryName(idea).toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'All' || 
-                           idea.category?.trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
+    const matchesCategory = selectedCategory === 'All' ||
+                           getCategoryName(idea).trim().toLowerCase() === selectedCategory?.trim().toLowerCase();
                            
     const creatorId = idea.creator?._id || idea.creator;
     const isOwner = creatorId === user?._id;
@@ -130,13 +120,14 @@ export default function ExploreIdeasPage() {
 
   if (viewingIdea) {
      return (
-       <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#030712]' : 'bg-gray-50'}`}>
-         <Header />
+<div className="min-h-screen transition-colors duration-500 bg-gray-50 text-gray-900">
+           <Header />
          <StartupIdeaProfileView 
             idea={viewingIdea} 
             onBack={() => setViewingIdea(null)} 
-            isDarkMode={isDarkMode}
-            similarIdeas={ideas.filter(i => i.category === viewingIdea.category && i._id !== viewingIdea._id).slice(0, 3)}
+            // isDarkMode={isDarkMode}
+            onRequestUnlock={setUnlockingIdea}
+            similarIdeas={ideas.filter(i => getCategoryName(i) === getCategoryName(viewingIdea) && i._id !== viewingIdea._id).slice(0, 3)}
          />
          <Footer />
        </div>
@@ -144,7 +135,7 @@ export default function ExploreIdeasPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-[#05060a] text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen transition-colors duration-500 'bg-background text-foreground`}>
       <Header />
       
       <main className="pt-32 pb-20">
@@ -164,21 +155,21 @@ export default function ExploreIdeasPage() {
                 Explore <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F24C20] to-orange-400">Startup Ideas</span>
               </h1>
-              <p className="text-base lg:text-lg text-slate-400 max-w-lg leading-relaxed mb-10 font-medium">
+              <p className={`text-base lg:text-lg max-w-lg leading-relaxed mb-10 font-medium text-[#6f7f9a]`}>
                 Sift through high-potential concepts and disruptive technologies curated and validated by the Go Experts network.
               </p>
               
               <div className="flex items-center gap-8">
                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDarkMode ? 'border border-white/10 bg-white/5' : 'border border-[#f2d7c2] bg-white'}`}>
                           <TrendingUp className="w-4 h-4 text-[#F24C20]" />
                       </div>
                       <div>
-                          <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Pitches</div>
-                          <div className="text-sm font-bold text-white">{ideas.length}+ Verified</div>
+                          <div className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-[#7a5a49]'}`}>Active Pitches</div>
+                          <div className={`text-sm font-bold text-[#1f120d]`}>{ideas.length}+ Verified</div>
                       </div>
                   </div>
-                  <div className="w-px h-8 bg-neutral-800" />
+                  <div className={`w-px h-8 ${isDarkMode ? 'bg-neutral-800' : 'bg-[#f2d7c2]'}`} />
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#F24C20]">
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -202,8 +193,8 @@ export default function ExploreIdeasPage() {
                <div className="relative h-[550px] w-full max-w-[440px] mx-auto group">
                   {ideas.length > 0 ? (
                     <motion.div
-                      className={`relative flex flex-col rounded-[3rem] border backdrop-blur-3xl transition-all duration-700 overflow-hidden h-full shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] ${
-                        isDarkMode ? 'bg-black/40 border-white/10' : 'bg-white border-gray-100'
+                      className={`relative flex flex-col rounded-[3rem] border backdrop-blur-3xl transition-all duration-700 overflow-hidden h-full shadow-[0_32px_64px_-16px_rgba(0,0,0,0.25)] ${
+                        isDarkMode ? 'bg-black/40 border-white/10' : 'bg-white border-[#f2d7c2]'
                       }`}
                     >
                        {/* Subtle Shine Overlay */}
@@ -211,7 +202,7 @@ export default function ExploreIdeasPage() {
                        
                        <div className="p-10 pb-0 relative z-10">
                           <div className="flex items-center justify-between mb-10">
-                             <div className="px-4 py-1.5 bg-neutral-900 border border-white/10 text-[#F24C20] text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                             <div className={`px-4 py-1.5 text-[#F24C20] text-[9px] font-black uppercase tracking-[0.2em] rounded-full ${isDarkMode ? 'bg-neutral-900 border border-white/10' : 'bg-[#fff7ef] border border-[#f2d7c2]'}`}>
                                 Spotlight Submission
                              </div>
                              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
@@ -220,19 +211,19 @@ export default function ExploreIdeasPage() {
                              </div>
                           </div>
                           
-                          <h3 className="text-3xl lg:text-4xl font-black mb-8 leading-[1.1] text-white tracking-tight group-hover:text-[#F24C20] transition-colors duration-500 line-clamp-2">
+                          <h3 className={`text-3xl lg:text-4xl font-black mb-8 leading-[1.1] tracking-tight group-hover:text-[#F24C20] transition-colors duration-500 line-clamp-2 ${isDarkMode ? 'text-white' : 'text-[#F24C20]'}`}>
                              {ideas[0]?.title}
                           </h3>
                           
-                          <p className="text-slate-400 text-sm lg:text-base leading-relaxed line-clamp-5 font-medium opacity-80">
+                          <p className={`text-sm lg:text-base leading-relaxed line-clamp-5 font-medium opacity-90 ${isDarkMode ? 'text-slate-400' : 'text-[#91a4c5]'}`}>
                              {ideas[0]?.shortDescription}
                           </p>
                        </div>
 
                        <div className="mt-auto p-10 pt-0 relative z-10">
                           <div className="flex flex-wrap gap-2 mb-8">
-                             <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ideas[0]?.category}</span>
-                             <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-[#F24C20] uppercase tracking-widest flex items-center gap-1.5">
+                             <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'bg-white/5 border border-white/10 text-slate-400' : 'bg-[#fff7ef] border border-[#f2d7c2] text-[#6f7f9a]'}`}>{getCategoryName(ideas[0])}</span>
+                             <span className={`px-3 py-1 rounded-lg text-[10px] font-bold text-[#F24C20] uppercase tracking-widest flex items-center gap-1.5 ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-[#fff7ef] border border-[#f2d7c2]'}`}>
                                 <DollarSign className="w-3 h-3" /> {ideas[0]?.fundingAmount || 'Series A'}
                              </span>
                           </div>
@@ -247,11 +238,11 @@ export default function ExploreIdeasPage() {
                        </div>
                     </motion.div>
                   ) : (
-                    <div className={`h-full rounded-[3rem] border-2 border-dashed flex flex-col items-center justify-center p-12 text-center ${isDarkMode ? 'border-neutral-800 bg-black/40' : 'border-gray-200'}`}>
-                       <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-white/5 flex items-center justify-center mb-6 animate-pulse">
-                          <Rocket className="w-8 h-8 text-neutral-700" />
+                    <div className={`h-full rounded-[3rem] border-2 border-dashed flex flex-col items-center justify-center p-12 text-center ${isDarkMode ? 'border-neutral-800 bg-black/40' : 'border-[#f2d7c2] bg-white/70'}`}>
+                       <div className={`w-16 h-16 rounded-3xl flex items-center justify-center mb-6 animate-pulse ${isDarkMode ? 'bg-neutral-900 border border-white/5' : 'bg-white border border-[#f2d7c2]'}`}>
+                          <Rocket className={`w-8 h-8 ${isDarkMode ? 'text-neutral-700' : 'text-[#f4c7ae]'}`} />
                        </div>
-                       <p className="text-sm font-bold text-neutral-500 uppercase tracking-widest">Awaiting Live Feed...</p>
+                       <p className={`text-sm font-bold uppercase tracking-widest ${isDarkMode ? 'text-neutral-500' : 'text-[#7a5a49]'}`}>Awaiting Live Feed...</p>
                     </div>
                   )}
                </div>
@@ -270,7 +261,7 @@ export default function ExploreIdeasPage() {
                 className={`w-full pl-14 lg:pl-16 pr-6 lg:pr-8 py-4 lg:py-5 rounded-2xl lg:rounded-[2rem] border transition-all outline-none text-base lg:text-lg ${
                     isDarkMode 
                     ? 'bg-neutral-900 border-neutral-800 focus:border-[#F24C20]/50 text-white shadow-2xl' 
-                    : 'bg-white border-gray-200 focus:border-[#F24C20] text-gray-900 shadow-xl'
+                    : 'bg-white border-[#f2d7c2] focus:border-[#F24C20] text-gray-900 shadow-xl placeholder:text-[#8b6b5a]'
                 }`}
               />
             </div>
@@ -322,11 +313,7 @@ export default function ExploreIdeasPage() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className={`group relative flex flex-col rounded-[2.5rem] border transition-all duration-500 overflow-hidden min-h-[500px] ${
-                      isDarkMode 
-                      ? 'bg-[#0b0d14] border-neutral-800' 
-                      : 'bg-white border-gray-200 shadow-sm'
-                    }`}
+                   className="bg-white border-[#f2d7c2]"
                   >
                     {/* Subtle Red/Orange Aura Border (on hover) */}
                     <div className="absolute inset-0 border border-[#F24C20]/0 group-hover:border-[#F24C20]/20 rounded-[2.5rem] transition-all pointer-events-none" />
@@ -334,8 +321,8 @@ export default function ExploreIdeasPage() {
                     <div className="p-8 pb-0">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex flex-col gap-2">
-                           <span className="px-3 py-1 bg-white/5 border border-white/10 text-[#F24C20] text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
-                             {idea.category}
+                           <span className={`px-3 py-1 text-[#F24C20] text-[9px] font-black uppercase tracking-widest rounded-lg self-start ${isDarkMode ? 'bg-white/5 border border-white/10' : 'bg-[#fff7ef] border border-[#f2d7c2]'}`}>
+                             {getCategoryName(idea)}
                            </span>
                            {(isOwner || isUnlocked) ? (
                               <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-widest rounded-lg self-start flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-700">
@@ -343,20 +330,20 @@ export default function ExploreIdeasPage() {
                                  {isOwner ? 'Your Concept' : 'Unlocked'}
                               </span>
                            ) : (
-                              <span className="px-3 py-1 bg-white/5 border border-white/10 text-neutral-400 text-[9px] font-black uppercase tracking-widest rounded-lg self-start">
+                              <span className={`px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-lg self-start ${isDarkMode ? 'bg-white/5 border border-white/10 text-neutral-400' : 'bg-[#fff7ef] border border-[#f2d7c2] text-[#7a5a49]'}`}>
                                 {idea.stage || 'Market MVP'}
                               </span>
                            )}
                         </div>
-                        <button className="flex items-center gap-1.5 px-4 py-1.5 bg-neutral-900 border border-white/10 rounded-full text-[10px] font-black text-white hover:bg-neutral-800 transition-all">
+                        <button className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${isDarkMode ? 'bg-neutral-900 border border-white/10 text-white hover:bg-neutral-800' : 'bg-white border border-[#f2d7c2] text-[#2b160e] hover:bg-[#fff7ef]'}`}>
                            <Heart className="w-3.5 h-3.5" /> Save
                         </button>
                       </div>
 
-                      <h3 className="text-2xl font-black mb-3 leading-tight group-hover:text-[#F24C20] transition-colors line-clamp-2">
+                      <h3 className={`text-2xl font-black mb-3 leading-tight group-hover:text-[#F24C20] transition-colors line-clamp-2 text-[#1f120d]`}>
                         {idea.title}
                       </h3>
-                      <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 mb-8 font-medium">
+                      <p className={`text-sm leading-relaxed line-clamp-3 mb-8 font-medium text-[#6f7f9a]`}>
                         {idea.shortDescription}
                       </p>
 
@@ -367,9 +354,9 @@ export default function ExploreIdeasPage() {
                             { label: 'Saves', value: idea.saves || '42', color: 'text-white' },
                             { label: 'Contacts', value: idea.contacts?.length || '8', color: 'text-[#F24C20]' }
                          ].map((stat, i) => (
-                           <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 text-center">
-                              <div className={`text-lg font-black ${stat.color}`}>{stat.value}</div>
-                              <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{stat.label}</div>
+                           <div key={i} className={`rounded-2xl p-4 text-center ${isDarkMode ? 'bg-white/5 border border-white/5' : 'bg-[#fff7ef] border border-[#f2d7c2]'}`}>
+                              <div className={`text-lg font-black ${isDarkMode ? stat.color : stat.label === 'Contacts' ? 'text-[#F24C20]' : 'text-[#1f120d]'}`}>{stat.value}</div>
+                              <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? 'text-slate-500' : 'text-[#7a5a49]'}`}>{stat.label}</div>
                            </div>
                          ))}
                       </div>
@@ -377,18 +364,18 @@ export default function ExploreIdeasPage() {
                       {/* Specialist Badges */}
                       <div className="flex flex-wrap gap-2 mb-8">
                          {(idea.neededRoles || ['Product Designer', 'Growth Marketer', 'Industry Advisor']).slice(0, 3).map((role: string, i: number) => (
-                           <span key={i} className="px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-xl text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                           <span key={i} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-tighter ${isDarkMode ? 'bg-neutral-900 border border-neutral-800 text-slate-300' : 'bg-white border border-[#f2d7c2] text-[#5f4a3f]'}`}>
                               {role}
                            </span>
                          ))}
                       </div>
                     </div>
 
-                    <div className="mt-auto p-8 pt-0 border-t border-white/5 bg-white/5">
+                    <div className={`mt-auto p-8 pt-0 ${isDarkMode ? 'border-t border-white/5 bg-white/5' : 'border-t border-[#f2d7c2] bg-white/60'}`}>
                       <div className="flex items-center justify-between mt-6">
                          <div className="flex flex-col">
-                            <span className="text-sm font-black text-white leading-none mb-1">{idea.creator?.full_name || 'Anonymous Founder'}</span>
-                            <span className="text-[10px] font-bold text-slate-500 uppercase">Bengaluru, India • <span className="text-emerald-500 italic lowercase tracking-tight">online now</span></span>
+                            <span className={`text-sm font-black leading-none mb-1 text-[#1f120d]`}>{idea.creator?.full_name || 'Anonymous Founder'}</span>
+                            <span className={`text-[10px] font-bold uppercase ${isDarkMode ? 'text-slate-500' : 'text-[#7a5a49]'}`}>Bengaluru, India • <span className="text-emerald-500 italic lowercase tracking-tight">online now</span></span>
                          </div>
                          <button 
                             onClick={() => handleDeepDiveClick(idea)}
@@ -405,11 +392,11 @@ export default function ExploreIdeasPage() {
              </div>
            ) : (
              <div className="text-center py-40">
-                 <div className="w-20 h-20 bg-slate-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                     <Search className="w-8 h-8 text-slate-500" />
+                 <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${isDarkMode ? 'bg-slate-500/10' : 'bg-slate-100'}`}>
+                     <Search className={`w-8 h-8 ${isDarkMode ? 'text-slate-500' : 'text-[#6f7f9a]'}`} />
                  </div>
-                 <h2 className="text-2xl font-bold mb-2">No concepts found</h2>
-                 <p className="text-slate-500">Try adjusting your search terms or filters.</p>
+                 <h2 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-[#1f2940]'}`}>No concepts found</h2>
+                 <p className={isDarkMode ? 'text-slate-500' : 'text-[#6f7f9a]'}>Try adjusting your search terms or filters.</p>
              </div>
            )}
         </div>
@@ -486,10 +473,50 @@ export default function ExploreIdeasPage() {
   );
 }
 
-function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any) {
+function StartupIdeaProfileView({ idea, onBack,  similarIdeas, onRequestUnlock }: any) {
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState("overview");
+  const navigate = useNavigate();
+  const [contactingFounder, setContactingFounder] = useState(false);
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isLoggedIn = !!localStorage.getItem('token');
+  const creatorId = idea.creator?._id || idea.creator;
+  const isOwner = creatorId === currentUser?._id;
+  const isUnlocked = idea.contacts?.some((c: any) => (c._id || c) === currentUser?._id) || idea.isUnlocked || isOwner;
+
+  const handleContactFounder = async () => {
+    if (!isLoggedIn) {
+      toast.error('Please login to contact the founder.');
+      navigate('/signin');
+      return;
+    }
+
+    if (!isUnlocked) {
+      onRequestUnlock?.(idea);
+      return;
+    }
+
+    if (!idea.creator?._id) {
+      toast.error('Founder details are incomplete. Please try again later.');
+      return;
+    }
+
+    setContactingFounder(true);
+    try {
+      const introMessage = `Hello ${idea.creator?.full_name || 'Founder'}, I'm interested in your startup idea "${idea.title}". I’d like to connect and discuss it further.`;
+      await api.post('/messages', {
+        receiverId: idea.creator._id,
+        content: introMessage
+      });
+      toast.success(`Message sent to ${idea.creator?.full_name || 'the founder'}!`);
+      navigate(`/dashboard/messages?user=${idea.creator._id}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to contact founder');
+    } finally {
+      setContactingFounder(false);
+    }
+  };
 
   const images = useMemo(() => {
      if (idea.attachments?.length > 0) {
@@ -522,34 +549,34 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
     if (tab === "overview") {
       return (
         <div className="grid gap-6 lg:grid-cols-[1.3fr_.9fr]">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-            <h3 className="text-lg font-semibold text-white">Venture Core & Opportunity</h3>
-            <p className="mt-4 text-sm leading-7 text-slate-300">
+          <div className={`rounded-3xl p-6 shadow-2xl backdrop-blur-xl ${isDarkMode ? 'border border-white/10 bg-white/5 shadow-black/20' : 'border border-[#f2d7c2] bg-[#fffdfb] shadow-black/10'}`}>
+            <h3 className={`text-lg font-semibold text-[#1f120d]`}>Venture Core & Opportunity</h3>
+            <p className={`mt-4 text-sm leading-7 ${isDarkMode ? 'text-slate-300' : 'text-[#6f7f9a]'}`}>
               {idea.detailedDescription || idea.shortDescription}
             </p>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/12 to-transparent p-4">
-                <p className="text-sm font-semibold text-white">Target Ecosystem</p>
-                <p className="mt-2 text-sm text-slate-300">{idea.targetAudience || "Broad Market Reach"}</p>
+              <div className={`rounded-2xl p-4 ${isDarkMode ? 'border border-rose-500/20 bg-gradient-to-br from-rose-500/12 to-transparent' : 'border border-rose-200 bg-gradient-to-br from-rose-50 to-white'}`}>
+                <p className={`text-sm font-semibold text-[#1f120d]`}>Target Ecosystem</p>
+                <p className={`mt-2 text-sm ${isDarkMode ? 'text-slate-300' : 'text-[#6f7f9a]'}`}>{idea.targetAudience || "Broad Market Reach"}</p>
               </div>
-              <div className="rounded-2xl border border-[#F24C20]/20 bg-gradient-to-br from-[#F24C20]/10 to-transparent p-4">
-                <p className="text-sm font-semibold text-white">Business Intelligence</p>
-                <p className="mt-2 text-sm text-slate-300">{idea.uniqueness || "Proprietary solution model with clear competitive advantages."}</p>
+              <div className={`rounded-2xl p-4 ${isDarkMode ? 'border border-[#F24C20]/20 bg-gradient-to-br from-[#F24C20]/10 to-transparent' : 'border border-[#f2d7c2] bg-gradient-to-br from-[#fff1e7] to-white'}`}>
+                <p className={`text-sm font-semibold text-[#1f120d]`}>Business Intelligence</p>
+                <p className={`mt-2 text-sm ${isDarkMode ? 'text-slate-300' : 'text-[#6f7f9a]'}`}>{idea.uniqueness || "Proprietary solution model with clear competitive advantages."}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-[#0b0d14] p-6 shadow-2xl shadow-black/20">
+          <div className={`rounded-3xl p-6 shadow-2xl ${isDarkMode ? 'border border-white/10 bg-[#0b0d14] shadow-black/20' : 'border border-[#f2d7c2] bg-[#1f2230] shadow-black/10'}`}>
             <h3 className="text-lg font-semibold text-white">Venture Dossier</h3>
 
             <div className="mt-5 space-y-4 text-sm text-slate-300">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className={`flex items-center justify-between pb-3 ${isDarkMode ? 'border-b border-white/10' : 'border-b border-white/10'}`}>
                 <span>Stage</span>
                 <span className="font-semibold text-white">{idea.stage || 'Market MVP'}</span>
               </div>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <span>Domain</span>
-                <span className="font-semibold text-white">{idea.category}</span>
+                <span className="font-semibold text-white">{typeof idea.category === 'string' ? idea.category : idea.category?.name}</span>
               </div>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <span>Location</span>
@@ -573,12 +600,12 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
       return (
         <div className="grid gap-5 md:grid-cols-3">
           {milestones.map((item) => (
-            <div key={item.title} className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#F24C20]/40 hover:bg-white/8">
+            <div key={item.title} className={`rounded-3xl p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#F24C20]/40 ${isDarkMode ? 'border border-white/10 bg-white/5 hover:bg-white/8' : 'border border-[#f2d7c2] bg-[#fffdfb]'}`}>
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F24C20] to-orange-400 text-lg font-bold text-white">
                 ✓
               </div>
-              <h3 className="mt-5 text-lg font-semibold text-white">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-300">{item.text}</p>
+              <h3 className={`mt-5 text-lg font-semibold text-[#1f120d]`}>{item.title}</h3>
+              <p className={`mt-3 text-sm leading-7 ${isDarkMode ? 'text-slate-300' : 'text-[#6f7f9a]'}`}>{item.text}</p>
             </div>
           ))}
         </div>
@@ -588,15 +615,15 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
     return (
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {(idea.neededRoles || ["Frontend Developer", "AI Engineer", "Angel Investor", "Marketing Partner"]).map((role: string) => (
-          <div key={role} className="group rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl transition duration-300 hover:border-[#F24C20]/40 hover:bg-gradient-to-br hover:from-[#F24C20]/10 hover:to-transparent">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white transition duration-300 group-hover:bg-[#F24C20]/20 text-xs font-black uppercase tracking-widest">Team</div>
-            <h3 className="mt-4 text-base font-semibold text-white">{role}</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-400 line-clamp-3">Actively seeking strategic collaboration to scale core concept pillars and launch first market pilot.</p>
+          <div key={role} className={`group rounded-3xl p-5 backdrop-blur-xl transition duration-300 hover:border-[#F24C20]/40 hover:bg-gradient-to-br hover:from-[#F24C20]/10 hover:to-transparent ${isDarkMode ? 'border border-white/10 bg-white/5' : 'border border-[#f2d7c2] bg-[#fffdfb]'}`}>
+            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition duration-300 group-hover:bg-[#F24C20]/20 text-xs font-black uppercase tracking-widest ${isDarkMode ? 'bg-white/10 text-white' : 'bg-[#fff1e7] text-[#F24C20]'}`}>Team</div>
+            <h3 className={`mt-4 text-base font-semibold text-[#1f120d]`}>{role}</h3>
+            <p className={`mt-2 text-sm leading-7 line-clamp-3 text-[#6f7f9a]`}>Actively seeking strategic collaboration to scale core concept pillars and launch first market pilot.</p>
           </div>
         ))}
       </div>
     );
-  }, [tab, idea]);
+  }, [tab, idea, isDarkMode]);
 
   return (
     <div className={`min-h-screen pt-32 pb-20 overflow-hidden relative ${isDarkMode ? 'bg-[#030712]' : 'bg-gray-50'}`}>
@@ -606,17 +633,17 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <header className="mb-8 flex flex-col gap-5 rounded-[2.5rem] border border-white/10 bg-white/5 px-8 py-6 backdrop-blur-3xl md:flex-row md:items-center md:justify-between shadow-2xl">
+        <header className={`mb-8 flex flex-col gap-5 rounded-[2.5rem] px-8 py-6 backdrop-blur-3xl md:flex-row md:items-center md:justify-between shadow-2xl ${isDarkMode ? 'border border-white/10 bg-white/5' : 'border border-[#f2d7c2] bg-white/90'}`}>
           <div className="flex items-center gap-6">
             <button 
               onClick={onBack}
-              className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-[#F24C20] hover:text-white transition-all group"
+              className={`p-3 rounded-2xl transition-all group ${isDarkMode ? 'bg-white/5 border border-white/10 hover:bg-[#F24C20] hover:text-white' : 'bg-white border border-[#f2d7c2] text-[#2b160e] hover:bg-[#F24C20] hover:text-white'}`}
             >
                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             </button>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#F24C20] mb-0.5">Venture Intelligence</p>
-              <h1 className="text-2xl font-black text-white">{idea.title}</h1>
+              <h1 className={`text-2xl font-black text-[#1f120d]`}>{idea.title}</h1>
             </div>
           </div>
 
@@ -626,20 +653,33 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
               className={`rounded-2xl px-6 py-3.5 text-xs font-black uppercase tracking-widest transition duration-300 flex items-center gap-2 ${
                 saved
                   ? "bg-white text-slate-900 shadow-xl"
-                  : "border border-white/10 bg-white/5 text-white hover:border-[#F24C20]/50 hover:bg-white/10"
+                  : isDarkMode ? "border border-white/10 bg-white/5 text-white hover:border-[#F24C20]/50 hover:bg-white/10" : "border border-[#f2d7c2] bg-white text-[#2b160e] hover:border-[#F24C20]/50 hover:bg-[#fff7ef]"
               }`}
             >
               <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
               {saved ? "Concept Saved" : "Save Concept"}
             </button>
-            <button className="group relative overflow-hidden rounded-2xl bg-[#F24C20] px-8 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-[#F24C20]/30 transition hover:scale-[1.02] active:scale-95">
-              <span className="relative">Contact Founder</span>
-            </button>
+            {isOwner ? (
+              <button
+                onClick={() => navigate('/dashboard-startup')}
+                className="group relative overflow-hidden rounded-2xl bg-[#F24C20] px-8 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-[#F24C20]/30 transition hover:scale-[1.02] active:scale-95"
+              >
+                <span className="relative">View Dashboard</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleContactFounder}
+                disabled={contactingFounder}
+                className="group relative overflow-hidden rounded-2xl bg-[#F24C20] px-8 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-[#F24C20]/30 transition hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <span className="relative">{contactingFounder ? 'Connecting...' : 'Contact Founder'}</span>
+              </button>
+            )}
           </div>
         </header>
 
         <section className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
-          <div className="overflow-hidden rounded-[3rem] border border-white/10 bg-black/40 backdrop-blur-3xl shadow-2xl">
+          <div className={`overflow-hidden rounded-[3rem] backdrop-blur-3xl shadow-2xl ${isDarkMode ? 'border border-white/10 bg-black/40' : 'border border-[#f2d7c2] bg-white'}`}>
             <div className="relative h-[25rem] md:h-[35rem]">
               <motion.img
                 key={activeImage}
@@ -662,7 +702,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4 p-6 bg-white/5 border-t border-white/10">
+            <div className={`grid grid-cols-4 gap-4 p-6 ${isDarkMode ? 'bg-white/5 border-t border-white/10' : 'bg-white/80 border-t border-[#f2d7c2]'}`}>
               {images.map((img: string, index: number) => (
                 <button
                   key={index}
@@ -678,33 +718,33 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-[3rem] border border-white/10 bg-[#0b0d14] p-8 backdrop-blur-3xl shadow-2xl">
+            <div className={`rounded-[3rem] p-8 backdrop-blur-3xl shadow-2xl ${isDarkMode ? 'border border-white/10 bg-[#0b0d14]' : 'border border-[#f2d7c2] bg-white'}`}>
               <div className="flex items-center gap-5">
                 <div className="relative">
                    {idea.creator?.profile_image ? (
                         <img src={idea.creator.profile_image} className="w-16 h-16 rounded-3xl object-cover border border-[#F24C20]/30 shadow-xl shadow-[#F24C20]/10" />
                    ) : (
-                        <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-white/10 flex items-center justify-center text-2xl font-black text-[#F24C20]">
+                        <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-2xl font-black text-[#F24C20] ${isDarkMode ? 'bg-neutral-900 border border-white/10' : 'bg-[#fff7ef] border border-[#f2d7c2]'}`}>
                              {idea.creator?.full_name?.charAt(0)}
                         </div>
                    )}
-                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-neutral-900 shadow-lg" />
+                   <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full shadow-lg ${isDarkMode ? 'border-2 border-neutral-900' : 'border-2 border-white'}`} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white uppercase">{idea.creator?.full_name || 'Anonymous Founder'}</h3>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Market Opportunity Creator</p>
+                  <h3 className={`text-xl font-black uppercase text-[#1f120d]`}>{idea.creator?.full_name || 'Anonymous Founder'}</h3>
+                  <p className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${isDarkMode ? 'text-slate-500' : 'text-[#7a5a49]'}`}>Market Opportunity Creator</p>
                   <div className="flex items-center gap-2">
                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                      <span className="text-[9px] font-black text-emerald-400 uppercase">Trusted Founder</span>
                   </div>
                 </div>
               </div>
-              <p className="mt-8 text-sm leading-7 text-slate-400">
-                Building a validated venture targeting high-growth {idea.category} sectors. Dedicated to engineering a scalable solution model for the modern digital economy.
+              <p className={`mt-8 text-sm leading-7 ${isDarkMode ? 'text-slate-400' : 'text-[#5f6f8f]'}`}>
+                Building a validated venture targeting high-growth {typeof idea.category === 'string' ? idea.category : idea.category?.name} sectors. Dedicated to engineering a scalable solution model for the modern digital economy.
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
                 {(idea.tags || ["AI", "Innovation", "Global Scale"]).map((tag: string) => (
-                  <span key={tag} className="px-3 py-1.5 rounded-xl border border-white/5 bg-white/5 text-[9px] font-black uppercase tracking-widest text-[#F24C20]">
+                  <span key={tag} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#F24C20] ${isDarkMode ? 'border border-white/5 bg-white/5' : 'border border-[#f2d7c2] bg-[#fff7ef]'}`}>
                     {tag}
                   </span>
                 ))}
@@ -713,20 +753,21 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
 
             <div className="grid grid-cols-2 gap-4">
               {stats.map((item) => (
-                <div key={item.label} className="rounded-[2rem] border border-white/10 bg-black/40 p-6 backdrop-blur-3xl transition-all hover:bg-white/5 group">
-                  <p className="text-2xl font-black text-white group-hover:text-[#F24C20] transition-colors">{item.value}</p>
-                  <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">{item.label}</p>
+                <div key={item.label} className={`rounded-[2rem] p-6 backdrop-blur-3xl transition-all group ${isDarkMode ? 'border border-white/10 bg-black/40 hover:bg-white/5' : 'border border-[#f2d7c2] bg-white hover:bg-[#fff7ef]'}`}>
+                  <p className={`text-2xl font-black group-hover:text-[#F24C20] transition-colors text-[#1f120d]`}>{item.value}</p>
+                  <p className={`mt-1 text-[9px] font-bold uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-500' : 'text-[#7a5a49]'}`}>{item.label}</p>
                 </div>
               ))}
             </div>
           </aside>
         </section>
 
-        <section className="mt-10 rounded-[3rem] border border-white/10 bg-black/40 p-8 md:p-12 backdrop-blur-3xl shadow-2xl">
+        <section className={`mt-10 rounded-[3rem] p-8 md:p-12 backdrop-blur-3xl shadow-2xl ${isDarkMode ? 'border border-white/10 bg-black/40' : 'border border-[#f2d7c2] bg-white'}`}>
           <SectionTitle
             eyebrow="Market Deep Dive"
             title="Strategic Architecture & Roadmap"
             desc="Explore the internal mechanics, traction metrics, and collaboration requirements for this verified venture concept."
+            isDarkMode={isDarkMode}
           />
 
           <div className="flex flex-wrap gap-3 mt-8">
@@ -741,7 +782,7 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
                 className={`rounded-2xl px-8 py-3.5 text-[10px] font-black uppercase tracking-widest transition-all ${
                   tab === key
                     ? "bg-[#F24C20] text-white shadow-xl shadow-[#F24C20]/20"
-                    : "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                    : isDarkMode ? "border border-white/10 bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white" : "border border-[#f2d7c2] bg-[#fff7ef] text-[#7a5a49] hover:bg-white hover:text-[#1f120d]"
                 }`}
               >
                 {label}
@@ -755,13 +796,14 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
         <section className="mt-20">
           <SectionTitle
             eyebrow="Related Opportunities"
-            title="More From {viewingIdea.category}"
+            title={`More From ${typeof idea.category === 'string' ? idea.category : idea.category?.name}`}
             desc="Discover other high-potential ventures in the same ecosystem currently seeking investment and talent."
+            isDarkMode={isDarkMode}
           />
 
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3 mt-10">
             {similarIdeas.map((item: any, idx: number) => (
-              <div key={idx} className="group overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#0b0d14] backdrop-blur-3xl transition-all duration-500 hover:-translate-y-2 hover:border-[#F24C20]/40 shadow-xl shadow-black/40">
+              <div key={idx} className={`group overflow-hidden rounded-[2.5rem] backdrop-blur-3xl transition-all duration-500 hover:-translate-y-2 hover:border-[#F24C20]/40 shadow-xl ${isDarkMode ? 'border border-white/10 bg-[#0b0d14] shadow-black/40' : 'border border-[#f2d7c2] bg-white shadow-black/10'}`}>
                 <div className="relative h-64 overflow-hidden">
                   <img 
                     src={item.attachments?.[0] ? (item.attachments[0].startsWith('http') ? item.attachments[0] : `${import.meta.env.VITE_API_URL}${item.attachments[0]}`) : "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=80"} 
@@ -769,16 +811,16 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-110" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent" />
-                  <span className="absolute left-6 top-6 rounded-xl bg-black/60 px-4 py-2 text-[9px] font-black uppercase tracking-widest text-[#F24C20] backdrop-blur-xl border border-white/10">
-                    {item.category}
+                  <span className={`absolute left-6 top-6 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-widest text-[#F24C20] backdrop-blur-xl ${isDarkMode ? 'bg-black/60 border border-white/10' : 'bg-white/90 border border-[#f2d7c2]'}`}>
+                    {typeof item.category === 'string' ? item.category : item.category?.name}
                   </span>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-xl font-black text-white group-hover:text-[#F24C20] transition-colors mb-4 truncate">{item.title}</h3>
-                  <p className="text-xs leading-6 text-slate-400 line-clamp-2 font-medium mb-8">{item.shortDescription}</p>
+                  <h3 className={`text-xl font-black group-hover:text-[#F24C20] transition-colors mb-4 truncate text-[#1f120d]`}>{item.title}</h3>
+                  <p className={`text-xs leading-6 line-clamp-2 font-medium mb-8 text-[#6f7f9a]`}>{item.shortDescription}</p>
                   <div className="flex gap-4">
-                    <button className="flex-1 rounded-2xl border border-white/10 bg-white/5 py-4 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-[#F24C20] hover:border-[#F24C20]">Review</button>
-                    <button className="flex items-center justify-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-neutral-800"><Heart className="w-4 h-4" /></button>
+                    <button className={`flex-1 rounded-2xl py-4 text-[10px] font-black uppercase tracking-widest transition hover:bg-[#F24C20] hover:border-[#F24C20] hover:text-white ${isDarkMode ? 'border border-white/10 bg-white/5 text-white' : 'border border-[#f2d7c2] bg-[#fff7ef] text-[#2b160e]'}`}>Review</button>
+                    <button className={`flex items-center justify-center p-4 rounded-2xl ${isDarkMode ? 'bg-white/5 border border-white/10 hover:bg-neutral-800 text-white' : 'bg-white border border-[#f2d7c2] hover:bg-[#fff7ef] text-[#2b160e]'}`}><Heart className="w-4 h-4" /></button>
                   </div>
                 </div>
               </div>
@@ -790,12 +832,12 @@ function StartupIdeaProfileView({ idea, onBack, isDarkMode, similarIdeas }: any)
   );
 }
 
-function SectionTitle({ eyebrow, title, desc }: any) {
+function SectionTitle({ eyebrow, title, desc, isDarkMode }: any) {
   return (
     <div className="mb-6">
       <p className="mb-3 text-[10px] font-black uppercase tracking-[0.3em] text-[#F24C20]">{eyebrow}</p>
-      <h2 className="text-3xl font-black text-white md:text-5xl tracking-tighter uppercase">{title}</h2>
-      {desc ? <p className="mt-6 max-w-3xl text-sm lg:text-base font-medium leading-relaxed text-slate-400">{desc}</p> : null}
+      <h2 className={`text-3xl font-black md:text-5xl tracking-tighter uppercase ${isDarkMode ? 'text-white' : 'text-[#f4c7ae]'}`}>{title}</h2>
+      {desc ? <p className={`mt-6 max-w-3xl text-sm lg:text-base font-medium leading-relaxed ${isDarkMode ? 'text-slate-400' : 'text-[#91a4c5]'}`}>{desc}</p> : null}
     </div>
   );
 }

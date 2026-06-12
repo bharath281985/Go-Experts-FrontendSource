@@ -30,23 +30,23 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-neutral-950">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-background">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md"
             >
-                <Link to="/signin" className="inline-flex items-center gap-2 text-neutral-400 hover:text-white mb-8 transition-colors">
+                <Link to="/signin" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
                     <ArrowLeft className="w-4 h-4" />
                     Back to sign in
                 </Link>
 
                 <div className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
-                        <img src={logo} alt="Go Experts" className="h-10 w-auto brightness-0 invert" />
+                        <img src={logo} alt="Go Experts" className="h-10 w-auto" />
                     </div>
-                    <h1 className="text-3xl font-bold mb-2 text-white">Reset Password</h1>
-                    <p className="text-neutral-400">
+                    <h1 className="text-3xl font-bold mb-2 text-foreground">Reset Password</h1>
+                    <p className="text-muted-foreground">
                         {isSent
                             ? "Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder."
                             : "Enter your email address and we'll send you a link to reset your password."}
@@ -56,16 +56,16 @@ export default function ForgotPasswordPage() {
                 {!isSent ? (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-neutral-300">Email Address</label>
+                            <label className="block text-sm font-medium mb-2 text-foreground">Email Address</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="enter mail"
                                     required
-                                    className="w-full pl-12 pr-4 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                                    className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#F24C20] transition-colors"
                                 />
                             </div>
                         </div>
@@ -88,9 +88,9 @@ export default function ForgotPasswordPage() {
                 ) : (
                     <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-6 text-center">
                         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-white mb-2">Email Sent!</h3>
-                        <p className="text-neutral-400 mb-6">
-                            We've sent a password reset link to <span className="text-white font-medium">{email}</span>
+                        <h3 className="text-xl font-bold text-foreground mb-2">Email Sent!</h3>
+                        <p className="text-muted-foreground mb-6">
+                            We've sent a password reset link to <span className="text-foreground font-medium">{email}</span>
                         </p>
                         <button
                             onClick={() => setIsSent(false)}

@@ -29,8 +29,8 @@ function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title:
       <div className="inline-flex items-center rounded-full border border-[#F24C20]/30 bg-[#F24C20]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#F24C20]">
         {eyebrow}
       </div>
-      <h2 className="mt-4 text-3xl font-bold sm:text-4xl text-white tracking-tight">{title}</h2>
-      <p className="mt-4 text-sm leading-7 text-slate-300 sm:text-base">{description}</p>
+      <h2 className="mt-4 text-3xl font-bold sm:text-4xl text-[#1f120d] tracking-tight">{title}</h2>
+      <p className="mt-4 text-sm leading-7 text-[#6f5548] sm:text-base">{description}</p>
     </div>
   );
 }
@@ -88,10 +88,10 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
     <div
       className={`relative rounded-[40px] border p-8 shadow-2xl transition-all duration-500 flex flex-col h-full ${
         isCurrentPlan
-          ? `border-[#F24C20] bg-gradient-to-b ${theme.glow} via-[#0b0d14] to-[#0b0d14] shadow-[#F24C20]/20`
+          ? `border-[#F24C20] bg-gradient-to-b ${theme.glow} via-white to-[#fff8f3] shadow-[#F24C20]/20`
           : plan.featured
-            ? `${theme.border} bg-gradient-to-b ${theme.glow} via-[#0b0d14] to-[#0b0d14] ${theme.shadow}`
-            : "border-white/10 bg-[#0b0d14] hover:border-white/20"
+            ? `${theme.border} bg-gradient-to-b ${theme.glow} via-white to-[#fff8f3] ${theme.shadow}`
+            : "border-[#f2d7c2] bg-white/90 hover:border-[#F24C20]/30 shadow-black/5"
       }`}
     >
       {isCurrentPlan && (
@@ -108,17 +108,17 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
 
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2 rounded-xl ${plan.featured ? theme.iconContainer : 'bg-white/5 text-white/40'}`}>
+            <div className={`p-2 rounded-xl ${plan.featured ? theme.iconContainer : 'bg-[#F24C20]/10 text-[#F24C20]'}`}>
                 <DynamicIcon name={plan.icon || 'Star'} className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+            <h3 className="text-xl font-bold text-[#1f120d]">{plan.name}</h3>
         </div>
-        <p className="text-slate-400 text-sm mt-2 line-clamp-2 min-h-[40px]">{plan.description || 'Professional features for your growth.'}</p>
+        <p className="text-[#6f5548] text-sm mt-2 line-clamp-2 min-h-[40px]">{plan.description || 'Professional features for your growth.'}</p>
       </div>
 
       <div className="flex items-end gap-1 mb-8">
-        <span className="text-4xl font-black text-white">₹{plan.price.toLocaleString()}</span>
-        <span className="pb-1 text-sm font-medium text-slate-500 capitalize">/{plan.billing_cycle || 'year'}</span>
+        <span className="text-4xl font-black text-[#1f120d]">₹{plan.price.toLocaleString()}</span>
+        <span className="pb-1 text-sm font-medium text-[#8b6b5a] capitalize">/{plan.billing_cycle || 'year'}</span>
       </div>
 
       <div className="flex-1 space-y-4 mb-8">
@@ -127,13 +127,13 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
             <div className={`mt-1 p-0.5 rounded-full ${theme.tick} group-hover:scale-110 transition-transform`}>
                 <Check className="h-3 w-3 shrink-0" />
             </div>
-            <span className="text-sm leading-6 text-slate-300 group-hover:text-white transition-colors">{feature}</span>
+            <span className="text-sm leading-6 text-[#4f3b31] group-hover:text-[#1f120d] transition-colors">{feature}</span>
           </div>
         ))}
         {plan.target_role !== 'investor' && (
-           <div className="space-y-3 mt-4 pt-4 border-t border-white/5">
+           <div className="space-y-3 mt-4 pt-4 border-t border-[#f2d7c2]">
                {plan.project_post_limit > 0 && (
-                <div className="flex items-start gap-3 text-xs text-slate-400">
+                <div className="flex items-start gap-3 text-xs text-[#6f5548]">
                     <div className={`mt-1 p-0.5 rounded-full ${theme.tick.replace('500', '400')}`}>
                         <BadgeCheck className="h-3 w-3 shrink-0" />
                     </div>
@@ -141,7 +141,7 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
                 </div>
                )}
                {plan.task_post_limit > 0 && (
-                <div className="flex items-start gap-3 text-xs text-slate-400">
+                <div className="flex items-start gap-3 text-xs text-[#6f5548]">
                     <div className="mt-1 p-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
                         <BadgeCheck className="h-3 w-3 shrink-0" />
                     </div>
@@ -149,7 +149,7 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
                 </div>
                )}
                {plan.chat_limit > 0 && (
-                <div className="flex items-start gap-3 text-xs text-slate-400">
+                <div className="flex items-start gap-3 text-xs text-[#6f5548]">
                     <div className="mt-1 p-0.5 rounded-full bg-orange-500/10 text-orange-400">
                         <MessageCircle className="h-3 w-3 shrink-0" />
                     </div>
@@ -157,7 +157,7 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
                 </div>
                )}
                {plan.database_access_limit > 0 && (
-                <div className="flex items-start gap-3 text-xs text-slate-400">
+                <div className="flex items-start gap-3 text-xs text-[#6f5548]">
                     <div className="mt-1 p-0.5 rounded-full bg-purple-500/10 text-purple-400">
                         <Database className="h-3 w-3 shrink-0" />
                     </div>
@@ -178,7 +178,7 @@ function PlanCard({ plan, buying, onChoose, currentPlanId }: { plan: any; buying
             ? "bg-white/10 text-slate-400 border border-white/10 cursor-default"
             : plan.featured 
               ? `${theme.btn} text-white shadow-xl` 
-              : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
+              : "border border-[#F24C20]/30 bg-white text-[#1f120d] hover:bg-[#F24C20] hover:text-white"
         }`}
       >
         {isBuying ? (
@@ -338,19 +338,19 @@ export default function SubscriptionPlansPricingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05060a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#fdf7f2] text-[#1f120d] flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-[#F24C20] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#05060a] text-white">
+    <div className="min-h-screen bg-[#fdf7f2] text-[#1f120d]">
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 border-b border-white/5">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,76,32,0.15),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.1),transparent_35%)] pointer-events-none" />
+      <section className="relative overflow-hidden pt-32 pb-20 border-b border-[#f0d7c7]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,76,32,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(247,201,169,0.45),transparent_35%)] pointer-events-none" />
         
         <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid gap-16 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
@@ -362,10 +362,10 @@ export default function SubscriptionPlansPricingPage() {
               >
                 Subscription-Based Platform
               </motion.div>
-              <h1 className="text-4xl font-black leading-tight sm:text-6xl lg:text-7xl uppercase tracking-tighter mb-8 italic">
+              <h1 className="text-4xl font-black leading-tight sm:text-6xl lg:text-5xl uppercase tracking-tighter mb-8  text-[#1f120d]">
                 {settings?.subscription_title || "The New Standard of Direct Networking."}
               </h1>
-              <p className="text-lg leading-8 text-slate-400 max-w-2xl mb-12">
+              <p className="text-lg leading-8 text-[#6f5548] max-w-2xl mb-12">
                 {settings?.subscription_description || "GoExperts runs on a clean yearly subscription model. No bidding, no commissions, just direct access to the world's best talent, founders, and investors."}
               </p>
 
@@ -376,12 +376,12 @@ export default function SubscriptionPlansPricingPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="flex items-center gap-3 rounded-[20px] border border-white/5 bg-white/5 p-4 backdrop-blur-xl group hover:border-white/10 transition-all font-bold"
+                    className="flex items-center gap-3 rounded-[20px] border border-[#f2d7c2] bg-white/80 p-4 backdrop-blur-xl group hover:border-[#F24C20]/30 transition-all font-bold shadow-sm"
                   >
                     <div className="flex-shrink-0 p-1 rounded-full bg-emerald-500/10 text-emerald-400">
                       <BadgeCheck className="h-5 w-5" />
                     </div>
-                    <p className="text-xs font-bold leading-tight text-slate-300 group-hover:text-white transition-colors">{item}</p>
+                    <p className="text-xs font-bold leading-tight text-[#5f4a3f] group-hover:text-[#1f120d] transition-colors">{item}</p>
                   </motion.div>
                 ))}
               </div>
@@ -390,13 +390,13 @@ export default function SubscriptionPlansPricingPage() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="rounded-[48px] border border-white/10 bg-[#0b0d14] p-2 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+              className="rounded-[48px] border border-[#f2d7c2] bg-white/90 p-2 shadow-[0_24px_60px_rgba(242,76,32,0.14)]"
             >
-              <div className="rounded-[42px] border border-white/5 bg-gradient-to-br from-white/10 to-transparent p-8">
+              <div className="rounded-[42px] border border-[#f8dfcf] bg-gradient-to-br from-[#fff8f3] to-white p-8">
                 <div className="flex items-center justify-between gap-4 mb-10">
                   <div>
                     <div className="text-xs font-black uppercase tracking-[0.2em] text-[#F24C20] mb-1">Base Annual Entry</div>
-                    <div className="text-4xl font-black text-white italic">₹3,650</div>
+                    <div className="text-4xl font-black text-[#1f120d]">₹3,650</div>
                   </div>
                   <div className="rounded-2xl bg-emerald-500/10 px-4 py-2 text-xs font-black text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
                     ₹10 / day
@@ -410,10 +410,10 @@ export default function SubscriptionPlansPricingPage() {
                     { icon: ShieldCheck, title: "No Fees", desc: "Keep 100% of your value." },
                     { icon: Star, title: "Scale Up", desc: "Upgrade as your needs grow." }
                   ].map((feat, i) => (
-                    <div key={i} className="rounded-3xl border border-white/5 bg-black/40 p-5 group hover:bg-black/60 transition-all h-full">
+                    <div key={i} className="rounded-3xl border border-[#f2d7c2] bg-[#fff8f3] p-5 group hover:bg-white transition-all h-full shadow-sm">
                       <feat.icon className="h-6 w-6 text-orange-400 mb-3 group-hover:scale-110 transition-transform" />
-                      <div className="font-bold text-white text-sm mb-1">{feat.title}</div>
-                      <p className="text-[11px] text-slate-500 leading-normal">{feat.desc}</p>
+                      <div className="font-bold text-[#1f120d] text-sm mb-1">{feat.title}</div>
+                      <p className="text-[11px] text-[#7a5a49] leading-normal">{feat.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -426,20 +426,20 @@ export default function SubscriptionPlansPricingPage() {
       <div id="pricing-sections">
         {sortedGroups.map((group) => {
           return (
-            <section key={group.name} className="border-t border-white/5 py-24">
+            <section key={group.name} className="border-t border-[#f0d7c7] py-24">
               <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
                   <div className="max-w-3xl">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#F24C20]">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#F24C20]/20 bg-[#F24C20]/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#F24C20]">
                       <DynamicIcon name={group.icon} className="h-3.5 w-3.5" />
                       {group.name}
                     </div>
-                    <h2 className="mt-4 md:mt-6 text-3xl font-black italic uppercase tracking-tighter sm:text-5xl text-white">
+                    <h2 className="mt-4 md:mt-6 text-3xl font-black uppercase tracking-tighter sm:text-5xl text-[#1f120d]">
                       {group.label}
                     </h2>
-                    <p className="mt-3 md:mt-4 text-sm leading-7 text-slate-400 sm:text-base">{group.description}</p>
+                    <p className="mt-3 md:mt-4 text-sm leading-7 text-[#6f5548] sm:text-base">{group.description}</p>
                   </div>
-                  <div className="w-fit rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <div className="w-fit rounded-2xl border border-[#f2d7c2] bg-white/80 px-4 py-3 text-[10px] md:text-xs font-bold text-[#7a5a49] uppercase tracking-widest">
                     Annual subscription pricing
                   </div>
                 </div>
@@ -456,7 +456,7 @@ export default function SubscriptionPlansPricingPage() {
       </div>
 
       {comboPlanGroup && groupedPlans[comboPlanGroup.name] && (
-        <section className="border-t border-white/10 bg-white/[0.03] py-24">
+        <section className="border-t border-[#f0d7c7] bg-white/45 py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionTitle
               eyebrow={comboPlanGroup.label}
@@ -472,8 +472,8 @@ export default function SubscriptionPlansPricingPage() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className={`mx-auto mt-12 max-w-4xl rounded-[48px] border p-8 shadow-2xl shadow-black/20 sm:p-10 ${
-                    isCurrentPlan ? 'border-[#F24C20] bg-gradient-to-r from-[#F24C20]/20 via-[#0b0d14] to-[#044071]/20' : 'border-[#F24C20]/30 bg-gradient-to-r from-[#F24C20]/15 via-[#0b0d14] to-[#044071]/15'
+                  className={`mx-auto mt-12 max-w-4xl rounded-[48px] border p-8 shadow-2xl shadow-[#F24C20]/10 sm:p-10 ${
+                    isCurrentPlan ? 'border-[#F24C20] bg-gradient-to-r from-[#F24C20]/15 via-white to-[#eaf3ff]' : 'border-[#F24C20]/30 bg-gradient-to-r from-[#F24C20]/10 via-white to-[#eaf3ff]'
                   }`}
                 >
                   <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between mb-10">
@@ -482,15 +482,15 @@ export default function SubscriptionPlansPricingPage() {
                           <DynamicIcon name={plan.icon || 'Star'} className="w-3.5 h-3.5 mr-2 inline" />
                           {isCurrentPlan ? 'YOUR CURRENT PLAN' : (plan.badge || 'Best Seller')}
                       </div>
-                      <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">{plan.name}</h3>
-                      <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+                      <h3 className="text-3xl font-black uppercase tracking-tighter text-[#1f120d]">{plan.name}</h3>
+                      <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6f5548] sm:text-base">
                         {plan.description || "Ideal for freelancers who are also founders, or clients who also invest. Get access across different roles in one bundled subscription."}
                       </p>
                     </div>
 
-                    <div className="rounded-[32px] border border-white/10 bg-[#0b0d14] p-6 md:p-8 text-center min-w-[240px]">
+                    <div className="rounded-[32px] border border-[#f2d7c2] bg-white p-6 md:p-8 text-center min-w-[240px] shadow-sm">
                       <div className="text-xs font-black uppercase tracking-widest text-[#F24C20] mb-2">Yearly Price</div>
-                      <div className="text-4xl font-black text-white italic">₹{plan.price.toLocaleString()}</div>
+                      <div className="text-4xl font-black text-[#1f120d] ">₹{plan.price.toLocaleString()}</div>
                       <button 
                         onClick={() => handleChoosePlan(plan._id, plan.name)}
                         disabled={!!buying || isCurrentPlan}
@@ -515,7 +515,7 @@ export default function SubscriptionPlansPricingPage() {
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     {plan.features.map((item: string) => (
-                      <div key={item} className="flex items-start gap-3 rounded-2xl border border-white/5 bg-white/5 p-4 text-sm text-slate-300">
+                      <div key={item} className="flex items-start gap-3 rounded-2xl border border-[#f2d7c2] bg-white/80 p-4 text-sm text-[#4f3b31]">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F24C20]" />
                         <span>{item}</span>
                       </div>
@@ -528,16 +528,16 @@ export default function SubscriptionPlansPricingPage() {
         </section>
       )}
 
-      <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 border-t border-white/5">
+      <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 border-t border-[#f0d7c7]">
         <SectionTitle
           eyebrow="Feature comparison"
           title="Simple comparison across the platform"
           description="A transparent subscription structure makes it easy for users to understand what is included at each level."
         />
 
-        <div className="mt-12 overflow-x-auto rounded-[24px] md:rounded-[40px] border border-white/10 bg-[#0b0d14] custom-scrollbar">
+        <div className="mt-12 overflow-x-auto rounded-[24px] md:rounded-[40px] border border-[#f2d7c2] bg-white/90 custom-scrollbar shadow-sm">
           <div className="min-w-[800px]">
-            <div className="grid grid-cols-5 border-b border-white/10 bg-white/5 text-[10px] md:text-xs font-black uppercase tracking-widest text-white">
+            <div className="grid grid-cols-5 border-b border-[#f2d7c2] bg-[#fff8f3] text-[10px] md:text-xs font-black uppercase tracking-widest text-[#1f120d]">
               <div className="p-4 md:p-6">Feature</div>
               <div className="p-4 md:p-6 text-center">Freelancer</div>
               <div className="p-4 md:p-6 text-center">Client</div>
@@ -545,8 +545,8 @@ export default function SubscriptionPlansPricingPage() {
               <div className="p-4 md:p-6 text-center">Investor</div>
             </div>
             {compareRows.map((row) => (
-              <div key={row.label} className="grid grid-cols-5 border-b border-white/5 text-xs md:text-sm text-slate-400 last:border-b-0 hover:bg-white/5 transition-colors">
-                <div className="p-4 md:p-6 font-bold text-white">{row.label}</div>
+              <div key={row.label} className="grid grid-cols-5 border-b border-[#f7e5da] text-xs md:text-sm text-[#6f5548] last:border-b-0 hover:bg-[#fff8f3] transition-colors">
+                <div className="p-4 md:p-6 font-bold text-[#1f120d]">{row.label}</div>
                 {row.values.map((value, index) => (
                   <div key={`${row.label}-${index}`} className="p-4 md:p-6 text-center">{value}</div>
                 ))}
@@ -555,18 +555,18 @@ export default function SubscriptionPlansPricingPage() {
           </div>
         </div>
         <div className="mt-4 flex justify-center lg:hidden">
-          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest animate-pulse">Swipe left to see more →</p>
+          <p className="text-[10px] uppercase font-bold text-[#8b6b5a] tracking-widest animate-pulse">Swipe left to see more →</p>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 mb-20">
-        <div className="rounded-[48px] border border-white/10 bg-gradient-to-r from-[#F24C20]/15 via-white/5 to-[#044071]/15 p-10 shadow-2xl shadow-black/30 sm:p-16 lg:p-20 text-center lg:text-left">
+        <div className="rounded-[48px] border border-[#f2d7c2] bg-gradient-to-r from-[#F24C20]/12 via-white to-[#eaf3ff] p-10 shadow-2xl shadow-[#F24C20]/10 sm:p-16 lg:p-20 text-center lg:text-left">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6">
+            <div className="inline-flex items-center rounded-full border border-[#F24C20]/20 bg-[#F24C20]/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[#F24C20] mb-6">
               GoExperts Pricing Strategy
             </div>
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter sm:text-6xl text-white mb-8">Zero commission. <br/>Direct connections.</h2>
-            <p className="text-lg leading-8 text-slate-300 mb-10 max-w-2xl">
+            <h2 className="text-4xl font-black  uppercase tracking-tighter sm:text-6xl text-[#1f120d] mb-8">Zero commission. <br/>Direct connections.</h2>
+            <p className="text-lg leading-8 text-[#6f5548] mb-10 max-w-2xl">
               Position GoExperts as a clean subscription-first marketplace where freelancers, clients, founders, and investors get predictable pricing and better-quality connections.
             </p>
           </div>
@@ -575,7 +575,7 @@ export default function SubscriptionPlansPricingPage() {
             <button className="rounded-2xl bg-[#F24C20] px-10 py-5 text-sm font-black uppercase tracking-widest text-white transition hover:bg-[#F24C20]/80 shadow-xl shadow-[#F24C20]/20">
               Start Annual Plan
             </button>
-            <button className="rounded-2xl border border-white/15 bg-white/5 px-10 py-5 text-sm font-black uppercase tracking-widest text-white transition hover:bg-white/10">
+            <button className="rounded-2xl border border-[#f2d7c2] bg-white px-10 py-5 text-sm font-black uppercase tracking-widest text-[#1f120d] transition hover:border-[#F24C20]/40 hover:bg-[#fff8f3]">
               Request Demo
             </button>
           </div>
@@ -596,28 +596,28 @@ export default function SubscriptionPlansPricingPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 12 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0b0d14] p-6 shadow-2xl"
+              className="w-full max-w-lg rounded-3xl border border-[#f2d7c2] bg-[#fdf7f2] p-6 shadow-2xl"
             >
               <div className="flex items-start gap-4">
                 <div className="rounded-2xl bg-[#F24C20]/10 p-3">
                   <DynamicIcon name="Crown" className="h-6 w-6 text-[#F24C20]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white">Confirm Plan Change</h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">
-                    You already have an active subscription{currentPlanName ? ` (${currentPlanName})` : ''}. If you switch to <span className="font-bold text-white">{pendingPlanChange.planName}</span>, your current package benefits and remaining points or limits will be removed, and only the new plan points or limits will be updated.
+                  <h3 className="text-xl font-bold text-[#1f120d]">Confirm Plan Change</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#6f5548]">
+                    You already have an active subscription{currentPlanName ? ` (${currentPlanName})` : ''}. If you switch to <span className="font-bold text-[#1f120d]">{pendingPlanChange.planName}</span>, your current package benefits and remaining points or limits will be removed, and only the new plan points or limits will be updated.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+              <div className="mt-5 rounded-2xl border border-[#f2d7c2] bg-white/80 p-4 text-sm text-[#6f5548]">
                 This replaces the current package. Old benefits do not carry over into the new plan.
               </div>
 
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
                   onClick={() => setPendingPlanChange(null)}
-                  className="rounded-2xl border border-white/15 px-5 py-3 font-bold text-slate-300 transition-all hover:bg-white/5"
+                  className="rounded-2xl border border-[#f2d7c2] px-5 py-3 font-bold text-[#6f5548] transition-all hover:bg-white"
                 >
                   Cancel
                 </button>

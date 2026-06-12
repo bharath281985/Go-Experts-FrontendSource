@@ -710,7 +710,7 @@ export default function StartupIdeas() {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/15' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`}
+                    className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-[#F24C20] text-white shadow-lg shadow-[#F24C20]/15' : 'bg-[#fff3e7] text-[#6b625b] hover:bg-[#F24C20] hover:text-white'}`}
                   >
                       {cat}
                   </button>
@@ -724,7 +724,7 @@ export default function StartupIdeas() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && fetchIdeas()}
-                className="w-full pl-10 pr-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 rounded-xl border-none outline-none focus:ring-1 focus:ring-[#F24C20]"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#fff3e7] text-[#111111] placeholder:text-[#6b625b] rounded-xl border border-[#f2c9a7] outline-none focus:ring-1 focus:ring-[#F24C20]"
               />
           </div>
       </div>

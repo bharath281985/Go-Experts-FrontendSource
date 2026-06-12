@@ -93,7 +93,7 @@ export default function SiteSettingsProvider({ children }: Props) {
     // While fetching — fast skeleton (max ~800ms usually)
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <motion.div
                     animate={{ opacity: [0.4, 1, 0.4] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
@@ -109,7 +109,7 @@ export default function SiteSettingsProvider({ children }: Props) {
     // Maintenance Mode screen
     if (maintenance) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white px-6">
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center text-foreground px-6">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useTheme } from '@/app/components/ThemeProvider';
 import {
   User,
   Lock,
@@ -75,11 +74,8 @@ const buildYearRange = (start: string, end: string, isCurrent = false) => {
 type TabType = 'profile' | 'portfolio' | 'resume' | 'verification' | 'security' | 'privacy' | 'landing';
 
 export default function Settings() {
-  const { isDarkMode } = useTheme();
-  const monthInputClassName = `w-full px-4 py-2 rounded-xl border text-sm ${isDarkMode
-    ? 'bg-neutral-700 border-neutral-500 text-white [color-scheme:dark]'
-    : 'bg-neutral-100 border-neutral-300 text-neutral-900 [color-scheme:light]'
-    } outline-none focus:border-[#F24C20] disabled:opacity-60 disabled:cursor-not-allowed`;
+  const isDarkMode = false;
+  const monthInputClassName = 'w-full px-4 py-2 rounded-xl border border-neutral-300 bg-white text-neutral-900 text-sm [color-scheme:light] outline-none focus:border-[#F24C20] disabled:opacity-60 disabled:cursor-not-allowed';
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -622,17 +618,17 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 text-[#111111]">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="px-1 md:px-0">
-        <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Settings</h1>
-        <p className={`mt-1 md:mt-2 text-sm ${isDarkMode ? 'text-neutral-400' : 'text-neutral-600'}`}>Manage your account settings and preferences</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#111111]">Settings</h1>
+        <p className="mt-1 md:mt-2 text-sm text-[#4a4a4a]">Manage your account settings and preferences</p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Tabs */}
         <motion.div
           initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-          className={`lg:col-span-1 p-2 md:p-4 rounded-2xl border backdrop-blur-sm h-fit ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white/50 border-neutral-200'} overflow-x-auto lg:overflow-visible`}
+          className={`lg:col-span-1 p-2 md:p-4 rounded-2xl border backdrop-blur-sm h-fit ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'} overflow-x-auto lg:overflow-visible`}
         >
           <nav className="flex lg:flex-col gap-1 min-w-max lg:min-w-0">
             {tabs.map((tab) => {
@@ -642,8 +638,8 @@ export default function Settings() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap lg:w-full ${activeTab === tab.id
-                    ? 'bg-[#F24C20]/10 text-[#F24C20] border border-[#F24C20]/30'
-                    : isDarkMode ? 'text-neutral-400 hover:bg-neutral-800 hover:text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
+                    ? 'bg-[#F24C20] text-white border border-[#F24C20] shadow-lg shadow-[#F24C20]/15'
+                    : isDarkMode ? 'text-neutral-400 hover:bg-neutral-100 hover:text-white' : 'text-[#333333] hover:bg-neutral-900 hover:text-[#ff0000] border border-transparent hover:border-[#F24C20]'
                     }`}
                 >
                   <Icon className="w-4 h-4 md:w-5 md:h-5" />
@@ -658,14 +654,14 @@ export default function Settings() {
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-          className={`lg:col-span-3 p-4 md:p-8 rounded-2xl border backdrop-blur-sm ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white/50 border-neutral-200'}`}
+          className={`lg:col-span-3 p-4 md:p-8 rounded-2xl border backdrop-blur-sm !text-[#111111] [&_label]:!text-[#4a4a4a] [&_label]:!opacity-100 [&_input]:!text-[#111111] [&_input::placeholder]:!text-[#6b625b] [&_textarea]:!text-[#111111] [&_textarea::placeholder]:!text-[#6b625b] [&_select]:!text-[#111111] [&_button.bg-\\[\\#044071\\]]:!text-white [&_button.bg-\\[\\#F24C20\\]]:!text-white [&_button.bg-red-600]:!text-white ${isDarkMode ? 'bg-neutral-900/50 border-neutral-800' : 'bg-white border-neutral-200'}`}
         >
           {activeTab === 'portfolio' && (
             <div className="space-y-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className={`text-xl md:text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>My Portfolio Projects</h2>
-                  <p className="text-xs md:text-sm text-neutral-500 mt-1">Showcase your best work and completed projects.</p>
+                  <h2 className={`text-[#000000] text-xl md:text-2xl font-bold`}>My Portfolio Projects</h2>
+                  <p className="text-xs md:text-sm !text-[#4a4a4a] mt-1">Showcase your best work and completed projects.</p>
                 </div>
                 <button onClick={handleAddProject} className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors">
                   <Plus className="w-5 h-5" />
@@ -676,8 +672,8 @@ export default function Settings() {
               {formData.portfolio.length === 0 ? (
                 <div className={`p-12 text-center rounded-2xl border-2 border-dashed ${isDarkMode ? 'border-neutral-800 bg-neutral-900/20' : 'border-neutral-200 bg-neutral-50'}`}>
                   <Briefcase className="w-12 h-12 text-neutral-500 mx-auto mb-4 opacity-50" />
-                  <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>No projects added yet</h3>
-                  <p className="text-sm text-neutral-500 mt-2 max-w-xs mx-auto mb-6">Adding projects helps build confidence with potential clients.</p>
+                  <h3 className="text-lg font-bold !text-[#111111]">No projects added yet</h3>
+                  <p className="text-sm !text-[#4a4a4a] mt-2 max-w-xs mx-auto mb-6">Adding projects helps build confidence with potential clients.</p>
                   <button onClick={handleAddProject} className="px-6 py-2 bg-[#044071] text-white rounded-lg hover:bg-[#055a99]">Add Your First Project</button>
                 </div>
               ) : (
@@ -685,7 +681,7 @@ export default function Settings() {
                   {formData.portfolio.map((project, pIndex) => (
                     <div key={pIndex} className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
                       <div className="flex justify-between items-start mb-6">
-                        <h3 className="font-bold flex items-center gap-2">Project #{pIndex + 1}</h3>
+                        <h3 className="font-bold flex items-center gap-2 !text-[#111111]">Project #{pIndex + 1}</h3>
                         <button onClick={() => handleRemoveProject(pIndex)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
                           <Trash className="w-5 h-5" />
                         </button>
@@ -792,12 +788,12 @@ export default function Settings() {
           )}
 
           {activeTab === 'resume' && (
-            <div className="space-y-12">
+            <div className="space-y-12 text-[#111111]">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Work Experience</h2>
-                    <p className="text-sm text-neutral-500 mt-1">Add your professional career history.</p>
+                    <h2 className="text-2xl font-bold !text-[#111111]">Work Experience</h2>
+                    <p className="text-sm !text-[#4a4a4a] mt-1">Add your professional career history.</p>
                   </div>
                   <button onClick={handleAddExperience} className="flex items-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors">
                     <Plus className="w-5 h-5" />
@@ -842,7 +838,7 @@ export default function Settings() {
                                         newExp[idx].year_range = buildYearRange(currentRange.start, currentRange.end, e.target.checked);
                                         setFormData({ ...formData, experience_details: newExp });
                                       }} />
-                                      <span className="text-[10px] uppercase font-bold opacity-70">Current Work</span>
+                                      <span className="text-[10px] uppercase font-bold !text-[#4a4a4a]">Current Work</span>
                                     </label>
                                   </div>
                                 </div>
@@ -853,7 +849,7 @@ export default function Settings() {
                                   const newExp = [...formData.experience_details];
                                   newExp[idx].title = e.target.value;
                                   setFormData({ ...formData, experience_details: newExp });
-                                }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                                }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-white' : 'bg-white border-neutral-200 text-neutral-900'} outline-none focus:border-[#F24C20]`} />
                               </div>
                               <div className="md:col-span-2">
                                 <label className="block text-xs font-bold mb-1 uppercase opacity-50">Company Name</label>
@@ -861,7 +857,7 @@ export default function Settings() {
                                   const newExp = [...formData.experience_details];
                                   newExp[idx].company = e.target.value;
                                   setFormData({ ...formData, experience_details: newExp });
-                                }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                                }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-white' : 'bg-white border-neutral-200 text-neutral-900'} outline-none focus:border-[#F24C20]`} />
                               </div>
                             </div>
                           </>
@@ -876,8 +872,8 @@ export default function Settings() {
               <div className="space-y-6 pt-12 border-t border-neutral-100 dark:border-neutral-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Education</h2>
-                    <p className="text-sm text-neutral-500 mt-1">Add your academic background.</p>
+                    <h2 className="text-2xl font-bold !text-[#111111]">Education</h2>
+                    <p className="text-sm !text-[#4a4a4a] mt-1">Add your academic background.</p>
                   </div>
                   <button onClick={handleAddEducation} className="flex items-center gap-2 px-4 py-2 bg-[#F24C20] text-white rounded-lg hover:bg-orange-600 transition-colors">
                     <Plus className="w-5 h-5" />
@@ -920,7 +916,7 @@ export default function Settings() {
                                     newEdu[idx].year_range = buildYearRange(currentRange.start, currentRange.end, e.target.checked);
                                     setFormData({ ...formData, education_details: newEdu });
                                   }} />
-                                  <span className="text-[10px] uppercase font-bold opacity-70">Currently Studying</span>
+                                  <span className="text-[10px] uppercase font-bold !text-[#4a4a4a]">Currently Studying</span>
                                 </label>
                               </div>
                             </div>
@@ -931,7 +927,7 @@ export default function Settings() {
                               const newEdu = [...formData.education_details];
                               newEdu[idx].title = e.target.value;
                               setFormData({ ...formData, education_details: newEdu });
-                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-white' : 'bg-white border-neutral-200 text-neutral-900'} outline-none focus:border-[#F24C20]`} />
                           </div>
                           <div className="md:col-span-2">
                             <label className="block text-xs font-bold mb-1 uppercase opacity-50">Institution Name</label>
@@ -939,7 +935,7 @@ export default function Settings() {
                               const newEdu = [...formData.education_details];
                               newEdu[idx].institution = e.target.value;
                               setFormData({ ...formData, education_details: newEdu });
-                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                            }} className={`w-full px-4 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 text-white' : 'bg-white border-neutral-200 text-neutral-900'} outline-none focus:border-[#F24C20]`} />
                           </div>
                         </div>
                       </div>
@@ -959,37 +955,42 @@ export default function Settings() {
           {activeTab === 'landing' && (
             <div className="space-y-8">
               <div>
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Landing Page Branding</h2>
-                <p className="text-sm text-neutral-500 mt-1">Customize your public profile page's appearance.</p>
+                <h2 className="text-2xl font-bold text-[#111111]">Landing Page Branding</h2>
+                <p className="text-sm text-[#4a4a4a] mt-1">Customize your public profile page's appearance.</p>
               </div>
 
-              <div className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                <label className="block text-sm font-bold mb-4 uppercase opacity-50 tracking-wider">Cover / Hero Image</label>
-                <div className="relative group aspect-[21/9] w-full rounded-2xl overflow-hidden border-2 border-dashed border-neutral-700/30 bg-neutral-900/50">
+              <div className="p-8 rounded-2xl border border-neutral-200 bg-white">
+                <label className="block text-sm font-bold mb-4 uppercase tracking-wider text-[#4a4a4a]">Cover / Hero Image</label>
+                <div className="relative group aspect-[21/9] w-full rounded-2xl overflow-hidden border-2 border-dashed border-[#f2c9a7] bg-[#fffaf4]">
                   <img src={landingImagePreview || getImgUrl(formData.landing_page_image) || 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&q=80'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Landing Cover" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <label className="px-6 py-3 bg-white text-black rounded-xl font-bold cursor-pointer hover:bg-neutral-100 transition-colors flex items-center gap-2">
-                      <Camera className="w-5 h-5" />
-                      Change Hero Image
-                      <input type="file" className="hidden" accept="image/*" onChange={handleLandingImageChange} />
-                    </label>
-                  </div>
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+  <label className="px-6 py-3 bg-white !text-[#111111] rounded-xl font-bold cursor-pointer transition-colors flex items-center gap-2">
+    <Camera className="w-5 h-5" />
+    Change Hero Image
+    <input
+      type="file"
+      className="hidden"
+      accept="image/*"
+      onChange={handleLandingImageChange}
+    />
+  </label>
+</div>
                 </div>
-                <p className="mt-4 text-xs text-neutral-500">Recommended size: 1920x800px. Maximum size: 8MB.</p>
+                <p className="mt-4 text-xs text-[#4a4a4a]">Recommended size: 1920x800px. Maximum size: 8MB.</p>
               </div>
 
-              <div className={`p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                <h3 className="font-bold mb-6 flex items-center gap-2"><Share2 className="w-5 h-5 text-[#F24C20]" /> Social Connections</h3>
+              <div className="p-8 rounded-2xl border border-neutral-200 bg-white">
+                <h3 className="font-bold mb-6 flex items-center gap-2 text-[#111111]"><Share2 className="w-5 h-5 text-[#F24C20]" /> Social Connections</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {Object.entries(formData.social_links).map(([platform, value]) => (
                     <div key={platform}>
-                      <label className="block text-xs font-bold mb-2 uppercase opacity-50 capitalize">{platform}</label>
-                      <input type="url" placeholder={`https://${platform}.com/username`} value={value} onChange={(e) => setFormData({ ...formData, social_links: { ...formData.social_links, [platform]: e.target.value } })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                      <label className="block text-xs font-bold mb-2 uppercase capitalize text-[#4a4a4a]">{platform}</label>
+                      <input type="url" placeholder={`https://${platform}.com/username`} value={value} onChange={(e) => setFormData({ ...formData, social_links: { ...formData.social_links, [platform]: e.target.value } })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20]" />
                     </div>
                   ))}
                 </div>
                 <div className="mt-8">
-                  <button onClick={handleUpdateProfile} disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 shadow-lg shadow-[#044071]/20">
+                  <button onClick={handleUpdateProfile} disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] !text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 shadow-lg shadow-[#044071]/20">
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Landing Settings'}
                   </button>
                 </div>
@@ -1000,8 +1001,8 @@ export default function Settings() {
           {activeTab === 'verification' && (
             <div className="space-y-8">
               <div>
-                <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Verification & KYC</h2>
-                <p className="text-sm text-neutral-500 mt-1">Complete your identity verification to unlock full platform features.</p>
+                <h2 className="text-2xl font-bold text-[#111111]">Verification & KYC</h2>
+                <p className="text-sm text-[#4a4a4a] mt-1">Complete your identity verification to unlock full platform features.</p>
               </div>
 
               {formData.roles.includes('investor') || formData.roles.includes('startup_creator') ? (
@@ -1020,26 +1021,26 @@ export default function Settings() {
                   ) : null}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                      <h3 className="font-bold mb-6 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-[#F24C20]" /> Identity Verification</h3>
+                    <div className="p-6 rounded-2xl border border-neutral-200 bg-white">
+                      <h3 className="font-bold mb-6 flex items-center gap-2 text-[#111111]"><ShieldCheck className="w-5 h-5 text-[#F24C20]" /> Identity Verification</h3>
                       <div className="space-y-6">
                         <div>
-                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">PAN Card</label>
-                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                          <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">PAN Card</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-[#f2c9a7] bg-[#fffaf4]">
                             {formData.kyc_details.pan_card ? (
-                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium text-[#111111]">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.pan_card), title: 'PAN Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
                             ) : (
-                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload PAN Card Image/PDF</p></div>
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-[#6b625b] mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('pan_card', e.target.files[0])} /><p className="text-xs text-[#4a4a4a]">Upload PAN Card Image/PDF</p></div>
                             )}
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Aadhar Card</label>
-                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                          <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Aadhar Card</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-[#f2c9a7] bg-[#fffaf4]">
                             {formData.kyc_details.aadhar_card ? (
-                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium text-[#111111]">Document Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.kyc_details.aadhar_card), title: 'Aadhar Card' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
                             ) : (
-                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('aadhar_card', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Aadhar Card Image/PDF</p></div>
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-[#6b625b] mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('aadhar_card', e.target.files[0])} /><p className="text-xs text-[#4a4a4a]">Upload Aadhar Card Image/PDF</p></div>
                             )}
                           </div>
                         </div>
@@ -1047,37 +1048,37 @@ export default function Settings() {
                     </div>
 
                     {!formData.roles.includes('client') && (
-                      <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'}`}>
-                        <h3 className="font-bold mb-6 flex items-center gap-2"><Briefcase className="w-5 h-5 text-[#F24C20]" /> Professional Proof</h3>
+                      <div className="p-6 rounded-2xl border border-neutral-200 bg-white">
+                        <h3 className="font-bold mb-6 flex items-center gap-2 text-[#111111]"><Briefcase className="w-5 h-5 text-[#F24C20]" /> Professional Proof</h3>
                         <div>
-                          <label className="block text-xs font-bold mb-2 uppercase opacity-50">Experience Letter / Relieving Letter</label>
-                          <div className="relative p-4 rounded-xl border-2 border-dashed border-neutral-700/30 bg-neutral-900/20">
+                          <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Experience Letter / Relieving Letter</label>
+                          <div className="relative p-4 rounded-xl border-2 border-dashed border-[#f2c9a7] bg-[#fffaf4]">
                             {formData.documents.experience_letter ? (
-                              <div className="flex justify-between items-center"><span className="text-xs font-medium">Letter Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
+                              <div className="flex justify-between items-center"><span className="text-xs font-medium text-[#111111]">Letter Uploaded</span><button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(formData.documents.experience_letter), title: 'Experience Letter' })} className="text-blue-500 text-xs font-bold hover:underline">View</button></div>
                             ) : (
-                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-neutral-500 mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('experience_letter', e.target.files[0])} /><p className="text-xs text-neutral-500">Upload Professional Proof</p></div>
+                              <div className="flex flex-col items-center py-4 text-center"><Upload className="w-8 h-8 text-[#6b625b] mb-2" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files?.[0] && handleFileUpload('experience_letter', e.target.files[0])} /><p className="text-xs text-[#4a4a4a]">Upload Professional Proof</p></div>
                             )}
                           </div>
                         </div>
                       </div>
                     )}
 
-                    <div className={`p-6 rounded-2xl border ${isDarkMode ? 'bg-neutral-800/30 border-neutral-700' : 'bg-white border-neutral-200'} md:col-span-2`}>
-                      <h3 className="font-bold mb-6 flex items-center gap-2"><Award className="w-5 h-5 text-[#F24C20]" /> Academic Certificates</h3>
+                    <div className="p-6 rounded-2xl border border-neutral-200 bg-white md:col-span-2">
+                      <h3 className="font-bold mb-6 flex items-center gap-2 text-[#111111]"><Award className="w-5 h-5 text-[#F24C20]" /> Academic Certificates</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {formData.documents.educational?.map((doc: string, idx: number) => (
-                          <div key={idx} className="relative group p-4 rounded-xl border border-neutral-700 bg-neutral-950 flex flex-col items-center gap-2 transition-all hover:border-[#F24C20]/50">
+                          <div key={idx} className="relative group p-4 rounded-xl border border-[#f2c9a7] bg-[#fffaf4] flex flex-col items-center gap-2 transition-all hover:border-[#F24C20]/50">
                             <div className="w-10 h-10 rounded-lg bg-[#F24C20]/10 flex items-center justify-center"><FileText className="w-6 h-6 text-[#F24C20]" /></div>
-                            <span className="text-[10px] font-bold text-neutral-400 truncate w-full text-center uppercase">Degree #{idx + 1}</span>
+                            <span className="text-[10px] font-bold text-[#4a4a4a] truncate w-full text-center uppercase">Degree #{idx + 1}</span>
                             <div className="flex gap-2">
                               <button type="button" onClick={() => setPreviewDocument({ url: getDocumentUrl(doc), title: `Academic Doc #${idx + 1}` })} className="text-[10px] text-blue-500 font-bold uppercase hover:underline">View</button>
                               <button type="button" onClick={() => handleRemoveFile('educational', idx)} className="text-[10px] text-red-500 font-bold uppercase hover:underline">Remove</button>
                             </div>
                           </div>
                         ))}
-                        <label className="border-2 border-dashed border-neutral-700 rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-neutral-800/50 hover:border-[#F24C20]/50 transition-all cursor-pointer min-h-[120px] group">
-                          <Plus className="w-6 h-6 text-neutral-500 group-hover:text-[#F24C20] transition-colors" />
-                          <span className="text-[10px] text-neutral-500 font-bold uppercase group-hover:text-neutral-300">Add Academic Doc</span>
+                        <label className="border-2 border-dashed border-[#f2c9a7] bg-[#fffaf4] rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-orange-50 hover:border-[#F24C20]/50 transition-all cursor-pointer min-h-[120px] group">
+                          <Plus className="w-6 h-6 text-[#6b625b] group-hover:text-[#F24C20] transition-colors" />
+                          <span className="text-[10px] text-[#4a4a4a] font-bold uppercase group-hover:text-[#F24C20]">Add Academic Doc</span>
                           <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload('educational', e.target.files[0])} />
                         </label>
                       </div>
@@ -1092,17 +1093,17 @@ export default function Settings() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Security Settings</h2>
-                <p className="text-sm text-neutral-500">Manage your password and account protection</p>
+                    <p className="text-sm !text-[#4a4a4a]">Manage your password and account protection</p>
               </div>
               <div className={`p-8 rounded-2xl border backdrop-blur-sm ${isDarkMode ? 'bg-neutral-800/20 border-neutral-700' : 'bg-neutral-50 border-neutral-200'}`}>
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-12 h-12 rounded-xl bg-[#F24C20]/10 flex items-center justify-center"><Lock className="w-6 h-6 text-[#F24C20]" /></div>
                   <div>
-                    <h3 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Update Password</h3>
-                    <p className="text-sm text-neutral-500">Email-based secure verification</p>
+                    <h3 className="text-lg font-bold !text-[#111111]">Update Password</h3>
+                    <p className="text-sm !text-[#4a4a4a]">Email-based secure verification</p>
                   </div>
                 </div>
-                <p className="text-sm mb-8 text-neutral-500 leading-relaxed">Click below to receive a secure link at <strong>{formData.email}</strong> to change your password.</p>
+                <p className="text-sm mb-8 !text-[#4a4a4a] leading-relaxed">Click below to receive a secure link at <strong className="!text-[#111111]">{formData.email}</strong> to change your password.</p>
                 <button onClick={handleSendResetLink} disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg shadow-[#044071]/20">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
                   Send Security Link
@@ -1115,13 +1116,13 @@ export default function Settings() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-bold mb-2 text-red-600">Danger Zone</h2>
-                <p className="text-sm text-neutral-500">Handle sensitive account data</p>
+                <p className="text-sm !text-[#4a4a4a]">Handle sensitive account data</p>
               </div>
               <div className="p-6 rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900/30 flex items-start gap-4">
                 <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30"><AlertTriangle className="w-6 h-6 text-red-600" /></div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-red-900 dark:text-red-100 mb-1">Delete Account</h3>
-                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">Permanent action. Wipes all project history and wallet balance.</p>
+                  <h3 className="font-bold !text-red-900 mb-1">Delete Account</h3>
+                  <p className="text-sm !text-red-700 mb-4">Permanent action. Wipes all project history and wallet balance.</p>
                   <button onClick={() => setShowDeleteModal(true)} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium">Terminate Forever</button>
                 </div>
               </div>
@@ -1130,7 +1131,7 @@ export default function Settings() {
 
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>Profile Settings</h2>
+              <h2 className="text-2xl font-bold mb-6 text-[#111111]">Profile Settings</h2>
               <div className="flex flex-col sm:flex-row items-center gap-6 mb-8">
                 <div className="relative group">
                   <img src={getImgUrl(formData.profile_image) || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80"} className="w-24 h-24 rounded-full object-cover border-2 border-[#F24C20]/30" alt="Profile" />
@@ -1138,7 +1139,7 @@ export default function Settings() {
                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoChange} />
                 </div>
                 <div className="flex flex-wrap justify-center gap-3">
-                  <button onClick={() => fileInputRef.current?.click()} className="px-6 py-2 bg-[#044071] text-white rounded-lg text-sm font-medium hover:bg-[#044071]/90">Change Photo</button>
+                  <button onClick={() => fileInputRef.current?.click()} className="px-6 py-2 bg-[#044071] !text-white rounded-lg text-sm font-medium hover:bg-[#044071]/90">Change Photo</button>
                   {formData.profile_image && (
                     <button onClick={async () => {
                       setIsSaving(true);
@@ -1146,7 +1147,7 @@ export default function Settings() {
                         const response = await api.put('/auth/update-profile', { profile_image: '' });
                         if (response.data.success) { setFormData(prev => ({ ...prev, profile_image: '' })); toast.success('Photo removed'); }
                       } catch (err) { } finally { setIsSaving(false); }
-                    }} className={`px-6 py-2 rounded-lg text-sm font-medium border ${isDarkMode ? 'border-neutral-700 text-neutral-300 hover:bg-neutral-800' : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50'}`}>Remove</button>
+                    }} className={`px-6 py-2 rounded-lg text-sm font-medium border ${isDarkMode ? 'border-neutral-700 text-neutral-900 hover:bg-neutral-900' : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'}`}>Remove</button>
                   )}
                 </div>
               </div>
@@ -1155,65 +1156,65 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {isFreelancer && (
                     <div className="md:col-span-2">
-                      <label className="block text-xs font-bold mb-2 uppercase opacity-50">Professional Title</label>
-                      <input type="text" placeholder="e.g. Senior Full Stack Developer" value={formData.role_title} onChange={e => setFormData({ ...formData, role_title: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                      <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Professional Title</label>
+                      <input type="text" placeholder="e.g. Senior Full Stack Developer" value={formData.role_title} onChange={e => setFormData({ ...formData, role_title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20]" />
                     </div>
                   )}
                   <div>
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Full Name</label>
-                    <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Full Name</label>
+                    <input type="text" value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] outline-none focus:border-[#F24C20]" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Email Address</label>
-                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700 font-mono opacity-50 cursor-not-allowed' : 'bg-white border-neutral-200'} outline-none`} disabled />
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Email Address</label>
+                    <input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-neutral-50 text-[#4a4a4a] outline-none cursor-not-allowed" disabled />
                   </div>
                    <div className="md:col-span-2">
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Location</label>
-                    <div className="relative"><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" /><input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="City, Country" className="w-full pl-11 pr-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none focus:border-[#F24C20]" /></div>
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Location</label>
+                    <div className="relative"><MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b625b]" /><input type="text" value={formData.location} onChange={e => setFormData({ ...formData, location: e.target.value })} placeholder="City, Country" className="w-full pl-11 pr-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20]" /></div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">WhatsApp Number</label>
-                    <div className={`flex items-center rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} focus-within:border-[#F24C20] overflow-hidden`}>
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">WhatsApp Number</label>
+                    <div className="flex items-center rounded-xl border border-neutral-200 bg-white text-[#111111] focus-within:border-[#F24C20] overflow-hidden">
                       <input 
                         type="text" 
                         placeholder="+91" 
                         value={formData.whatsapp_country_code} 
                         onChange={e => setFormData({ ...formData, whatsapp_country_code: e.target.value })} 
-                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-700/30 text-center font-mono text-sm"
+                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-200 text-center font-mono text-sm text-[#111111] placeholder:text-[#6b625b]"
                       />
                       <input 
                         type="tel" 
                         placeholder="9876543210" 
                         value={formData.whatsapp_number} 
                         onChange={e => setFormData({ ...formData, whatsapp_number: e.target.value })} 
-                        className="flex-1 px-4 py-3 bg-transparent outline-none"
+                        className="flex-1 px-4 py-3 bg-transparent outline-none text-[#111111] placeholder:text-[#6b625b]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Business or Alternative Number</label>
-                    <div className={`flex items-center rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} focus-within:border-[#F24C20] overflow-hidden`}>
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Business or Alternative Number</label>
+                    <div className="flex items-center rounded-xl border border-neutral-200 bg-white text-[#111111] focus-within:border-[#F24C20] overflow-hidden">
                       <input 
                         type="text" 
                         placeholder="+91" 
                         value={formData.business_or_alternative_country_code} 
                         onChange={e => setFormData({ ...formData, business_or_alternative_country_code: e.target.value })} 
-                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-700/30 text-center font-mono text-sm"
+                        className="w-16 px-3 py-3 bg-transparent outline-none border-r border-neutral-200 text-center font-mono text-sm text-[#111111] placeholder:text-[#6b625b]"
                       />
                       <input 
                         type="tel" 
                         placeholder="9876543210" 
                         value={formData.business_or_alternative_number} 
                         onChange={e => setFormData({ ...formData, business_or_alternative_number: e.target.value })} 
-                        className="flex-1 px-4 py-3 bg-transparent outline-none"
+                        className="flex-1 px-4 py-3 bg-transparent outline-none text-[#111111] placeholder:text-[#6b625b]"
                       />
                     </div>
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Languages Spoken</label>
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Languages Spoken</label>
                     <input 
                       type="text" 
                       placeholder="e.g. English, Hindi, Telugu" 
@@ -1223,36 +1224,36 @@ export default function Settings() {
                         const langArray = val.split(',').map(s => s.trim());
                         setFormData({ ...formData, languages: langArray });
                       }} 
-                      className={`w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none focus:border-[#F24C20] ${isDarkMode ? 'text-white' : 'text-neutral-900'}`} 
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20]"
                     />
-                    <p className="text-[10px] text-neutral-500 mt-2 uppercase tracking-widest">Separate multiple languages with commas</p>
+                    <p className="text-[10px] text-[#4a4a4a] mt-2 uppercase tracking-widest">Separate multiple languages with commas</p>
                   </div>
                 </div>
 
                 {isFreelancer && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-[#f2c9a7]/70 bg-[#fffaf4] mb-6">
                     <div className="md:col-span-2"><h3 className="font-bold text-sm uppercase text-[#F24C20] mb-4">Work Preferences</h3></div>
-                    <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Service Price Starts From (₹)</label><input type="number" value={formData.hourly_rate || ''} onChange={e => setFormData({ ...formData, hourly_rate: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-transparent outline-none" /></div>
-                    <div><label className="block text-xs font-bold mb-2 uppercase opacity-50">Availability</label><select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-700/30 bg-neutral-950 outline-none"><option value="">Select</option><option value="full-time">Full Time</option><option value="part-time">Part Time</option></select></div>
+                    <div><label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Service Price Starts From (₹)</label><input type="number" value={formData.hourly_rate || ''} onChange={e => setFormData({ ...formData, hourly_rate: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] outline-none focus:border-[#F24C20]" /></div>
+                    <div><label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Availability</label><select value={formData.availability} onChange={e => setFormData({ ...formData, availability: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] outline-none focus:border-[#F24C20]"><option value="">Select</option><option value="full-time">Full Time</option><option value="part-time">Part Time</option></select></div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-neutral-700/30 bg-neutral-900/20 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 rounded-2xl border border-[#f2c9a7]/70 bg-[#fffaf4] mb-6">
                   <div className="md:col-span-2"><h3 className="font-bold text-sm uppercase text-[#F24C20] mb-4">Public Link & SEO</h3></div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Title</label>
-                    <input type="text" placeholder="e.g. Hire John Doe - Senior React Developer" value={formData.meta_title} onChange={e => setFormData({ ...formData, meta_title: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20]`} />
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Meta Title</label>
+                    <input type="text" placeholder="e.g. Hire John Doe - Senior React Developer" value={formData.meta_title} onChange={e => setFormData({ ...formData, meta_title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20]" />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Keywords</label>
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Meta Keywords</label>
                     <div 
-                      className={`w-full min-h-[50px] px-3 py-2 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} flex flex-wrap gap-2 items-center cursor-text transition-colors focus-within:border-[#F24C20]`}
+                      className="w-full min-h-[50px] px-3 py-2 rounded-xl border border-neutral-200 bg-white flex flex-wrap gap-2 items-center cursor-text transition-colors focus-within:border-[#F24C20]"
                       onClick={() => document.getElementById('frontend-keyword-input')?.focus()}
                     >
                       {(formData.meta_keywords || '').split(',').filter(k => k.trim()).map((kw, i) => (
                         <div 
                           key={i}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${isDarkMode ? 'bg-neutral-800 text-neutral-200 border border-neutral-700' : 'bg-neutral-100 text-neutral-700 border border-neutral-200'}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#111111] !text-white text-xs font-bold border border-[#111111]"
                         >
                           {kw.trim()}
                           <X 
@@ -1271,7 +1272,7 @@ export default function Settings() {
                         id="frontend-keyword-input"
                         type="text" 
                         placeholder={!(formData.meta_keywords || '').trim() ? "Type keywords separated by commas or press Enter" : ""}
-                        className="flex-1 min-w-[150px] bg-transparent border-none outline-none text-sm py-1"
+                        className="flex-1 min-w-[150px] bg-transparent border-none outline-none text-sm py-1 text-[#111111] placeholder:text-[#6b625b]"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ',') {
                             e.preventDefault();
@@ -1294,13 +1295,13 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold mb-2 uppercase opacity-50">Meta Description</label>
-                    <textarea rows={3} placeholder="Short search description for this profile..." value={formData.meta_description} onChange={e => setFormData({ ...formData, meta_description: e.target.value })} className={`w-full px-4 py-3 rounded-xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'} outline-none focus:border-[#F24C20] resize-none`} />
+                    <label className="block text-xs font-bold mb-2 uppercase text-[#4a4a4a]">Meta Description</label>
+                    <textarea rows={3} placeholder="Short search description for this profile..." value={formData.meta_description} onChange={e => setFormData({ ...formData, meta_description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-[#111111] placeholder:text-[#6b625b] outline-none focus:border-[#F24C20] resize-none" />
                   </div>
                 </div>
 
 
-                <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 transition-all shadow-lg shadow-[#044071]/20">
+                <button type="submit" disabled={isSaving} className="w-full sm:w-auto px-10 py-4 bg-[#044071] !text-white rounded-xl font-bold hover:bg-[#055a99] disabled:opacity-50 transition-all shadow-lg shadow-[#044071]/20">
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Profile Changes'}
                 </button>
               </form>
@@ -1311,7 +1312,7 @@ export default function Settings() {
             {previewDocument && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4" onClick={() => setPreviewDocument(null)}>
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={`relative w-full max-w-5xl h-[80vh] rounded-2xl border overflow-hidden ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`} onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center justify-between p-4 border-b border-neutral-800"><h3 className="font-bold">{previewDocument.title}</h3><button onClick={() => setPreviewDocument(null)}><X /></button></div>
+                  <div className="flex items-center justify-between p-4 border-b border-neutral-800"><h3 className="font-bold !text-[#111111]">{previewDocument.title}</h3><button onClick={() => setPreviewDocument(null)}><X /></button></div>
                   {isPdfDocument(previewDocument.url) ? <iframe src={previewDocument.url} className="w-full h-full" /> : <img src={previewDocument.url} className="w-full h-full object-contain" />}
                 </motion.div>
               </motion.div>
@@ -1326,8 +1327,8 @@ export default function Settings() {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
               className={`w-full max-w-md p-8 rounded-2xl border ${isDarkMode ? 'bg-neutral-900 border-neutral-800' : 'bg-white border-neutral-200'}`}
             >
-              <h3 className="text-xl font-bold mb-2">Delete Account?</h3>
-              <p className="text-neutral-500 mb-6">This will wipe your Entire history and profile. This cannot be undone.</p>
+              <h3 className="text-xl font-bold mb-2 !text-[#111111]">Delete Account?</h3>
+              <p className="!text-[#4a4a4a] mb-6">This will wipe your Entire history and profile. This cannot be undone.</p>
               <div className="flex gap-4">
                 <button onClick={() => setShowDeleteModal(false)} className="flex-1 px-6 py-3 rounded-xl border">Cancel</button>
                 <button onClick={handleDeleteAccount} disabled={isSaving} className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-bold">Confirm</button>

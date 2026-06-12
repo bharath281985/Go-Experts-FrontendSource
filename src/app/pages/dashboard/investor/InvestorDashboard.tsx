@@ -62,6 +62,13 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
   );
 }
 
+const getCategoryLabel = (category: any) => {
+  if (!category) return '';
+  if (typeof category === 'string') return category;
+  if (typeof category === 'object') return category.name || category.slug || category.id || '';
+  return String(category);
+};
+
 function StatCard({ label, value, icon: Icon, trend }: { label: string; value: string; icon: any; trend?: string }) {
     const { isDarkMode } = useTheme();
     return (
@@ -91,6 +98,7 @@ function StatCard({ label, value, icon: Icon, trend }: { label: string; value: s
 function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
     const { isDarkMode } = useTheme();
     const idea = deal.startup_idea || {};
+    const categoryLabel = getCategoryLabel(idea.category);
     
     const handleViewRoom = () => {
         if (idea._id) {
@@ -120,7 +128,7 @@ function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
                         </div>
                         <div className="min-w-0">
                             <h4 className={`font-black truncate tracking-tight text-lg ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title || 'Untitled Startup'}</h4>
-                            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">{idea.category || 'Tech/AI'}</p>
+                            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mt-0.5">{categoryLabel || 'Tech/AI'}</p>
                         </div>
                     </div>
                 </div>
@@ -162,6 +170,7 @@ function DealCard({ deal, navigate }: { deal: any; navigate: any }) {
 function StartupDiscoverCard({ idea }: { idea: any }) {
     const { isDarkMode } = useTheme();
     const navigate = useNavigate();
+    const categoryLabel = getCategoryLabel(idea.category);
     return (
         <div 
             onClick={() => navigate(`/dashboard-investor/explore-ideas`)}
@@ -176,7 +185,7 @@ function StartupDiscoverCard({ idea }: { idea: any }) {
                     <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Explore Concept</span>
                  </div>
                  <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl px-2.5 py-1 text-[8px] font-black text-white uppercase tracking-widest">
-                    {idea.category}
+                    {categoryLabel || 'Tech'}
                  </div>
             </div>
             <div className="p-6">
@@ -662,7 +671,7 @@ export default function InvestorDashboard() {
                       <div key={idea._id || i} className="flex items-center gap-3">
                          <span className="w-1.5 h-1.5 rounded-full bg-[#F24C20]" />
                          <span className={`text-[11px] font-black uppercase tracking-wider ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>{idea.title}</span>
-                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{idea.category || 'Tech'}</span>
+                         <span className="px-1.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-bold text-[#F24C20] uppercase">{getCategoryLabel(idea.category) || 'Tech'}</span>
                       </div>
                     )) : (
                       <span className="text-xs text-neutral-500 font-bold uppercase tracking-widest">Scanning latest submissions...</span>

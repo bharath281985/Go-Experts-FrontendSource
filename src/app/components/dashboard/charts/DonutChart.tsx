@@ -40,10 +40,10 @@ export default function DonutChart({ data, centerText, centerValue, size = 200 }
       </ResponsiveContainer>
       {centerText && centerValue && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-neutral-900'}`}>
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-[#111111]' : 'text-neutral-900'}`}>
             {centerValue}
           </div>
-          <div className={`text-xs ${isDarkMode ? 'text-neutral-400' : 'text-neutral-500'}`}>
+          <div className={`text-xs ${isDarkMode ? 'text-[#4a4a4a]' : 'text-neutral-500'}`}>
             {centerText}
           </div>
         </div>

@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-8 bg-neutral-950">
+        <div className="min-h-screen flex items-center justify-center p-8 bg-background">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -56,10 +56,10 @@ export default function ResetPasswordPage() {
             >
                 <div className="mb-8">
                     <div className="flex items-center gap-2 mb-4">
-                        <img src={logo} alt="Go Experts" className="h-10 w-auto brightness-0 invert" />
+                        <img src={logo} alt="Go Experts" className="h-10 w-auto" />
                     </div>
-                    <h1 className="text-3xl font-bold mb-2 text-white">Choose new password</h1>
-                    <p className="text-neutral-400">
+                    <h1 className="text-3xl font-bold mb-2 text-foreground">Choose new password</h1>
+                    <p className="text-muted-foreground">
                         Create a new password that is at least 8 characters long.
                     </p>
                 </div>
@@ -67,21 +67,21 @@ export default function ResetPasswordPage() {
                 {!isSuccess ? (
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-neutral-300">New Password</label>
+                            <label className="block text-sm font-medium mb-2 text-foreground">New Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Minimum 8 characters"
                                     required
-                                    className="w-full pl-12 pr-12 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                                    className="w-full pl-12 pr-12 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#F24C20] transition-colors"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
@@ -89,16 +89,16 @@ export default function ResetPasswordPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-neutral-300">Confirm Password</label>
+                            <label className="block text-sm font-medium mb-2 text-foreground">Confirm Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Confirm new password"
                                     required
-                                    className="w-full pl-12 pr-4 py-3 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#F24C20] transition-colors"
+                                    className="w-full pl-12 pr-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#F24C20] transition-colors"
                                 />
                             </div>
                         </div>
@@ -121,8 +121,8 @@ export default function ResetPasswordPage() {
                 ) : (
                     <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-8 text-center">
                         <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold text-white mb-2">Success!</h3>
-                        <p className="text-neutral-400 mb-6">
+                        <h3 className="text-2xl font-bold text-foreground mb-2">Success!</h3>
+                        <p className="text-muted-foreground mb-6">
                             Your password has been reset successfully. Redirecting you to sign in...
                         </p>
                         <Link

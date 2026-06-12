@@ -145,7 +145,7 @@ export default function CategoriesSection() {
   };
 
   return (
-    <section ref={ref} className="relative py-20 overflow-hidden bg-neutral-950">
+    <section ref={ref} className="relative py-20 overflow-hidden bg-background text-foreground">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <motion.div
@@ -175,7 +175,7 @@ export default function CategoriesSection() {
               <span className="text-sm font-medium text-[#F24C20]">Explore Categories</span>
             </div>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
             Enter the Skill Portals
           </h2>
           <p className="text-xl text-neutral-400 max-w-2xl mx-auto">
@@ -196,7 +196,7 @@ export default function CategoriesSection() {
               onClick={() => navigate(`/projects?search=${encodeURIComponent(category.title)}`)}
             >
               {/* Card */}
-              <div className="relative h-full p-6 rounded-2xl bg-neutral-900/50 backdrop-blur-sm border border-neutral-800 hover:border-[#F24C20]/50 transition-all duration-300 overflow-hidden">
+              <div className="relative h-full p-6 rounded-2xl bg-white border border-[#FFE0C2] hover:border-[#F24C20]/50 transition-all duration-300 overflow-hidden shadow-xl shadow-orange-500/5">
                 {/* Glow Effect */}
                 <motion.div
                   className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${category.color} blur-3xl -z-10`}
@@ -252,13 +252,13 @@ export default function CategoriesSection() {
                     )}
                   </motion.div>
 
-                  <h3 className="text-xl font-bold text-white group-hover:text-[#F24C20] transition-colors leading-tight">
+                  <h3 className="text-xl font-bold text-foreground group-hover:text-[#F24C20] transition-colors leading-tight">
                     {category.title}
                   </h3>
                 </div>
 
                 {/* Description */}
-                <p className="text-neutral-400 text-sm mb-6 leading-relaxed line-clamp-4">
+                <p className="text-neutral-500 text-sm mb-6 leading-relaxed line-clamp-4">
                   {category.description}
                 </p>
 
@@ -331,7 +331,7 @@ export default function CategoriesSection() {
         >
           <button 
             onClick={() => navigate('/categories')}
-            className="px-8 py-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl text-white font-semibold transition-all duration-300 group"
+            className="px-8 py-4 bg-white hover:bg-[#FFEAD4]/20 border border-[#FFE0C2] hover:border-[#F24C20]/50 rounded-xl text-foreground font-semibold transition-all duration-300 group"
           >
             <span className="flex items-center gap-2">
               Explore All Categories

@@ -8,7 +8,6 @@ import GigOrderSuccess from '@/app/pages/GigOrderSuccess';
 import ProjectsPage from '@/app/pages/ProjectsPage';
 import ProjectDetailsPage from '@/app/pages/ProjectDetailsPage';
 import TalentPage from '@/app/pages/TalentPage';
-import TalentProfilePage from '@/app/pages/TalentProfilePage';
 import SignInPage from '@/app/pages/SignInPage';
 import SignUpPage from '@/app/pages/SignUpPage';
 import ForgotPasswordPage from '@/app/pages/ForgotPasswordPage';
@@ -60,7 +59,7 @@ export default function App() {
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/:id" element={<ProjectDetailsPage />} />
             <Route path="/talent" element={<TalentPage />} />
-            <Route path="/talent/:id" element={<TalentProfilePage />} />
+            <Route path="/talent/:id" element={<FreelancerLandingPage />} />
             <Route path="/f/:id" element={<FreelancerLandingPage />} />
             <Route path="/signin" element={<SignInPage />} />
             <Route path="/signup" element={<SignUpPage />} />

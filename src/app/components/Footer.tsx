@@ -154,9 +154,9 @@ export default function Footer() {
 
   return (
     <footer
-      className="relative pt-20 pb-8 overflow-hidden border-t border-neutral-800"
+      className="relative pt-20 pb-8 overflow-hidden border-t border-[#FFE0C2]"
       style={{
-        background: 'linear-gradient(180deg, #000000 0%, #0a0505 100%)',
+        background: 'linear-gradient(180deg, var(--background) 0%, var(--secondary) 100%)',
       }}
     >
       {/* Background Glow */}
@@ -181,7 +181,7 @@ export default function Footer() {
                 className="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity duration-300"
               />
             </div>
-            <p className="text-neutral-400 mb-6 leading-relaxed">
+            <p className="text-neutral-500 mb-6 leading-relaxed">
               {settings.site_tagline || 'Find verified experts. Get work done faster. The future of freelancing is here.'}
             </p>
             <div className="flex flex-wrap gap-3">
@@ -192,9 +192,9 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.1, y: -2 }}
-                  className="w-9 h-9 rounded-xl bg-neutral-900 hover:bg-[#F24C20]/20 border border-neutral-800 hover:border-[#F24C20]/50 flex items-center justify-center transition-all duration-300"
+                  className="w-9 h-9 rounded-xl bg-white hover:bg-[#F24C20]/20 border border-[#FFE0C2] hover:border-[#F24C20]/50 flex items-center justify-center transition-all duration-300 shadow-sm"
                 >
-                  <Icon className="w-4 h-4 text-neutral-400 hover:text-[#F24C20] transition-colors duration-300" />
+                  <Icon className="w-4 h-4 text-foreground hover:text-[#F24C20] transition-colors duration-300" />
                 </motion.a>
               ))}
             </div>
@@ -202,7 +202,7 @@ export default function Footer() {
 
           {footerColumns.map((col, idx) => (
             <div key={idx}>
-              <h3 className="font-bold mb-6 text-white text-lg">{col.title}</h3>
+              <h3 className="font-bold mb-6 text-foreground text-lg">{col.title}</h3>
               <ul className="space-y-3">
                 {col.links.map((item: any) => (
                   <li key={item.label}>
@@ -210,7 +210,7 @@ export default function Footer() {
                       to={item.path}
                       target={item.open_in_new_tab ? '_blank' : '_self'}
                       rel={item.open_in_new_tab ? 'noopener noreferrer' : undefined}
-                      className="text-neutral-400 hover:text-[#F24C20] transition-colors duration-300 flex items-center gap-2 group"
+                      className="text-neutral-600 hover:text-[#F24C20] transition-colors duration-300 flex items-center gap-2 group"
                     >
                       <span className="w-0 h-px bg-[#F24C20] group-hover:w-4 transition-all duration-300" />
                       {item.label}
@@ -223,33 +223,33 @@ export default function Footer() {
         </div>
 
         {/* App Download Section */}
-        <div className="border-t border-neutral-800 pt-10 pb-10">
+        <div className="border-t border-[#FFE0C2] pt-10 pb-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h4 className="text-white font-semibold mb-2">Get the Go Experts App</h4>
-              <p className="text-neutral-500 text-sm">Available Shortly on Android and iOS Platform</p>
+              <h4 className="text-foreground font-semibold mb-2">Get the Go Experts App</h4>
+              <p className="text-neutral-600 text-sm">Available Shortly on Android and iOS Platform</p>
             </div>
             <div className="flex gap-4">
               <motion.a
                 href="#"
                 whileHover={{ scale: 1.05, y: -2 }}
-                className="px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300"
+                className="px-4 py-3 bg-white hover:bg-[#FFEAD4]/20 border border-[#FFE0C2] hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300 shadow-sm"
               >
                 <AppleStoreIcon className="w-6 h-6 shrink-0 text-[#F24C20]" />
                 <div className="min-w-[144px] leading-tight">
                   <div className="text-xs text-neutral-500">Download on</div>
-                  <div className="font-semibold text-white">App Store</div>
+                  <div className="font-semibold text-foreground">App Store</div>
                 </div>
               </motion.a>
               <motion.a
                 href="#"
                 whileHover={{ scale: 1.05, y: -2 }}
-                className="px-4 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300"
+                className="px-4 py-3 bg-white hover:bg-[#FFEAD4]/20 border border-[#FFE0C2] hover:border-[#F24C20]/50 rounded-xl flex items-center gap-3.5 transition-all duration-300 shadow-sm"
               >
                 <PlayStoreIcon className="w-6 h-6 shrink-0 text-[#F24C20]" />
                 <div className="min-w-[144px] leading-tight">
                   <div className="text-xs text-neutral-500">Get it on</div>
-                  <div className="font-semibold text-white">Google Play</div>
+                  <div className="font-semibold text-foreground">Google Play</div>
                 </div>
               </motion.a>
             </div>
@@ -257,8 +257,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-neutral-800 pt-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-neutral-500">
+        <div className="border-t border-[#FFE0C2] pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-neutral-600">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#F24C20] animate-pulse" />
               <span>{settings.footer_copyright || `© ${new Date().getFullYear()} Go Experts. All rights reserved.`}</span>

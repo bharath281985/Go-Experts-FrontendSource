@@ -88,7 +88,7 @@ export default function VerifyEmailPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-6">
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#F24C20]/10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-600/10 rounded-full blur-[120px]" />
@@ -134,7 +134,7 @@ export default function VerifyEmailPage() {
                     )}
                 </div>
 
-                <h1 className="text-3xl font-bold text-white mb-4">
+                <h1 className="text-3xl font-bold text-foreground mb-4">
                     {status === 'loading' ? 'Verifying...' : status === 'success' ? 'Email Verified!' : 'Verification Failed'}
                 </h1>
 
